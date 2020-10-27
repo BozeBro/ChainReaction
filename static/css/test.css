@@ -5,9 +5,8 @@
 /* */
 .grid {
     display: grid;
-    grid-template-columns: repeat(7, minmax(40px, 100%));
+    grid-template-columns: repeat(3, 1fr);
     gap: 1px;
-    height: 75vh;
   }
   .item {
     background: grey;
