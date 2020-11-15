@@ -7,12 +7,13 @@
 }
 
 .row {
-  width: 60px;
-  height: 60px;
-  text-align: center;
   border: solid green 1px;
+  display: flex;
+  flex-direction: column;
+  flex: auto;
+  text-align: center;
+  flex: 1 5 auto;
 }
-
 #interface {
   display: flex;
   justify-content: center;

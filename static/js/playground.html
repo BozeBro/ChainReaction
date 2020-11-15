@@ -16,27 +16,6 @@
         </div>
     </div>
 </body>
-<script>
-    var board = document.getElementById("game")
-    function makeBoard(rows, cols) {
-        const squareLength = 450 / Math.max(rows, cols);
-        for (c = 0; c < cols; c++) {
-            var column = document.createElement("div");
-            column.className = "column";
-            for (r = 0; r < rows; r++) {
-                var row = document.createElement("div");
-                //const texting = document.createTextNode("");
-                //row.appendChild(texting);
-                row.className = "row";
-                row.style.height = String(squareLength) + "px";
-                row.style.width = String(squareLength) + "px";
-                column.appendChild(row);
-            }
-            board.appendChild(column);
-        }
-    }
-    makeBoard(20, 25)
-    // board.innerHTML = makeBoard(8, 8);
+<script src="begin.js">
 </script>
-
 </html>
