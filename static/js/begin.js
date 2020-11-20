@@ -7,7 +7,7 @@ function makeBoard(rows, cols) {
     for (r = 0; r < rows; r++) {
       var row = document.createElement("div");
       row.className = "row";
-      row.id = "test";
+      row.id = "test" + String(r) + String(c);
       row.style.height = String(squareLength) + "px";
       row.style.width = String(squareLength) + "px";
       column.appendChild(row);
@@ -41,51 +41,39 @@ function makeGameBoard(rows, cols) {
 const move = function (x, y, color) {
   // Player move
   let square = board.children[y].children[x];
+  value = square.innerHTML;
   square.style.background = color;
   square.style.color = "white";
-  if (square.innerHTML === "") {
+  if (value === "") {
     square.innerHTML = "1";
-  } else if (notFilled(x, y, square)) {
-    square.innerHTML = String(parseInt(square.innerHTML) + 1);
+  } else if (parseInt(value) + 1 < gameBoard[y][x]) {
+    square.innerHTML = String(parseInt(value) + 1);
   } else {
-    explode(x, y, color);
+    if (x - 1 >= 0) {
+      move(x - 1, y, color);
+    }
+    if (x + 1 < rows) {
+      move(x + 1, y, color);
+    }
+    if (y - 1 >= 0) {
+      move(x, y - 1, color);
+    }
+    if (y + 1 < cols) {
+      move(x, y + 1, color);
+    }
     square.style.background = "white";
     square.innerHTML = "";
   }
 }
-const notFilled = function (x, y, square) {
-  if (parseInt(square.innerHTML) + 1 >= gameBoard[y][x]) {
-    return false;
-  }
-  return true;
-}
-const explode = function (x, y, color) {
-  if (x - 1 >= 0) {
-    move(x - 1, y, color);
-  }
-  if (x + 1 < rows) {
-    move(x + 1, y, color);
-  }
-  if (y - 1 >= 0) {
-    move(x, y - 1, color);
-  }
-  if (y + 1 < cols) {
-    move(x, y + 1, color);
-  }
-}
+// Look at query selector and choose by position
 document.getElementById("game").onclick = function (event) {
-  alert(event.region)
-  event.preventDefault();
+  data = board.getBoundingClientRect();
+  alert(`${event.x} + ${event.y}`)
 }
-const rows = 25, cols = 25;
+
+const rows = 10, cols = 25;
 makeBoard(rows, cols);
 var gameBoard = makeGameBoard(rows, cols);
 move(0, 0, "black");
-move(1, 0, "black");
-move(1, 0, "black");
-move(1, 0, "black");
 
-document.getElementById("test").onclick = function (event) {
-  alert(event.region)
-  event.preventDefault();
-}
+
