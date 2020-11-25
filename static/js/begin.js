@@ -2,10 +2,10 @@ var chainReaction = function (rows = 8, cols = 8) {
   this.board = document.getElementById("game");
   this.rows = rows;
   this.cols = cols;
-  this.gameBoard = [];
 }
 
 chainReaction.prototype.makeBoard = function () {
+  // Make HTML board
   const squareLength = 450 / Math.max(this.rows, this.cols);
   for (c = 0; c < this.cols; c++) {
     var column = document.createElement("div");
@@ -15,9 +15,14 @@ chainReaction.prototype.makeBoard = function () {
       row.className = "row";
       row.style.height = String(squareLength) + "px";
       row.style.width = String(squareLength) + "px";
-      row.id = String(r) + ":" + String(c);
+      xrow = document.createAttribute("xrow");
+      ycol = document.createAttribute("ycol");
+      xrow.value = String(r);
+      ycol.value = String(c);
+      row.setAttributeNode(xrow);
+      row.setAttributeNode(ycol);
       row.addEventListener("click", function () {
-        squareClick(this.id)
+        squareClick(this)
       })
       column.appendChild(row);
     }
@@ -25,6 +30,7 @@ chainReaction.prototype.makeBoard = function () {
   }
 }
 chainReaction.prototype.makeCodedBoard = function () {
+  // Make code representation of the board
   gameBoard = [];
   for (c = 0; c < this.cols; c++) {
     gameBoard[c] = []
@@ -51,6 +57,10 @@ chainReaction.prototype.makeCodedBoard = function () {
 chainReaction.prototype.move = null
 chainReaction.prototype.move = function (x, y, color) {
   // Player move
+  if (typeof (x) == "string") {
+    x = parseInt(x);
+    y = parseInt(y);
+  }
   let square = this.board.children[y].children[x];
   value = square.innerHTML;
   square.style.background = color;
@@ -60,6 +70,8 @@ chainReaction.prototype.move = function (x, y, color) {
   } else if (parseInt(value) + 1 < this.gameBoard[y][x]) {
     square.innerHTML = String(parseInt(value) + 1);
   } else {
+    square.style.background = "white";
+    square.innerHTML = "";
     if (x - 1 >= 0) {
       this.move(x - 1, y, color);
     }
@@ -72,21 +84,19 @@ chainReaction.prototype.move = function (x, y, color) {
     if (y + 1 < this.cols) {
       this.move(x, y + 1, color);
     }
-    square.style.background = "white";
-    square.innerHTML = "";
   }
 }
-function squareClick(id) {
+function squareClick(square) {
   // Will Try to make a move on the clicked square
-  alert(id);
+  row = square.getAttribute("xrow");
+  col = square.getAttribute("ycol");
+  chain.move(row, col, "black");
 }
 var chain = new chainReaction(8, 8);
 
 
 chain.makeBoard();
 chain.gameBoard = chain.makeCodedBoard();
-chain.move(0, 0, "black");
-chain.move(0, 0, "black");
 
 
 
