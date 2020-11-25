@@ -7,11 +7,11 @@
 }
 
 .row {
-  border: solid green 1px;
   display: flex;
+  border: solid green 1px;
   flex-direction: column;
-  flex: auto;
   text-align: center;
+  justify-content: center;
   flex: 1 5 auto;
 }
 #interface {
