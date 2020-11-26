@@ -111,6 +111,7 @@ chainReaction.prototype.draw = function (x, y) {
   }
 }
 var loc = function (z, length, push = 0) { return z * length + length / 2 + push }
+canvas.onclick = function(event) {}
 chain = new chainReaction(10, 10);
 chain.initBoard();
 chain.move(1, 1);
