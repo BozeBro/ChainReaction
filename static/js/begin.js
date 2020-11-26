@@ -1,39 +1,47 @@
 const canvas = document.getElementById("chainReaction");
 const ctx = canvas.getContext("2d");
-var squares = [];
-var squareLength = null
+function chainReaction(x, y) {
+  this.x = x;
+  this.y = y;
+  this.squareLength = Math.min(450 / x, 450 / y);
+  this.squares = [];
+}
+chainReaction.prototype.initBoard = function () {
 
-function initBoard(x, y) {
-  height = 450;
-  width = 450;
-
-  squareLength = Math.min(width / x, height / y);
-
-  ctx.canvas.width = x * squareLength;
-  ctx.canvas.height = y * squareLength;
-  ctx.fillStyle = "#fff";
+  ctx.canvas.width = this.x * this.squareLength;
+  ctx.canvas.height = this.y * this.squareLength;
+  ctx.fillStyle = "#fff"; // White
 
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  for (h = 0; h < y; h++) {
-    squares[h] = [];
-    for (l = 0; l < x; l++) {
+  for (h = 0; h < this.y; h++) {
+    this.squares[h] = [];
+    for (l = 0; l < this.x; l++) {
       ctx.beginPath();
       ctx.lineWidth = 1;
-      ctx.strokeRect(l * squareLength, h * squareLength, squareLength, squareLength);
+      ctx.strokeRect(l * this.squareLength, h * this.squareLength, this.squareLength, this.squareLength);
       ctx.closePath();
-      squares[h][l] = 0;
+      val = (function () {
+        valid = 0;
+        if (l - 1 >= 0) { valid += 1 }
+        if (l + 1 < this.x) { valid += 1 }
+        if (h - 1 >= 0) { valid += 1 }
+        if (h + 1 < this.y) { valid += 1 }
+        return valid
+      })();
+      this.squares[h][l] = [0, val];
     }
   }
-  return squareLength
-};
-function makeCircle() {
+}
+chainReaction.prototype.move = function(x, y) {
   ctx.beginPath();
   ctx.fillStyle = "#f00";
   ctx.lineWidth = 1;
-  ctx.fillRect(1*squareLength + squareLength / 3, 1 * squareLength + squareLength / 3, squareLength/3, squareLength/3);
+  ctx.fillRect(x * this.squareLength + this.squareLength / 3, y * this.squareLength + this.squareLength / 3, this.squareLength / 3, this.squareLength / 3);
   //ctx.fillRect()
   ctx.closePath();
 }
-squareLength = initBoard(20, 20);
-makeCircle();
+chain = new chainReaction(8, 8);
+chain.initBoard(10, 15);
+chain.move(1, 1);
+ctx.clearRect(0, 0, chain.squareLength * 4, chain.squareLength * 4);
