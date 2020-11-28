@@ -8,8 +8,8 @@ class chainReaction {
     this.cols = cols;
     this.squareLength = Math.min(450 / rows, 450 / cols);
     this.radius = this.squareLength / 4
-    this.squares = [];
-    this.canvas.onclick = (event) => {
+    this.squares = []
+    this.staticCanv.onclick = (event) => {
       let canvasObj = event.target.getBoundingClientRect();
       let x = Math.floor((event.clientX - canvasObj.left) / this.squareLength);
       let y = Math.floor((event.clientY - canvasObj.top) / this.squareLength);
@@ -26,10 +26,10 @@ class chainReaction {
     for (let h = 0; h < this.cols; h++) {
       this.squares[h] = [];
       for (let l = 0; l < this.rows; l++) {
-        this.ctx.beginPath();
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeRect(l * this.squareLength, h * this.squareLength, this.squareLength, this.squareLength);
-        this.ctx.closePath();
+        this.staticCtx.beginPath();
+        this.staticCtx.lineWidth = 1;
+        this.staticCtx.strokeRect(l * this.squareLength, h * this.squareLength, this.squareLength, this.squareLength);
+        this.staticCtx.closePath();
         let val = (function (rows, cols) {
           let valid = 0;
           if (l - 1 >= 0) { valid += 1 }
@@ -43,11 +43,9 @@ class chainReaction {
     }
   }
   animate(timestamp, x, y, dx, dy, i = 0) {
-    if (start === undefined) {
-      start = timestamp;
-    }
+    start = timestamp ? start === undefined : start
     const elapsed = timestamp - start
-    //ctx.clearRect(0, 0, canvas.width, canvas.height)
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     if (dx !== 0) {
       i += dx
       this.ctx.beginPath();
@@ -67,7 +65,6 @@ class chainReaction {
   }
   move(x, y) {
     let curSquare = this.squares[y][x];
-    this.ctx.save()
     if (curSquare[0] + 1 < curSquare[1]) {
       this.squares[y][x][0] += 1;
       this.draw(x, y);
