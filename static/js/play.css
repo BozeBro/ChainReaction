@@ -2,6 +2,24 @@
   border: solid 2px;
 }
 
+
+#interface {
+  display: flex;
+  justify-content: center;
+}
+
+#static {
+  position: relative;
+  left: 0;
+  top: 0;
+  z-index: 1;
+}
+#chainReaction {
+  position: relative;
+  left: 0;
+  top: 0;
+  z-index: 2;
+}
 .column {
   display: flex;
 }
@@ -13,10 +31,6 @@
   border: solid green 1px;
 }
 
-#interface {
-  display: flex;
-  justify-content: center;
-}
 
 .general {
   display: flex;
