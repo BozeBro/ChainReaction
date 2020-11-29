@@ -9,11 +9,12 @@ class chainReaction {
     this.squareLength = Math.min(450 / rows, 450 / cols);
     this.radius = this.squareLength / 4
     this.squares = []
+    this.exp = []
     this.staticCanv.onclick = (event) => {
       let canvasObj = event.target.getBoundingClientRect();
       let x = Math.floor((event.clientX - canvasObj.left) / this.squareLength);
       let y = Math.floor((event.clientY - canvasObj.top) / this.squareLength);
-      this.move(x, y)
+      this.clicked(x, y)
     }
   }
   initBoard() {
@@ -63,24 +64,61 @@ class chainReaction {
       requestAnimationFrame(() => this.animate(timestamp, x, y, dx, dy, i))
     } else { start = undefined }
   }
-  move(x, y) {
+  explode(exp) {
+    // 70 frames per second
+    let d = 70 * this.squareLength / 1000 
+    while (exp.length !== 0) {
+      let moved = []
+      for (const e of exp) {
+        let x = e[0]; let y = e[1];
+        let posX = loc(x, this.squareLength)
+        let posY = loc(y, this.squareLength)
+        if (x + 1 < this.rows) {
+          moved.push([x + 1, y])
+          this.animate(0, posX, posY, d, 0)
+        }
+        if (x - 1 >= 0) {
+          moved.push([x - 1, y])
+          this.animate(0, posX, posY, -d, 0)
+        }
+        if (y + 1 < this.cols) {
+          moved.push([x, y + 1])
+          this.animate(0, posX, posY, 0, d)
+        }
+        if (y - 1 >= 0) {
+          moved.push([x, y - 1])
+          this.animate(0, posX, posY, 0, -d)
+        }
+      }
+      exp = this.move(moved)
+    }
+  }
+  clicked(x, y) {
     let curSquare = this.squares[y][x];
+    this.draw(x, y)
     if (curSquare[0] + 1 < curSquare[1]) {
       this.squares[y][x][0] += 1;
-      this.draw(x, y);
     } else {
+      // Max capacity is reached
       this.squares[y][x][0] = 0;
-      this.draw(x, y);
-      let posX = loc(x, this.squareLength);
-      let posY = loc(y, this.squareLength)
-      if (x + 1 < this.rows) {
-        this.animate(0, posX, posY, this.squareLength / 60, 0)
-        this.move(x + 1, y)
-      }
-      if (x - 1 >= 0) { this.animate(0, posX, posY, -1 * this.squareLength / 60, 0); this.move(x - 1, y) }
-      if (y + 1 < this.cols) { this.animate(0, posX, posY, 0, this.squareLength / 60); this.move(x, y + 1) }
-      if (y - 1 >= 0) { this.animate(0, posX, posY, 0, -1 * this.squareLength / 60); this.move(x, y - 1) }
+      this.explode([x, y])
     }
+  }
+  move(neighbors) {
+    let exp = []
+    for (const neighbor of neighbors) {
+      let x = neighbor[0]
+      let y = neighbor[1]
+      let curSquare = this.squares[y][x]
+      if (curSquare[0] + 1 < curSquare[1]) {
+        this.squares[y][x][0] += 1
+      } else {
+        this.squares[y][x][0] = 0
+        exp.push([x, y])
+      }
+      this.draw(x, y)
+    }
+    return exp
   }
   draw(x, y) {
     let curSquare = this.squares[y][x];
@@ -124,8 +162,18 @@ class chainReaction {
         break;
     }
   }
+  check(x, y, f, ...args) {
+    if (x + 1 < this.rows) { f(...args) }
+    if (x - 1 >= 0) { f(-1, ...args) }
+    if (y + 1 < this.cols) { f(...args) }
+    if (y - 1 >= 0) { f(...args) }
+
+  }
 }
-var loc = function (z, length, push = 0) { return z * length + length / 2 + push }
+var loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
+var check = function (x, y) {
+
+}
 let start;
 chain = new chainReaction(10, 10);
 
