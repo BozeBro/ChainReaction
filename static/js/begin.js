@@ -67,8 +67,8 @@ class chainReaction {
           animations.push([posX, posY, 0, -1])
         }
       }
-      this.animate(animations, 0)
-      exp = this.move(moved, -d, d)
+      this.animate(animations, -d, d)
+      exp = this.move(moved)
     }
   }
   clicked(x, y) {
@@ -101,63 +101,68 @@ class chainReaction {
   }
   animate(animations, i, d) {
     i += d
+    this.ctx.fillStyle = "red"
+    this.ctx.lineWidth = 1
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     for (let [x, y, dx, dy] of animations) {
       if (dx !== 0) {
         this.ctx.beginPath();
         this.ctx.arc(x + i*dx, y, this.squareLength / 4, 0, 2 * Math.PI);
         this.ctx.stroke();
+        this.ctx.fill();
         this.ctx.closePath();
       } else {
         this.ctx.beginPath();
         this.ctx.arc(x, y + i*dy, this.squareLength / 4, 0, 2 * Math.PI);
         this.ctx.stroke();
+        this.ctx.fill();
         this.ctx.closePath();
       }
     }
     if (Math.abs(i) < this.squareLength) {
+      console.log("Yes")
       requestAnimationFrame(() => this.animate(animations, i, d))
     } else {this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)}
   }
   draw(x, y) {
     let curSquare = this.squares[y][x];
     let circlePos = this.squareLength / 7.5;
-    this.ctx.fillStyle = "#f00";
-    this.ctx.lineWidth = 1;
+    this.staticCtx.fillStyle = "#f00";
+    this.staticCtx.lineWidth = 1;
     switch (curSquare[0]) {
       // Handles the current circle count in a square
       case 1:
-        this.ctx.beginPath();
-        this.ctx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius, 0, 2 * Math.PI);
-        this.ctx.stroke();
-        this.ctx.fill();
-        this.ctx.closePath();
+        this.staticCtx.beginPath();
+        this.staticCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius, 0, 2 * Math.PI);
+        this.staticCtx.stroke();
+        this.staticCtx.fill();
+        this.staticCtx.closePath();
         break;
       case 2:
-        this.ctx.beginPath();
-        this.ctx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius, 0, 2 * Math.PI);
-        this.ctx.stroke()
-        this.ctx.fill();
-        this.ctx.closePath();
+        this.staticCtx.beginPath();
+        this.staticCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius, 0, 2 * Math.PI);
+        this.staticCtx.stroke()
+        this.staticCtx.fill();
+        this.staticCtx.closePath();
         break;
       case 3:
-        this.ctx.beginPath();
-        this.ctx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), this.radius, 0, 2 * Math.PI);
-        this.ctx.stroke();
-        this.ctx.fill();
-        this.ctx.closePath();
+        this.staticCtx.beginPath();
+        this.staticCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), this.radius, 0, 2 * Math.PI);
+        this.staticCtx.stroke();
+        this.staticCtx.fill();
+        this.staticCtx.closePath();
         break;
       case 0:
         // Clear the circles
         let lw = this.radius / 4 //handle linewidth. 4 is arbitrary
-        this.ctx.beginPath();
-        this.ctx.globalCompositeOperation = "destination-out";
-        this.ctx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius + lw, 0, 2 * Math.PI);
-        this.ctx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius + lw, 0, 2 * Math.PI);
-        this.ctx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), this.radius + lw, 0, 2 * Math.PI);
-        this.ctx.fill();
-        this.ctx.globalCompositeOperation = "source-over";
-        this.ctx.closePath();
+        this.staticCtx.beginPath();
+        this.staticCtx.globalCompositeOperation = "destination-out";
+        this.staticCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius + lw, 0, 2 * Math.PI);
+        this.staticCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius + lw, 0, 2 * Math.PI);
+        this.staticCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), this.radius + lw, 0, 2 * Math.PI);
+        this.staticCtx.fill();
+        this.staticCtx.globalCompositeOperation = "source-over";
+        this.staticCtx.closePath();
         break;
     }
   }
