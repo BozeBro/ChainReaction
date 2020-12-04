@@ -45,6 +45,7 @@ class chainReaction {
   explode(exp) {
     // 70 frames per second
     const d = 70 * this.squareLength / 1000
+    let toAnimate = []
     while (exp.length !== 0) {
       let moved = []; let animations = []
       for (const [x, y] of exp) {
@@ -67,9 +68,13 @@ class chainReaction {
           animations.push([posX, posY, 0, -1])
         }
       }
-      this.animate(animations, -d, d)
+      toAnimate.push([animations, moved])
       exp = this.move(moved)
     }
+    this.lmao = toAnimate
+    new Promise((resolve, reject) => {
+      resolve()
+    }).then(requestAnimationFrame(() => this.animate(toAnimate, -d, d, 0)))
   }
   clicked(x, y) {
     let curSquare = this.squares[y][x];
@@ -95,34 +100,46 @@ class chainReaction {
         this.squares[y][x][0] = 0
         exp.push([x, y])
       }
-      this.draw(x, y)
     }
     return exp
   }
-  animate(animations, i, d) {
+  animate(animations, i, d, ind) {
     i += d
     this.ctx.fillStyle = "red"
     this.ctx.lineWidth = 1
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    for (let [x, y, dx, dy] of animations) {
+    for (let [x, y, dx, dy] of animations[ind][0]) {
       if (dx !== 0) {
         this.ctx.beginPath();
-        this.ctx.arc(x + i*dx, y, this.squareLength / 4, 0, 2 * Math.PI);
+        this.ctx.arc(x + i * dx, y, this.squareLength / 4, 0, 2 * Math.PI);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.closePath();
       } else {
         this.ctx.beginPath();
-        this.ctx.arc(x, y + i*dy, this.squareLength / 4, 0, 2 * Math.PI);
+        this.ctx.arc(x, y + i * dy, this.squareLength / 4, 0, 2 * Math.PI);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.closePath();
       }
     }
     if (Math.abs(i) < this.squareLength) {
-      console.log("Yes")
-      requestAnimationFrame(() => this.animate(animations, i, d))
-    } else {this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)}
+      return new Promise((resolve, reject) => {
+        resolve()
+      }).then(requestAnimationFrame(() => this.animate(animations, i, d, ind)))
+    } else if (ind + 1 < animations.length) {
+      return new Promise((resolve, reject) => {
+        resolve()
+      }).then(requestAnimationFrame(() => this.animate(animations, -d, d, ind + 1)))
+    } else {
+      return new Promise((resolve, reject) => {
+        resolve()
+      }).then(requestAnimationFrame(() => this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height))).then(() => {
+        for (let [x, y] of animations[ind][1]) {
+          this.draw(x, y)
+        }
+      })
+    }
   }
   draw(x, y) {
     let curSquare = this.squares[y][x];
