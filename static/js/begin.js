@@ -46,33 +46,41 @@ class chainReaction {
     }
   }
   explode(exp) {
-    // 70 frames per second
-    const d = 70 * this.squareLength / 1000
-    let toAnimate = []
+    // exp is the items that will explode. A stack
+    const d = 70 * this.squareLength / 1000 // Distance to move per frame
+    let toAnimate = {
+      "moved": [],
+      "animations": [],
+    }
     while (exp.length !== 0) {
-      let moved = []; let animations = [];
+      let info = {
+        "moved": [],
+        "animations": [],
+      }
       for (let [x, y] of exp) {
+        // Call move() on neighbors
         const posX = loc(x, this.squareLength)
         const posY = loc(y, this.squareLength)
         if (x + 1 < this.rows) {
-          moved.push([x + 1, y])
-          animations.push([posX, posY, 1, 0])
+          info.moved.push([x + 1, y])
+          info.animations.push([posX, posY, 1, 0])
         }
         if (x - 1 >= 0) {
-          moved.push([x - 1, y])
-          animations.push([posX, posY, -1, 0])
+          info.moved.push([x - 1, y])
+          info.animations.push([posX, posY, -1, 0])
         }
         if (y + 1 < this.cols) {
-          moved.push([x, y + 1])
-          animations.push([posX, posY, 0, 1])
+          info.moved.push([x, y + 1])
+          info.animations.push([posX, posY, 0, 1])
         }
         if (y - 1 >= 0) {
-          moved.push([x, y - 1])
-          animations.push([posX, posY, 0, -1])
+          info.moved.push([x, y - 1])
+          info.animations.push([posX, posY, 0, -1])
         }
       }
-      toAnimate.push([animations, moved])
-      exp = this.move(moved)
+      exp = this.move(info.moved)
+      toAnimate.animations.push(info.animations)
+      toAnimate.moved.push(info.moved)
     }
     requestAnimationFrame(() => this.animate(toAnimate, -d, d, 0));
   }
@@ -85,10 +93,10 @@ class chainReaction {
     if (d === 0) { this.explode([[x, y]]) }
   }
   move(neighbors) {
+    // Check if neighbors explode
     let exp = []
     for (const neighbor of neighbors) {
-      let x = neighbor[0]
-      let y = neighbor[1]
+      let x = neighbor[0]; let y = neighbor[1]
       let curSquare = this.squares[y][x]
       const d = curSquare[0] + 1 < curSquare[1] ? 1 : 0
       this.squares[y][x][0] *= d;
@@ -97,12 +105,12 @@ class chainReaction {
     }
     return exp
   }
-  animate(animations, i, d, ind) {
+  animate(toAnimate, i, d, ind) {
     i += d
     this.ctx.fillStyle = "red"
     this.ctx.lineWidth = 1
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    for (let [x, y, dx, dy] of animations[ind][0]) {
+    for (let [x, y, dx, dy] of toAnimate.animations[ind]) {
       if (dx !== 0) {
         this.ctx.beginPath();
         this.ctx.arc(x + i * dx, y, this.squareLength / 4, 0, 2 * Math.PI);
@@ -118,16 +126,15 @@ class chainReaction {
       }
     }
     if (Math.abs(i) < this.squareLength) {
-      requestAnimationFrame(() => this.animate(animations, i, d, ind))
+      requestAnimationFrame(() => this.animate(toAnimate, i, d, ind))
     }
-    else if (ind + 1 < animations.length) {
-      for (let [x, y] of animations[ind][1]) {
-        console.log(this.squares[y][x])
+    else if (ind + 1 < toAnimate.moved.length) {
+      for (let [x, y] of toAnimate.moved[ind]) {
         this.draw(x, y)
       }
-      requestAnimationFrame(() => this.animate(animations, -d, d, ind + 1))
+      requestAnimationFrame(() => this.animate(toAnimate, -d, d, ind + 1))
     } else {
-      for (let [x, y] of animations[ind][1]) {
+      for (let [x, y] of toAnimate.moved[ind]) {
         this.draw(x, y)
       }
       requestAnimationFrame(() => this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height))
@@ -135,6 +142,7 @@ class chainReaction {
   }
   draw(x, y) {
     let curSquare = this.squares[y][x];
+    console.log(x, y, curSquare);
     let circlePos = this.squareLength / 7.5;
     this.staticCtx.fillStyle = "#f00";
     this.staticCtx.lineWidth = 1;
@@ -161,7 +169,7 @@ class chainReaction {
         this.staticCtx.fill();
         this.staticCtx.closePath();
         break;
-      case 0:
+      default:
         // Clear the circles
         let lw = this.radius / 4 //handle linewidth. 4 is arbitrary
         this.staticCtx.beginPath();
