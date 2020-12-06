@@ -12,14 +12,14 @@ class chainReaction {
     this.ctx = this.canvas.getContext("2d");
     this.statCanv = document.getElementById("static");
     this.statCtx = this.statCanv.getContext("2d");
-    this.gr = document.getElementById("grid")
+    this.gr = document.getElementById("grid");
     this.grctx = this.gr.getContext("2d");
     this.rows = rows;
     this.cols = cols;
     this.squareLength = Math.min(450 / rows, 450 / cols);
-    this.squares = []
-    this.state = true // Tracks if an animation is taking place
-    this.color = color
+    this.squares = [];
+    this.state = true; // Tracks if an animation is taking place
+    this.color = color;
     this.gr.onclick = (event) => {
       if (this.state === true) {
         let canvasObj = event.target.getBoundingClientRect();
@@ -112,8 +112,8 @@ class chainReaction {
     // Check if neighbors will explode.
     // Add coords and amount of circles of each square (For animation)
     let expN = [];
-    for (const [x, y] of exp) {
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    for (let [x, y] of exp) {
+      for (let [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         let nx = x + dx, ny = y + dy;
         if (0 <= nx && nx < this.rows && 0 <= ny && ny < this.cols) {
           let curSquare = this.squares[ny][nx];
@@ -185,7 +185,7 @@ class chainReaction {
       case 2:
         this.statCtx.beginPath();
         this.statCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
-        this.statCtx.stroke()
+        this.statCtx.stroke();
         this.statCtx.fill();
         this.statCtx.closePath();
         break;
@@ -199,14 +199,14 @@ class chainReaction {
       default:
         // Clear the circles
         this.statCtx.beginPath();
-        this.statCtx.clearRect(x * this.squareLength, y * this.squareLength, this.squareLength, this.squareLength)
+        this.statCtx.clearRect(x * this.squareLength, y * this.squareLength, this.squareLength, this.squareLength);
         this.statCtx.closePath();
         break;
     }
   }
 }
 const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
-let chain = new chainReaction(30, 30, "red");
+let chain = new chainReaction(15, 15, "red");
 chain.initBoard();
 
 
