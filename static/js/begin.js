@@ -62,23 +62,19 @@ class chainReaction {
         const posX = loc(x, this.squareLength)
         const posY = loc(y, this.squareLength)
         if (x + 1 < this.rows) {
-          info.moved.push([x + 1, y])
           info.animations.push([posX, posY, 1, 0])
         }
         if (x - 1 >= 0) {
-          info.moved.push([x - 1, y])
           info.animations.push([posX, posY, -1, 0])
         }
         if (y + 1 < this.cols) {
-          info.moved.push([x, y + 1])
           info.animations.push([posX, posY, 0, 1])
         }
         if (y - 1 >= 0) {
-          info.moved.push([x, y - 1])
           info.animations.push([posX, posY, 0, -1])
         }
       }
-      exp = this.move(info.moved)
+      exp = this.move(exp, info)
       toAnimate.animations.push(info.animations)
       toAnimate.moved.push(info.moved)
     }
@@ -89,21 +85,25 @@ class chainReaction {
     const d = curSquare[0] + 1 < curSquare[1] ? 1 : 0;
     this.squares[y][x][0] *= d;
     this.squares[y][x][0] += d;
-    this.draw(x, y);
+    this.draw(x, y, this.squares[y][x][0]);
     if (d === 0) { this.explode([[x, y]]) }
   }
-  move(neighbors) {
-    // Check if neighbors explode
-    let exp = []
-    for (const neighbor of neighbors) {
-      let x = neighbor[0]; let y = neighbor[1]
-      let curSquare = this.squares[y][x]
-      const d = curSquare[0] + 1 < curSquare[1] ? 1 : 0
-      this.squares[y][x][0] *= d;
-      this.squares[y][x][0] += d;
-      if (d === 0) { exp.push([x, y]) }
+  move(exp, info) {
+    let expN = []
+    for (const [x, y] of exp) {
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        let nx = x + dx; let ny = y + dy;
+        if (0 <= nx && nx < this.rows && 0 <= ny && ny < this.cols) {
+          let curSquare = this.squares[ny][nx];
+          const d = curSquare[0] + 1 < curSquare[1] ? 1 : 0;
+          this.squares[ny][nx][0] *= d;
+          this.squares[ny][nx][0] += d;
+          info.moved.push([nx, ny, this.squares[ny][nx][0]]);
+          if (d === 0) { expN.push([nx, ny]) }
+        }
+      }
     }
-    return exp
+    return expN
   }
   animate(toAnimate, i, d, ind) {
     i += d
@@ -129,24 +129,22 @@ class chainReaction {
       requestAnimationFrame(() => this.animate(toAnimate, i, d, ind))
     }
     else if (ind + 1 < toAnimate.moved.length) {
-      for (let [x, y] of toAnimate.moved[ind]) {
-        this.draw(x, y)
+      for (let [x, y, v] of toAnimate.moved[ind]) {
+        this.draw(x, y, v)
       }
       requestAnimationFrame(() => this.animate(toAnimate, -d, d, ind + 1))
     } else {
-      for (let [x, y] of toAnimate.moved[ind]) {
-        this.draw(x, y)
+      for (let [x, y, v] of toAnimate.moved[ind]) {
+        this.draw(x, y, v)
       }
       requestAnimationFrame(() => this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height))
     }
   }
-  draw(x, y) {
-    let curSquare = this.squares[y][x];
-    console.log(x, y, curSquare);
+  draw(x, y, v) {
     let circlePos = this.squareLength / 7.5;
     this.staticCtx.fillStyle = "#f00";
     this.staticCtx.lineWidth = 1;
-    switch (curSquare[0]) {
+    switch (v) {
       // Handles the current circle count in a square
       case 1:
         this.staticCtx.beginPath();
