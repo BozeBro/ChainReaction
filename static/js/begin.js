@@ -1,20 +1,29 @@
 "use strict"
 class chainReaction {
-  constructor(rows = 8, cols = 8) {
+  constructor(rows = 8, cols = 8, color) {
+    /*
+    canvas, ctx handle dynamic movement
+    static handle objects that aren't moving
+    gr, grctx is just the grid
+    state tracks if an animation is taking place
+      - blocks clicking event if false
+    */
     this.canvas = document.getElementById("chainReaction");
     this.ctx = this.canvas.getContext("2d");
     this.staticCanv = document.getElementById("static");
     this.staticCtx = this.staticCanv.getContext("2d");
+    this.gr = document.getElementById("grid")
+    this.grctx = this.gr.getContext("2d");
     this.rows = rows;
     this.cols = cols;
     this.squareLength = Math.min(450 / rows, 450 / cols);
-    this.radius = this.squareLength / 4
     this.squares = []
-    this.state = true
-    this.staticCanv.onclick = (event) => {
+    this.state = true // Tracks if an animation is taking place
+    this.color = color
+    this.gr.onclick = (event) => {
       if (this.state === true) {
         let canvasObj = event.target.getBoundingClientRect();
-        // Get the square coords clicked relative to canvas
+        // Get the square coords clicked relative to
         let x = Math.floor((event.clientX - canvasObj.left) / this.squareLength);
         let y = Math.floor((event.clientY - canvasObj.top) / this.squareLength);
         this.clicked(x, y)
@@ -24,17 +33,21 @@ class chainReaction {
   initBoard() {
     this.staticCtx.canvas.width = this.ctx.canvas.width = this.rows * this.squareLength;
     this.staticCtx.canvas.height = this.ctx.canvas.height = this.cols * this.squareLength;
+    this.grctx.canvas.width = this.ctx.canvas.width; this.grctx.canvas.height = this.ctx.canvas.height;
     this.ctx.fillStyle = "#fff"; // White
-
+    this.grctx.lineWidth = 1;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
     for (let h = 0; h < this.cols; h++) {
       this.squares[h] = [];
       for (let l = 0; l < this.rows; l++) {
-        this.staticCtx.beginPath();
-        this.staticCtx.lineWidth = 1;
-        this.staticCtx.strokeRect(l * this.squareLength, h * this.squareLength, this.squareLength, this.squareLength);
-        this.staticCtx.closePath();
+        this.grctx.beginPath();
+        this.grctx.strokeRect(
+          l * this.squareLength,
+          h * this.squareLength,
+          this.squareLength,
+          this.squareLength
+        );
+        this.grctx.closePath();
         let val = (function (rows, cols) {
           let valid = 0;
           if (l - 1 >= 0) { valid += 1 }
@@ -96,10 +109,12 @@ class chainReaction {
 
   }
   move(exp, info) {
+    // Check if neighbors will explode.
+    // Add coords and amount of circles of each square (For animation)
     let expN = []
     for (const [x, y] of exp) {
       for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        let nx = x + dx; let ny = y + dy;
+        let nx = x + dx, ny = y + dy;
         if (0 <= nx && nx < this.rows && 0 <= ny && ny < this.cols) {
           let curSquare = this.squares[ny][nx];
           const d = curSquare[0] + 1 < curSquare[1] ? 1 : 0;
@@ -114,7 +129,7 @@ class chainReaction {
   }
   animate(toAnimate, i, d, ind) {
     i += d
-    this.ctx.fillStyle = "red"
+    this.ctx.fillStyle = this.color
     this.ctx.lineWidth = 1
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     for (let [x, y, dx, dy] of toAnimate.animations[ind]) {
@@ -133,15 +148,18 @@ class chainReaction {
       }
     }
     if (Math.abs(i) < this.squareLength) {
+      // Complete animation 
       return new Promise(() => requestAnimationFrame(() => this.animate(toAnimate, i, d, ind)))
     }
     else if (ind + 1 < toAnimate.moved.length) {
+      // Go to next set to animate
       for (let [x, y, v] of toAnimate.moved[ind]) {
         this.draw(x, y, v)
       }
       return new Promise(() =>
         requestAnimationFrame(() => this.animate(toAnimate, -d, d, ind + 1)))
     } else {
+      // Everything's settled now. Redraw static screen
       for (let [x, y, v] of toAnimate.moved[ind]) {
         this.draw(x, y, v)
       }
@@ -152,40 +170,42 @@ class chainReaction {
   }
   draw(x, y, v) {
     let circlePos = this.squareLength / 7.5;
-    this.staticCtx.fillStyle = "#f00";
+    let radius = this.squareLength / 4;
+    this.staticCtx.fillStyle = this.color;
     this.staticCtx.lineWidth = 1;
     switch (v) {
       // Handles the current circle count in a square
       case 1:
         this.staticCtx.beginPath();
-        this.staticCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius, 0, 2 * Math.PI);
+        this.staticCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
         this.staticCtx.stroke();
         this.staticCtx.fill();
         this.staticCtx.closePath();
         break;
       case 2:
         this.staticCtx.beginPath();
-        this.staticCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius, 0, 2 * Math.PI);
+        this.staticCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
         this.staticCtx.stroke()
         this.staticCtx.fill();
         this.staticCtx.closePath();
         break;
       case 3:
         this.staticCtx.beginPath();
-        this.staticCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), this.radius, 0, 2 * Math.PI);
+        this.staticCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), radius, 0, 2 * Math.PI);
         this.staticCtx.stroke();
         this.staticCtx.fill();
         this.staticCtx.closePath();
         break;
       default:
         // Clear the circles
-        let lw = this.radius / 4 //handle linewidth. 4 is arbitrary
+        let lw = radius / 3 //handle linewidth. number in denom. is arbitrary
         this.staticCtx.beginPath();
         this.staticCtx.globalCompositeOperation = "destination-out";
-        this.staticCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius + lw, 0, 2 * Math.PI);
-        this.staticCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), this.radius + lw, 0, 2 * Math.PI);
-        this.staticCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), this.radius + lw, 0, 2 * Math.PI);
+        this.staticCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), radius + lw, 0, 2 * Math.PI);
+        this.staticCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), radius + lw, 0, 2 * Math.PI);
+        this.staticCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), radius + lw, 0, 2 * Math.PI);
         this.staticCtx.fill();
+        this.staticCtx.stroke();
         this.staticCtx.globalCompositeOperation = "source-over";
         this.staticCtx.closePath();
         break;
@@ -200,7 +220,7 @@ class chainReaction {
   }
 }
 const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
-let chain = new chainReaction(2, 8);
+let chain = new chainReaction(30, 30, "red");
 chain.initBoard();
 
 
