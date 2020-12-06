@@ -3,15 +3,15 @@ class chainReaction {
   constructor(rows = 8, cols = 8, color) {
     /*
     canvas, ctx handle dynamic movement
-    static handle objects that aren't moving
+    stat handle objects that aren't moving
     gr, grctx is just the grid
     state tracks if an animation is taking place
       - blocks clicking event if false
     */
-    this.canvas = document.getElementById("chainReaction");
+    this.canvas = document.getElementById("dynamic");
     this.ctx = this.canvas.getContext("2d");
-    this.staticCanv = document.getElementById("static");
-    this.staticCtx = this.staticCanv.getContext("2d");
+    this.statCanv = document.getElementById("static");
+    this.statCtx = this.statCanv.getContext("2d");
     this.gr = document.getElementById("grid")
     this.grctx = this.gr.getContext("2d");
     this.rows = rows;
@@ -31,8 +31,8 @@ class chainReaction {
     }
   }
   initBoard() {
-    this.staticCtx.canvas.width = this.ctx.canvas.width = this.rows * this.squareLength;
-    this.staticCtx.canvas.height = this.ctx.canvas.height = this.cols * this.squareLength;
+    this.statCtx.canvas.width = this.ctx.canvas.width = this.rows * this.squareLength;
+    this.statCtx.canvas.height = this.ctx.canvas.height = this.cols * this.squareLength;
     this.grctx.canvas.width = this.ctx.canvas.width; this.grctx.canvas.height = this.ctx.canvas.height;
     this.ctx.fillStyle = "#fff"; // White
     this.grctx.lineWidth = 1;
@@ -111,7 +111,7 @@ class chainReaction {
   move(exp, info) {
     // Check if neighbors will explode.
     // Add coords and amount of circles of each square (For animation)
-    let expN = []
+    let expN = [];
     for (const [x, y] of exp) {
       for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         let nx = x + dx, ny = y + dy;
@@ -159,7 +159,7 @@ class chainReaction {
       return new Promise(() =>
         requestAnimationFrame(() => this.animate(toAnimate, -d, d, ind + 1)))
     } else {
-      // Everything's settled now. Redraw static screen
+      // Everything's settled now. Redraw stat screen
       for (let [x, y, v] of toAnimate.moved[ind]) {
         this.draw(x, y, v)
       }
@@ -171,52 +171,38 @@ class chainReaction {
   draw(x, y, v) {
     let circlePos = this.squareLength / 7.5;
     let radius = this.squareLength / 4;
-    this.staticCtx.fillStyle = this.color;
-    this.staticCtx.lineWidth = 1;
+    this.statCtx.fillStyle = this.color;
+    this.statCtx.lineWidth = 1;
     switch (v) {
       // Handles the current circle count in a square
       case 1:
-        this.staticCtx.beginPath();
-        this.staticCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
-        this.staticCtx.stroke();
-        this.staticCtx.fill();
-        this.staticCtx.closePath();
+        this.statCtx.beginPath();
+        this.statCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
+        this.statCtx.stroke();
+        this.statCtx.fill();
+        this.statCtx.closePath();
         break;
       case 2:
-        this.staticCtx.beginPath();
-        this.staticCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
-        this.staticCtx.stroke()
-        this.staticCtx.fill();
-        this.staticCtx.closePath();
+        this.statCtx.beginPath();
+        this.statCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
+        this.statCtx.stroke()
+        this.statCtx.fill();
+        this.statCtx.closePath();
         break;
       case 3:
-        this.staticCtx.beginPath();
-        this.staticCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), radius, 0, 2 * Math.PI);
-        this.staticCtx.stroke();
-        this.staticCtx.fill();
-        this.staticCtx.closePath();
+        this.statCtx.beginPath();
+        this.statCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), radius, 0, 2 * Math.PI);
+        this.statCtx.stroke();
+        this.statCtx.fill();
+        this.statCtx.closePath();
         break;
       default:
         // Clear the circles
-        let lw = radius / 3 //handle linewidth. number in denom. is arbitrary
-        this.staticCtx.beginPath();
-        this.staticCtx.globalCompositeOperation = "destination-out";
-        this.staticCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), radius + lw, 0, 2 * Math.PI);
-        this.staticCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), radius + lw, 0, 2 * Math.PI);
-        this.staticCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), radius + lw, 0, 2 * Math.PI);
-        this.staticCtx.fill();
-        this.staticCtx.stroke();
-        this.staticCtx.globalCompositeOperation = "source-over";
-        this.staticCtx.closePath();
+        this.statCtx.beginPath();
+        this.statCtx.clearRect(x * this.squareLength, y * this.squareLength, this.squareLength, this.squareLength)
+        this.statCtx.closePath();
         break;
     }
-  }
-  check(x, y, f, ...args) {
-    if (x + 1 < this.rows) { f(...args) }
-    if (x - 1 >= 0) { f(-1, ...args) }
-    if (y + 1 < this.cols) { f(...args) }
-    if (y - 1 >= 0) { f(...args) }
-
   }
 }
 const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
