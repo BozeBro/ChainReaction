@@ -11,14 +11,17 @@ class chainReaction {
     this.squares = []
     this.staticCanv.onclick = (event) => {
       let canvasObj = event.target.getBoundingClientRect();
+      // Get the square coords clicked
       let x = Math.floor((event.clientX - canvasObj.left) / this.squareLength);
       let y = Math.floor((event.clientY - canvasObj.top) / this.squareLength);
       this.clicked(x, y)
     }
   }
   initBoard() {
-    this.staticCtx.width = this.ctx.canvas.width = this.rows * this.squareLength;
-    this.staticCtx.height = this.ctx.canvas.height = this.cols * this.squareLength;
+    this.ctx.canvas.width = this.rows * this.squareLength;
+    this.ctx.canvas.height = this.cols * this.squareLength;
+    this.staticCtx.canvas.width = this.ctx.canvas.width;
+    this.staticCtx.canvas.height = this.ctx.canvas.height;
     this.ctx.fillStyle = "#fff"; // White
 
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -47,8 +50,8 @@ class chainReaction {
     const d = 70 * this.squareLength / 1000
     let toAnimate = []
     while (exp.length !== 0) {
-      let moved = []; let animations = []
-      for (const [x, y] of exp) {
+      let moved = []; let animations = [];
+      for (let [x, y] of exp) {
         const posX = loc(x, this.squareLength)
         const posY = loc(y, this.squareLength)
         if (x + 1 < this.rows) {
@@ -71,22 +74,17 @@ class chainReaction {
       toAnimate.push([animations, moved])
       exp = this.move(moved)
     }
-    this.lmao = toAnimate
     new Promise((resolve, reject) => {
       resolve()
-    }).then(requestAnimationFrame(() => this.animate(toAnimate, -d, d, 0)))
+    }).then(() => requestAnimationFrame(() => this.animate(toAnimate, -d, d, 0)))
   }
   clicked(x, y) {
-    let curSquare = this.squares[y][x];
-    if (curSquare[0] + 1 < curSquare[1]) {
-      this.squares[y][x][0] += 1;
-      this.draw(x, y)
-    } else {
-      // Max capacity is reached
-      this.squares[y][x][0] = 0;
-      this.draw(x, y)
-      this.explode([[x, y]])
-    }
+    const curSquare = this.squares[y][x];
+    const d = curSquare[0] + 1 < curSquare[1] ? 1 : 0;
+    this.squares[y][x][0] *= d;
+    this.squares[y][x][0] += d;
+    this.draw(x, y);
+    if (d === 0) { this.explode([[x, y]]) }
   }
   move(neighbors) {
     let exp = []
@@ -94,12 +92,10 @@ class chainReaction {
       let x = neighbor[0]
       let y = neighbor[1]
       let curSquare = this.squares[y][x]
-      if (curSquare[0] + 1 < curSquare[1]) {
-        this.squares[y][x][0] += 1
-      } else {
-        this.squares[y][x][0] = 0
-        exp.push([x, y])
-      }
+      const d = curSquare[0] + 1 < curSquare[1] ? 1 : 0
+      this.squares[y][x][0] *= d;
+      this.squares[y][x][0] += d;
+      if (d === 0) { exp.push([x, y]) }
     }
     return exp
   }
@@ -126,19 +122,31 @@ class chainReaction {
     if (Math.abs(i) < this.squareLength) {
       return new Promise((resolve, reject) => {
         resolve()
-      }).then(requestAnimationFrame(() => this.animate(animations, i, d, ind)))
-    } else if (ind + 1 < animations.length) {
+      })
+        .then(() => requestAnimationFrame(() => this.animate(animations, i, d, ind)))
+    }
+    else if (ind + 1 < animations.length) {
       return new Promise((resolve, reject) => {
         resolve()
-      }).then(requestAnimationFrame(() => this.animate(animations, -d, d, ind + 1)))
+      })
+        .then(() => {
+          console.log(animations[ind][1])
+          for (let [x, y] of animations[ind][1]) {
+            console.log(this.squares[y][x])
+            this.draw(x, y)
+          }
+        })
+        .then(() => requestAnimationFrame(() => this.animate(animations, -d, d, ind + 1)))
     } else {
       return new Promise((resolve, reject) => {
         resolve()
-      }).then(requestAnimationFrame(() => this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height))).then(() => {
-        for (let [x, y] of animations[ind][1]) {
-          this.draw(x, y)
-        }
       })
+        .then(() => {
+          for (let [x, y] of animations[animations.length - 1][1]) {
+            this.draw(x, y)
+          }
+        })
+        .then(() => requestAnimationFrame(() => this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)))
     }
   }
   draw(x, y) {
@@ -196,7 +204,7 @@ var check = function (x, y) {
 
 }
 let start;
-chain = new chainReaction(10, 10);
+chain = new chainReaction(8, 8);
 
 chain.initBoard();
 
