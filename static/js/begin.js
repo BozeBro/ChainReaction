@@ -1,3 +1,4 @@
+"use strict"
 class chainReaction {
   constructor(rows = 8, cols = 8) {
     this.canvas = document.getElementById("chainReaction");
@@ -9,19 +10,20 @@ class chainReaction {
     this.squareLength = Math.min(450 / rows, 450 / cols);
     this.radius = this.squareLength / 4
     this.squares = []
+    this.state = true
     this.staticCanv.onclick = (event) => {
-      let canvasObj = event.target.getBoundingClientRect();
-      // Get the square coords clicked
-      let x = Math.floor((event.clientX - canvasObj.left) / this.squareLength);
-      let y = Math.floor((event.clientY - canvasObj.top) / this.squareLength);
-      this.clicked(x, y)
+      if (this.state === true) {
+        let canvasObj = event.target.getBoundingClientRect();
+        // Get the square coords clicked relative to canvas
+        let x = Math.floor((event.clientX - canvasObj.left) / this.squareLength);
+        let y = Math.floor((event.clientY - canvasObj.top) / this.squareLength);
+        this.clicked(x, y)
+      }
     }
   }
   initBoard() {
-    this.ctx.canvas.width = this.rows * this.squareLength;
-    this.ctx.canvas.height = this.cols * this.squareLength;
-    this.staticCtx.canvas.width = this.ctx.canvas.width;
-    this.staticCtx.canvas.height = this.ctx.canvas.height;
+    this.staticCtx.canvas.width = this.ctx.canvas.width = this.rows * this.squareLength;
+    this.staticCtx.canvas.height = this.ctx.canvas.height = this.cols * this.squareLength;
     this.ctx.fillStyle = "#fff"; // White
 
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -78,7 +80,11 @@ class chainReaction {
       toAnimate.animations.push(info.animations)
       toAnimate.moved.push(info.moved)
     }
-    requestAnimationFrame(() => this.animate(toAnimate, -d, d, 0));
+    const ani = async () => {
+      return new Promise(() =>
+        requestAnimationFrame(() => this.animate(toAnimate, -d, d, 0)))
+    }
+    return ani()
   }
   clicked(x, y) {
     const curSquare = this.squares[y][x];
@@ -86,7 +92,8 @@ class chainReaction {
     this.squares[y][x][0] *= d;
     this.squares[y][x][0] += d;
     this.draw(x, y, this.squares[y][x][0]);
-    if (d === 0) { this.explode([[x, y]]) }
+    if (d === 0) { this.state = false; this.explode([[x, y]]) }
+
   }
   move(exp, info) {
     let expN = []
@@ -126,18 +133,21 @@ class chainReaction {
       }
     }
     if (Math.abs(i) < this.squareLength) {
-      requestAnimationFrame(() => this.animate(toAnimate, i, d, ind))
+      return new Promise(() => requestAnimationFrame(() => this.animate(toAnimate, i, d, ind)))
     }
     else if (ind + 1 < toAnimate.moved.length) {
       for (let [x, y, v] of toAnimate.moved[ind]) {
         this.draw(x, y, v)
       }
-      requestAnimationFrame(() => this.animate(toAnimate, -d, d, ind + 1))
+      return new Promise(() =>
+        requestAnimationFrame(() => this.animate(toAnimate, -d, d, ind + 1)))
     } else {
       for (let [x, y, v] of toAnimate.moved[ind]) {
         this.draw(x, y, v)
       }
-      requestAnimationFrame(() => this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height))
+      this.state = true;
+      return new Promise(() =>
+        requestAnimationFrame(() => this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)))
     }
   }
   draw(x, y, v) {
@@ -189,13 +199,8 @@ class chainReaction {
 
   }
 }
-var loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
-var check = function (x, y) {
-
-}
-let start;
-chain = new chainReaction(8, 8);
-
+const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
+let chain = new chainReaction(2, 8);
 chain.initBoard();
 
 
