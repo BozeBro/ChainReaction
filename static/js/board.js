@@ -206,7 +206,7 @@ class chainReaction {
   }
 }
 const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
-let chain = new chainReaction(15, 15, "red");
-chain.initBoard();
+//let chain = new chainReaction(15, 15, "red");
+//chain.initBoard();
 
 
