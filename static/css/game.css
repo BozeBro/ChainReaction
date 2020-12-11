@@ -1,0 +1,51 @@
+#game {
+  border: solid 2px;
+}
+
+
+#interface {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+#grid {
+  position: absolute;
+  background-color: transparent;
+  z-index: 2;
+  opacity: 1.0;
+}
+#static {
+  position: absolute;
+  background-color: transparent;
+  z-index: 2;
+  opacity: 1.0;
+}
+#chainReaction {
+  z-index: 1;
+  position: absolute;
+  background-color: transparent;
+  opacity: 1.0;
+}
+.column {
+  display: flex;
+}
+
+.row {
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  border: solid green 1px;
+}
+
+
+.general {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+header {
+  text-align: center;
+}
