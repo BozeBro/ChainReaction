@@ -1,6 +1,11 @@
 package main
 
+import (
+	"log"
+)
+
 type Hub struct {
+	alive bool
 	// Mapping of clients
 	clients map[*Client]bool
 
@@ -16,6 +21,7 @@ type Hub struct {
 
 func newHub() *Hub {
 	return &Hub{
+		alive:      false,
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
@@ -24,6 +30,7 @@ func newHub() *Hub {
 }
 
 func (h *Hub) run() {
+	defer func() { h.alive = false }()
 	// wait for register, unregister, or broadcast chan to be filled
 	for {
 		select {
@@ -32,14 +39,14 @@ func (h *Hub) run() {
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
-				close(client.send)
+				close(client.received)
 			}
 		case message := <-h.broadcast:
 			for client := range h.clients {
 				select {
-				case client.send <- message:
+				case client.received <- message:
 				default:
-					close(client.send)
+					close(client.received)
 					delete(h.clients, client)
 				}
 			}

@@ -15,9 +15,15 @@ func main() {
 	flag.StringVar(&dir, "dir", ".", "the directory to serve files from. Defaults to the current dir")
 	flag.Parse()
 	r := mux.NewRouter()
-
+	hub := newHub()
 	//r.PathPrefix("/").Handler(http.FileServer(http.Dir(dir + "/static")))
-	r.HandleFunc("/ws", wSHandler)
+	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		if !hub.alive {
+			hub.alive = true
+			go hub.run()
+		}
+		wSHandshake(hub, w, r)
+	})
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(dir)))
 	http.Handle("/", r)
 

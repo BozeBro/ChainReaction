@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -12,7 +14,39 @@ type Client struct {
 	conn *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	send chan []byte
+	received chan []byte
 }
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
+func (c *Client) readMsg() {
+	defer func() {
+		c.hub.unregister <- c
+		c.conn.Close()
+	}()
+	for {
+		messageType, msg, err := c.conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Println(messageType)
+		func() {c.hub.broadcast <- msg}()
+	}
+}
+func (c *Client) writeMsg() {
+	txtMsg := 1
+	for {
+		select {
+		case msg := <-c.received:
+			err := c.conn.WriteMessage(txtMsg, msg)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+		}
+	}
+}
