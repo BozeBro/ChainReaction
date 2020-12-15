@@ -1,10 +1,7 @@
 package main
 
-import (
-	"log"
-)
-
 type Hub struct {
+	// alive ensures that only one hub will be created
 	alive bool
 	// Mapping of clients
 	clients map[*Client]bool

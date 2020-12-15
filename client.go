@@ -28,13 +28,12 @@ func (c *Client) readMsg() {
 		c.conn.Close()
 	}()
 	for {
-		messageType, msg, err := c.conn.ReadMessage()
+		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		log.Println(messageType)
-		func() {c.hub.broadcast <- msg}()
+		c.hub.broadcast <- msg
 	}
 }
 func (c *Client) writeMsg() {

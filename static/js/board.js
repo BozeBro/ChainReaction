@@ -14,6 +14,7 @@ class chainReaction {
     this.statCtx = this.statCanv.getContext("2d");
     this.gr = document.getElementById("grid");
     this.grctx = this.gr.getContext("2d");
+    this.socket = new WebSocket("ws://" + document.location.host + "/ws");
     this.rows = rows;
     this.cols = cols;
     this.squareLength = Math.min(450 / rows, 450 / cols);
@@ -26,7 +27,7 @@ class chainReaction {
         // Get the square coords clicked relative to
         let x = Math.floor((event.clientX - canvasObj.left) / this.squareLength);
         let y = Math.floor((event.clientY - canvasObj.top) / this.squareLength);
-        this.clicked(x, y)
+        this.socket.send(JSON.stringify({x:x, y:y, color:this.color}))
       }
     }
   }

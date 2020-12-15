@@ -14,8 +14,10 @@
     <script>
         let chain = new chainReaction(15, 15, "red");
         chain.initBoard();
-    </script>
-    <script>
+        chain.socket.onmessage = function (e) {
+            let data = JSON.parse(e.data)
+            chain.clicked(data.x, data.y)
+        };
 
     </script>
 </body>
