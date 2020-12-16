@@ -6,7 +6,9 @@
 
 <body>
     <div class="layout">
-        <div><h2>CHAIN REACTION</h2></div>
+        <div>
+            <h2>CHAIN REACTION</h2>
+        </div>
         <div class="general">
             <div class="bar-wrap">
                 <canvas id="bar"></canvas>
@@ -22,7 +24,9 @@
         <div></div>
     </div>
     <script src="../js/board.js"></script>
-    <script></script>
+    <script>
+
+    </script>
     <script>
         let chain = new chainReaction(15, 15, "red");
         chain.initBoard();
@@ -35,13 +39,11 @@
             bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);
         }
         changeBarC("red")
-        /*
         chain.socket.onmessage = function (e) {
             let data = JSON.parse(e.data);
             chain.clicked(data.x, data.y);
             changeBarC(data.color);
         };
-        */
     </script>
 </body>
 
