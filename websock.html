@@ -14,7 +14,6 @@
     socket.onmessage = function (e) {
         output.innerHTML += "Server: " + e.data + "\n";
     };
-
     function send() {
         socket.send(input.value);
         input.value = "";

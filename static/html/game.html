@@ -5,20 +5,43 @@
 </head>
 
 <body>
-    <div id="interface">
-        <canvas id="dynamic" width="450px" height="450px"></canvas>
-        <canvas id="static" width="450px" height="450px"></canvas>
-        <canvas id="grid" width="450px" height="450px"></canvas>
+    <div class="layout">
+        <div><h2>CHAIN REACTION</h2></div>
+        <div class="general">
+            <div class="bar-wrap">
+                <canvas id="bar"></canvas>
+            </div>
+            <div>Ryan vs Benedict</div>
+            <br>
+            <div id="interface">
+                <canvas id="dynamic" width="450px" height="450px"></canvas>
+                <canvas id="static" width="450px" height="450px"></canvas>
+                <canvas id="grid" width="450px" height="450px"></canvas>
+            </div>
+        </div>
+        <div></div>
     </div>
     <script src="../js/board.js"></script>
+    <script></script>
     <script>
         let chain = new chainReaction(15, 15, "red");
         chain.initBoard();
+        let bar = document.getElementById("bar").getContext("2d");
+        bar.canvas.width = chain.canvas.width;
+        // height is 10% of width
+        bar.canvas.height = bar.canvas.width * 0.05;
+        changeBarC = (color) => {
+            bar.fillStyle = color;
+            bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);
+        }
+        changeBarC("red")
+        /*
         chain.socket.onmessage = function (e) {
-            let data = JSON.parse(e.data)
-            chain.clicked(data.x, data.y)
+            let data = JSON.parse(e.data);
+            chain.clicked(data.x, data.y);
+            changeBarC(data.color);
         };
-
+        */
     </script>
 </body>
 

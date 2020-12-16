@@ -36,16 +36,16 @@
   text-align: center;
   border: solid green 1px;
 }
-
-
+.layout {
+  display: grid;
+  grid-template-columns: 20% 60% 20%;
+}
 .general {
   display: flex;
+  flex-direction: column;
   text-align: center;
-  justify-content: center;
-  align-items: center;
-  
 }
-
-header {
-  text-align: center;
+.bar-wrap {
+  display: flex;
+  justify-content: center;
 }

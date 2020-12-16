@@ -8,10 +8,8 @@ class chainReaction {
     state tracks if an animation is taking place
       - blocks clicking event if false
     */
-    this.canvas = document.getElementById("dynamic");
-    this.ctx = this.canvas.getContext("2d");
-    this.statCanv = document.getElementById("static");
-    this.statCtx = this.statCanv.getContext("2d");
+    this.canvas = document.getElementById("dynamic"); this.ctx = this.canvas.getContext("2d");
+    this.statCtx = document.getElementById("static").getContext("2d");
     this.gr = document.getElementById("grid");
     this.grctx = this.gr.getContext("2d");
     this.socket = new WebSocket("ws://" + document.location.host + "/ws");
