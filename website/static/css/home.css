@@ -1,0 +1,38 @@
+.layout {
+    display: flex;
+    justify-content: center;
+}
+
+.spaces {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+.spaces > div {
+    padding: 20px;
+    color: gray;
+}
+.spaces > div:nth-child(odd) {
+    margin: 40px;
+}
+
+.title {
+    background-color: black;
+    cursor: default;
+}
+
+.create {
+    background-color: black;
+    cursor: pointer;
+}
+
+.join {
+    background-color: black;
+    cursor: pointer;
+}
+
+.enter {
+    background-color: lightskyblue;
+    padding: 1vh;
+    cursor: pointer;
+}

@@ -1,8 +1,6 @@
 #game {
   border: solid 2px;
 }
-
-
 #interface {
   display: flex;
   justify-content: center;
