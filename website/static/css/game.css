@@ -3,10 +3,10 @@
   justify-content: center;
   position: relative;
 }
-#grid {
+#dynamic {
+  z-index: 1;
   position: absolute;
   background-color: transparent;
-  z-index: 2;
   opacity: 1.0;
 }
 #static {
@@ -15,11 +15,25 @@
   z-index: 2;
   opacity: 1.0;
 }
-#chainReaction {
-  z-index: 1;
+#grid {
   position: absolute;
   background-color: transparent;
+  z-index: 2;
   opacity: 1.0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 20% 60% 20%;
+}
+.general {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+.bar-wrap {
+  display: flex;
+  justify-content: center;
 }
 .column {
   display: flex;
@@ -31,22 +45,8 @@
   text-align: center;
   border: solid green 1px;
 }
-.layout {
-  display: grid;
-  grid-template-columns: 20% 60% 20%;
-}
-.general {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  text-align: center;
-}
 .players {
   margin: 1%;
-}
-.bar-wrap {
-  display: flex;
-  justify-content: center;
 }
 
 .noSelect {
@@ -57,5 +57,4 @@
   -ms-user-select: none;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-
 }
