@@ -14,27 +14,65 @@
                 <div class="title">
                     <h1>Chain Reaction</h1>
                 </div>
-                <div class="clicks">
-                    <button class="create">
-                        <h2>Create a Game</h2>
-                    </button>
-                    <button class="join">
-                        <h2>Join a Game</h2>
-                    </button>
+                <div class="create game-btn">
+                    <h2>Create a Game</h2>
+                </div>
+                <div class="join game-btn">
+                    <h2>Join a Game</h2>
+                </div>
+            </div>
+            <div id="pop-create" class="pop-up" style="display: none;">
+                <label for="players">How many players?</label><br>
+                <select name="players" id="players">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+                <div class="ent-ext">
+                    <button class="ent">Enter</button>
+                    <button class="ext">Exit</button>
+                </div>
+            </div>
+            <div id="pop-join" class="pop-up" style="display: none;">
+                <form action="">
+                    <label for="room">Room</label><br>
+                    <input type="text" id="room" name="room"><br>
+                    <label for="pin">Pin</label><br>
+                    <input type="text" name="pin" id="pin">
+                </form>
+                <div class="ent-ext">
+                    <button class="ent">Enter</button>
+                    <button class="ext">Exit</button>
                 </div>
             </div>
         </div>
     </div>
+    </div>
 </body>
 <script>
-    let cre = document.querySelector(".title");
+    let lay = document.querySelector(".layout")
+    let cre = document.querySelector(".create");
     let join = document.querySelector(".join");
-    cre.addEventListener("click", () => {
-
-    });
-    join.addEventListener("click", () => {
-
-    });
+    let popCre = document.getElementById("pop-create")
+    let popJoin = document.getElementById("pop-join")
+    let creListen = () => {
+        cre.addEventListener("click", () => {
+            join.disabled = true;
+            cre.disabled = false;
+            popCre.style.display = "flex"
+            alert("create is clicked")
+        })
+    };
+    let joinListen = () => {
+        join.addEventListener("click", () => {
+            alert("join is clicked")
+        })
+    };
+    window.onload = () => {
+        creListen();
+        joinListen();
+    }
 </script>
 
 </html>
