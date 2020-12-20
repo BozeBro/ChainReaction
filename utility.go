@@ -1,10 +1,12 @@
 package main
+
 import (
-	"io"
 	"encoding/json"
+	"io"
 	"math/rand"
 	"strconv"
 )
+
 var CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
 func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
@@ -37,7 +39,7 @@ func MakePin() string {
 	pin := ""
 	nums := "1234567890"
 	for i := 0; i < 5; i++ {
-		pin += strconv.Itoa(int(nums[rand.Intn(len(CHARS))]))
+		pin += strconv.Itoa(int(nums[rand.Intn(len(nums))]))
 	}
 	return pin
 }

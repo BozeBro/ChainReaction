@@ -48,14 +48,17 @@ let btnClicked = (e) => {
             } else {
                 // Creating a room
                 let DOMName = document.getElementById("name");
-                let name = DOMName.value;
+                let room = DOMName.value;
                 let players = document.getElementById("players").value;
-                if (!name) errCre.innerHTML = "ENTER A ROOM NAME";
+                if (!room) {
+                    errCre.innerHTML = "ENTER A ROOM NAME";
+                    return
+                }
                 DOMName.value = ""
                 fetch("http://" + document.location.host + "/api/create", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ players: players, name: name }),
+                    body: JSON.stringify({ Players: players, Room: room }),
                 })
                     .then((res) => {
                         m = res;
