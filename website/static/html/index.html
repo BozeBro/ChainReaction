@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/index.css">
     <title>Home Screen</title>
 </head>
 
@@ -50,29 +50,7 @@
     </div>
     </div>
 </body>
-<script>
-    let lay = document.querySelector(".layout")
-    let cre = document.querySelector(".create");
-    let join = document.querySelector(".join");
-    let popCre = document.getElementById("pop-create")
-    let popJoin = document.getElementById("pop-join")
-    let creListen = () => {
-        cre.addEventListener("click", () => {
-            join.disabled = true;
-            cre.disabled = false;
-            popCre.style.display = "flex"
-            alert("create is clicked")
-        })
-    };
-    let joinListen = () => {
-        join.addEventListener("click", () => {
-            alert("join is clicked")
-        })
-    };
-    window.onload = () => {
-        creListen();
-        joinListen();
-    }
+<script src="../js/index.js">
 </script>
 
 </html>
