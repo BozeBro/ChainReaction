@@ -1,7 +1,8 @@
 package main
 
 import (
-	"flag"
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -9,14 +10,46 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func main() {
-	var dir string
+type ReqBody struct {
+	Pin, Room, Players string
+}
 
-	flag.StringVar(&dir, "dir", ".", "the directory to serve files from. Defaults to the current dir")
-	flag.Parse()
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./website/static/html/index.html")
+}
+func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
+	decoder := json.NewDecoder(data)
+	var body ReqBody
+	for decoder.More() {
+		err := decoder.Decode(&body)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &body, nil
+}
+func JoinHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := DecodeBody(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(body)
+	// Check if Room Exists
+	// Join that Room
+}
+func CreateHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := DecodeBody(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(body)
+	// Create Room
+	// Add room to created Rooms
+}
+func main() {
+	static := http.FileServer(http.Dir("./website/static"))
 	r := mux.NewRouter()
 	hub := newHub()
-	//r.PathPrefix("/").Handler(http.FileServer(http.Dir(dir + "/static")))
 	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		if !hub.alive {
 			hub.alive = true
@@ -24,7 +57,13 @@ func main() {
 		}
 		wSHandshake(hub, w, r)
 	})
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir(dir)))
+	r.HandleFunc("/", HomeHandler).
+		Methods("GET")
+	r.PathPrefix("/css/{file}").Handler(static)
+	r.PathPrefix("/js/{file}").Handler(static)
+	api := r.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/create", CreateHandler)
+	api.HandleFunc("/join", JoinHandler)
 	http.Handle("/", r)
 
 	srv := &http.Server{
@@ -34,6 +73,6 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-
+	log.Println("serving at 127.0.0.1:8000")
 	log.Fatal(srv.ListenAndServe())
 }

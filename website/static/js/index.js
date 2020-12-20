@@ -30,10 +30,28 @@ let btnClicked = (e) => {
             break;
         case "ent":
             if (popup.id === "pop-join") {
-                let room = document.getElementById("room");
-                let pin = document.getElementById("pin");
+                let room = document.getElementById("room").value;
+                let pin = document.getElementById("pin").value;
+                if (!(room && pin)) { return }
+                fetch("http://" + document.location.host + "/api/join", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({room: room, pin: pin,}),
+                })
+                .then((res) => {
+                    console.log(res)
+                })
             } else {
-                let opt = document.getElementById("players");
+                let players = document.getElementById("players").value;
+                if (!players) { return }
+                fetch("http://" + document.location.host + "/api/create", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({players: players}),
+                })
+                .then((res) =>{
+                    console.log(res)
+                })
             }
     }
 }
