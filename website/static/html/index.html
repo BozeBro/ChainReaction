@@ -24,8 +24,9 @@
             </div>
             <div id="pop-create" class="pop-up">
                 <form action="">
+                    <div id="errCre"></div>
                     <label for="name">Room Name?</label><br>
-                    <input type="text" id="name" name="name"><br>
+                    <input type="text" id="name" name="name" placeholder="Room"><br>
                     <label for="players">How many players?</label><br>
                     <select name="players" id="players">
                         <option value="2">2</option>
@@ -41,10 +42,11 @@
             </div>
             <div id="pop-join" class="pop-up">
                 <form action="">
+                    <div id="errJoin"></div>
                     <label for="room">Room</label><br>
-                    <input type="text" id="room" name="room"><br>
+                    <input type="text" id="room" name="room" placeholder="Room"><br>
                     <label for="pin">Pin</label><br>
-                    <input type="text" name="pin" id="pin">
+                    <input type="text" name="pin" id="pin" placeholder="Pin">
                 </form>
                 <div class="ent-ext">
                     <button class="ent">Enter</button>

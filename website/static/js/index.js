@@ -3,7 +3,8 @@ let lay = document.querySelector(".layout");
 let cre = document.querySelector(".create");
 let join = document.querySelector(".join");
 let spaces = document.querySelector(".spaces");
-
+let errCre = document.getElementById("errCre");
+let errJoin = document.getElementById("errJoin");
 let popCre = document.getElementById("pop-create");
 let popJoin = document.getElementById("pop-join");
 // popup tells what popup is active
@@ -27,6 +28,8 @@ let btnClicked = (e) => {
         case "ext":
             popup.style.display = "none";
             popup = null;
+            errCre.innerHTML = "";
+            errJoin.innerHTML = "";
             break;
         case "ent":
             if (popup.id === "pop-join") {
@@ -41,22 +44,30 @@ let btnClicked = (e) => {
                     .then((res) => {
                         console.log(res)
                     })
+
             } else {
-                let name = document.getElementById("name").value;
+                // Creating a room
+                let DOMName = document.getElementById("name");
+                let name = DOMName.value;
                 let players = document.getElementById("players").value;
-                if (!players) { return }
+                if (!name) errCre.innerHTML = "ENTER A ROOM NAME";
+                DOMName.value = ""
                 fetch("http://" + document.location.host + "/api/create", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ players: players, name: name }),
                 })
                     .then((res) => {
-                        console.log(res)
+                        m = res;
+                        switch (res.status) {
+                            case 409:
+                                errCre.innerHTML = "ROOM IS TAKEN";
+                        }
                     })
             }
     }
 }
-
+var m;
 window.onload = () => {
     spaces.addEventListener("click", btnClicked)
     cre.addEventListener("click", creHandler)

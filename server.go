@@ -1,15 +1,20 @@
 package main
 
 import (
-	"encoding/json"
-	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
 )
 
+var RoomStorage = make(map[string]*GameData)
+
+type GameData struct {
+	Room, Pin string
+	Players int
+}
 type ReqBody struct {
 	Pin, Room, Players, Name string
 }
@@ -17,17 +22,7 @@ type ReqBody struct {
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./website/static/html/index.html")
 }
-func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
-	decoder := json.NewDecoder(data)
-	var body ReqBody
-	for decoder.More() {
-		err := decoder.Decode(&body)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &body, nil
-}
+
 func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := DecodeBody(r.Body)
 	if err != nil {
@@ -42,9 +37,29 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(body)
-	// Create Room
-	// Add room to created Rooms
+	// Take in anything.
+	if body.Players == "" || body.Room == "" {
+		http.Error(w, "Empty values", 409)
+		return
+	}
+	_, ok := RoomStorage[body.Room]
+	if ok {
+		http.Error(w, "The room is already taken. Try another name", 409)
+		return
+	}
+	playerAmount, err := strconv.Atoi(body.Players)
+	if err != nil {
+		// Someone attempting some hacks
+		http.Error(w, "You didn't send a numerical value for player amount", 400)
+		log.Fatal(err)
+	}
+	// Create Proper Unique Data
+	id := MakeId()
+	pin := MakePin()
+	RoomStorage[id] = &GameData{Players: playerAmount, Room: body.Room, Pin: pin}
+	// Redirect Person to Game Room. /game/{Identity} URL should have a unique identifier
+	// Websocket Connection that monitors players in the room.
+	// Once Mod/Admin presses "Start", then begin the Game
 }
 func main() {
 	static := http.FileServer(http.Dir("./website/static"))
