@@ -35,26 +35,28 @@ let btnClicked = (e) => {
                 if (!(room && pin)) { return }
                 fetch("http://" + document.location.host + "/api/join", {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({room: room, pin: pin,}),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room: room, pin: pin, }),
                 })
-                .then((res) => {
-                    console.log(res)
-                })
+                    .then((res) => {
+                        console.log(res)
+                    })
             } else {
+                let name = document.getElementById("name").value;
                 let players = document.getElementById("players").value;
                 if (!players) { return }
                 fetch("http://" + document.location.host + "/api/create", {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({players: players}),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ players: players, name: name }),
                 })
-                .then((res) =>{
-                    console.log(res)
-                })
+                    .then((res) => {
+                        console.log(res)
+                    })
             }
     }
 }
+
 window.onload = () => {
     spaces.addEventListener("click", btnClicked)
     cre.addEventListener("click", creHandler)

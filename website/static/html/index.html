@@ -17,24 +17,29 @@
                 <div class="create game-btn">
                     <h2>Create a Game</h2>
                 </div>
+
                 <div class="join game-btn">
                     <h2>Join a Game</h2>
                 </div>
             </div>
-            <div id="pop-create" class="pop-up" style="display: none;">
-                <label for="players">How many players?</label><br>
-                <select name="players" id="players">
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
+            <div id="pop-create" class="pop-up">
+                <form action="">
+                    <label for="name">Room Name?</label><br>
+                    <input type="text" id="name" name="name"><br>
+                    <label for="players">How many players?</label><br>
+                    <select name="players" id="players">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </form>
                 <div class="ent-ext">
                     <button class="ent">Enter</button>
                     <button class="ext">Exit</button>
                 </div>
             </div>
-            <div id="pop-join" class="pop-up" style="display: none;">
+            <div id="pop-join" class="pop-up">
                 <form action="">
                     <label for="room">Room</label><br>
                     <input type="text" id="room" name="room"><br>

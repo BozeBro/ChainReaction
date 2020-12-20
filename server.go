@@ -11,7 +11,7 @@ import (
 )
 
 type ReqBody struct {
-	Pin, Room, Players string
+	Pin, Room, Players, Name string
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {

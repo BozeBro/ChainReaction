@@ -1,8 +1,9 @@
 .layout {
     display: flex;
+    position: relative;
     justify-content: center;
-
 }
+
 .spaces {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -39,26 +40,24 @@
     grid-column: 4;
 
 }
-.enter {
-    background-color: lightskyblue;
-    padding: 1vh;
-    cursor: pointer;
-}
+/* These deal with the popped up text box */
+/* pop-up will be chagned to flex when activated */
 .pop-up {
     grid-row: 2;
-    grid-column: 3;
+    grid-column: 2 / 5;
     background-color: white;
-    display: flex;
+    display: none;
     text-align: center;
     justify-content: center;
     flex-direction: column;
     gap: 1em;
+    border: 2px solid blue;
   }
 
 .ent-ext {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    margin-bottom: 10px;
+    margin-bottom: 2px;
 }
 
 .ent {
@@ -67,6 +66,8 @@
 .ext {
     grid-column: 5;
 }
+/* Custom Formatting (IDK if actually works) */
 form {
     margin-bottom: 0px;
+    border-color: blue;
 }
