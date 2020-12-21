@@ -27,7 +27,7 @@ func MakeId() string {
 		// All letters are valid. NO need to check
 		id += string(CHARS[rand.Intn(len(CHARS))])
 	}
-	if _, ok := RoomStorage[id]; ok {
+	if IdExists(RoomStorage, id) {
 		// This string has already been created
 		return MakeId()
 	}
@@ -46,4 +46,8 @@ func MakePin(room string) string {
 		}
 	}
 	return pin
+}
+func IdExists(rooms Storage, id string) bool {
+	_, ok := rooms[id]
+	return ok
 }

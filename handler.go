@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
 	"github.com/gorilla/mux"
 )
 
@@ -11,10 +12,19 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./website/static/html/index.html")
 }
 func WaitHandler(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
-	log.Println(id)
-	http.ServeFile(w, r, "./website/static/html/waiting.html")
+	id := mux.Vars(r)["id"]
+	if !IdExists(RoomStorage, id) {
+		http.NotFound(w, r)
+		return
+	}
+	isleader := <-RoomStorage[id].Roles
+	if isleader {
+		http.ServeFile(w, r, "./website/static/html/waitingLeader.html")
+	} else {
+		http.ServeFile(w, r, "./website/static/html/waitingPlayer.html")
+	}
+	// Websocket Connection that monitors players in the room.
+	// Once Mod/Admin presses "Start", then begin the Game
 }
 func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := DecodeBody(r.Body)
@@ -51,14 +61,20 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	playerAmount, err := strconv.Atoi(body.Players)
 	if err != nil {
 		// Someone attempting some hacks
-		http.Error(w, "You didn't send an integer value for player amount", 400)
-		log.Fatal(err)
+		// Might be unneccessary though
+		http.Error(w, "Nice Try nerd", 400)
+		log.Println(err)
+		return
 	}
 	// Create Proper Unique Data
 	id := MakeId()
 	pin := MakePin(body.Room)
-	RoomStorage[id] = &GameData{Players: playerAmount, Room: body.Room, Pin: pin}
+	RoomStorage[id] = &GameData{
+		Players: playerAmount,
+		Room:    body.Room,
+		Pin:     pin,
+		Roles:   make(chan bool, playerAmount)}
+	go func() { RoomStorage[id].Roles <- true }()
 	http.Redirect(w, r, "/game/"+id, 303)
-	// Websocket Connection that monitors players in the room.
-	// Once Mod/Admin presses "Start", then begin the Game
+
 }

@@ -1,1 +1,1 @@
-socket = new WebSocket("ws://" + document.location.host + "/ws/waiting");
+//socket = new WebSocket("ws://" + document.location.host + "/ws/waiting");

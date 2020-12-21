@@ -16,6 +16,7 @@ var RoomStorage = make(Storage, 0)
 type GameData struct {
 	Room, Pin string
 	Players   int
+	Roles chan bool
 }
 type ReqBody struct {
 	Pin, Room, Players, Name string
@@ -36,7 +37,13 @@ func main() {
 		Methods("GET")
 	r.PathPrefix("/css/{file}").Handler(static)
 	r.PathPrefix("/js/{file}").Handler(static)
-	r.HandleFunc("/game/{id}", WaitHandler)
+	r.HandleFunc("/game/{id}", func(w http.ResponseWriter, r *http.Request) {
+		go func ()  {
+			id := mux.Vars(r)["id"]
+			RoomStorage[id].Roles <- false
+		}()
+		WaitHandler(w, r)
+	})
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/create", CreateHandler)
 	api.HandleFunc("/join", JoinHandler)
