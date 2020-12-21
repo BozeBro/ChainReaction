@@ -36,7 +36,7 @@ func main() {
 		Methods("GET")
 	r.PathPrefix("/css/{file}").Handler(static)
 	r.PathPrefix("/js/{file}").Handler(static)
-	r.HandleFunc("/game/{id}", RoomHandler)
+	r.HandleFunc("/game/{id}", WaitHandler)
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/create", CreateHandler)
 	api.HandleFunc("/join", JoinHandler)

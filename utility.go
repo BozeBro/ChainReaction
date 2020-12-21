@@ -6,7 +6,7 @@ import (
 	"math/rand"
 )
 
-var CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+const CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
 func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
 	decoder := json.NewDecoder(data)
@@ -34,11 +34,16 @@ func MakeId() string {
 	return id
 }
 
-func MakePin() string {
+func MakePin(room string) string {
 	pin := ""
 	nums := "1234567890"
 	for i := 0; i < 5; i++ {
 		pin += string(nums[rand.Intn(len(nums))])
+	}
+	for _, val := range RoomStorage {
+		if (*val).Room == room && (*val).Pin == pin {
+			return MakePin(room) 
+		}
 	}
 	return pin
 }

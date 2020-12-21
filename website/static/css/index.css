@@ -62,9 +62,11 @@
 
 .ent {
     grid-column: 2;
+    cursor: pointer;
 }
 .ext {
     grid-column: 5;
+    cursor: pointer;
 }
 /* Custom Formatting (IDK if actually works) */
 form {

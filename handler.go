@@ -1,17 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"github.com/gorilla/mux"
 )
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./website/static/html/index.html")
 }
-func RoomHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "HELLO")
+func WaitHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+	log.Println(id)
+	http.ServeFile(w, r, "./website/static/html/waiting.html")
 }
 func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := DecodeBody(r.Body)
@@ -53,7 +56,7 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Create Proper Unique Data
 	id := MakeId()
-	pin := MakePin()
+	pin := MakePin(body.Room)
 	RoomStorage[id] = &GameData{Players: playerAmount, Room: body.Room, Pin: pin}
 	http.Redirect(w, r, "/game/"+id, 303)
 	// Websocket Connection that monitors players in the room.
