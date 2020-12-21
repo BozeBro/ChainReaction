@@ -25,7 +25,7 @@ class chainReaction {
         // Get the square coords clicked relative to
         let x = Math.floor((event.clientX - canvasObj.left) / this.squareLength);
         let y = Math.floor((event.clientY - canvasObj.top) / this.squareLength);
-        this.socket.send(JSON.stringify({x:x, y:y, color:this.color}))
+        this.socket.send(JSON.stringify({ x: x, y: y, color: this.color }))
       }
     }
   }
@@ -92,11 +92,8 @@ class chainReaction {
       toAnimate.animations.push(info.animations)
       toAnimate.moved.push(info.moved)
     }
-    const ani = async () => {
-      return new Promise(() =>
-        requestAnimationFrame(() => this.animate(toAnimate, -d, d, 0)))
-    }
-    return ani()
+    return new Promise(() =>
+      requestAnimationFrame(() => this.animate(toAnimate, -d, d, 0)))
   }
   clicked(x, y) {
     const curSquare = this.squares[y][x];
@@ -205,7 +202,6 @@ class chainReaction {
   }
 }
 const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
-//let chain = new chainReaction(15, 15, "red");
-//chain.initBoard();
+
 
 

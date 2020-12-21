@@ -1,17 +1,13 @@
-#game {
-  border: solid 2px;
-}
-
 
 #interface {
   display: flex;
   justify-content: center;
   position: relative;
 }
-#grid {
+#dynamic {
+  z-index: 1;
   position: absolute;
   background-color: transparent;
-  z-index: 2;
   opacity: 1.0;
 }
 #static {
@@ -20,22 +16,13 @@
   z-index: 2;
   opacity: 1.0;
 }
-#chainReaction {
-  z-index: 1;
+#grid {
   position: absolute;
   background-color: transparent;
+  z-index: 2;
   opacity: 1.0;
 }
-.column {
-  display: flex;
-}
 
-.row {
-  width: 60px;
-  height: 60px;
-  text-align: center;
-  border: solid green 1px;
-}
 .layout {
   display: grid;
   grid-template-columns: 20% 60% 20%;
@@ -48,4 +35,27 @@
 .bar-wrap {
   display: flex;
   justify-content: center;
+}
+.column {
+  display: flex;
+}
+
+.row {
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  border: solid green 1px;
+}
+.players {
+  margin: 1%;
+}
+
+.noSelect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }

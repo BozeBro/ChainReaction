@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"net/http"
 	"time"
@@ -9,14 +8,23 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func main() {
-	var dir string
+// The string will be the id
+type Storage map[string]*GameData
 
-	flag.StringVar(&dir, "dir", ".", "the directory to serve files from. Defaults to the current dir")
-	flag.Parse()
+var RoomStorage = make(Storage, 0)
+
+type GameData struct {
+	Room, Pin string
+	Players   int
+}
+type ReqBody struct {
+	Pin, Room, Players, Name string
+}
+
+func main() {
+	static := http.FileServer(http.Dir("./website/static"))
 	r := mux.NewRouter()
 	hub := newHub()
-	//r.PathPrefix("/").Handler(http.FileServer(http.Dir(dir + "/static")))
 	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		if !hub.alive {
 			hub.alive = true
@@ -24,7 +32,14 @@ func main() {
 		}
 		wSHandshake(hub, w, r)
 	})
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir(dir)))
+	r.HandleFunc("/", HomeHandler).
+		Methods("GET")
+	r.PathPrefix("/css/{file}").Handler(static)
+	r.PathPrefix("/js/{file}").Handler(static)
+	r.HandleFunc("/game/{id}", WaitHandler)
+	api := r.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/create", CreateHandler)
+	api.HandleFunc("/join", JoinHandler)
 	http.Handle("/", r)
 
 	srv := &http.Server{
@@ -34,6 +49,6 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-
+	log.Println("serving at 127.0.0.1:8000")
 	log.Fatal(srv.ListenAndServe())
 }

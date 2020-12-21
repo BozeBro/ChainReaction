@@ -1,20 +1,22 @@
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/game.css">
+    <title>Chain Reaction Game</title>
 </head>
 
 <body>
     <div class="layout">
-        <div>
+        <div class="noSelect">
             <h2>CHAIN REACTION</h2>
         </div>
         <div class="general">
             <div class="bar-wrap">
                 <canvas id="bar"></canvas>
             </div>
-            <div>Ryan vs Benedict</div>
-            <br>
+            <div class="players noSelect">Ryan vs Benedict</div>
             <div id="interface">
                 <canvas id="dynamic" width="450px" height="450px"></canvas>
                 <canvas id="static" width="450px" height="450px"></canvas>
@@ -24,9 +26,6 @@
         <div></div>
     </div>
     <script src="../js/board.js"></script>
-    <script>
-
-    </script>
     <script>
         let chain = new chainReaction(15, 15, "red");
         chain.initBoard();
