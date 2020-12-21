@@ -57,15 +57,22 @@ let btnClicked = (e) => {
                 DOMName.value = ""
                 fetch("http://" + document.location.host + "/api/create", {
                     method: 'POST',
+                    redirect: 'follow',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ Players: players, Room: room }),
                 })
-                    .then((res) => {
-                        m = res;
+                    .then(res => {
                         switch (res.status) {
                             case 409:
                                 errCre.innerHTML = "ROOM IS TAKEN";
+                            case 400:
+                                errCre.innerHTML = "WHAT ARE YOU DOING?";
                         }
+                        return res
+                    }).then(res => {
+                        if (!res.redirected) return;
+                        window.location.replace(res.url);
+
                     })
             }
     }
