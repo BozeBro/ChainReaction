@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/game.css">
+    <link rel="stylesheet" href="../css/waiting.css">
+    <!-- We need index.css for the btn style -->
+    <link rel="stylesheet" href="../css/index.css">
     <title>Chain Reaction Game</title>
 </head>
-
 <body>
-    <div class="layout">
+    <div class="overview">
         <div class="noSelect">
             <h2>CHAIN REACTION</h2>
         </div>
@@ -24,6 +26,28 @@
             </div>
         </div>
         <div></div>
+    </div>
+    <div id="waitingRoom">
+        <div class="wait-title">
+            <h2>Chain Reaction</h2>
+        </div>
+        <div class="wait-current">1 / 4</div>
+        <div>
+            <div class="lds-roller">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+        <div class="ent-ext button-area">
+            <button class="ent">Start</button>
+            <button class="ext">Exit</button>
+        </div>
     </div>
     <script src="../js/board.js"></script>
     <script>
@@ -45,4 +69,5 @@
         };
     </script>
 </body>
+
 </html>

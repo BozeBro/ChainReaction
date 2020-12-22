@@ -17,12 +17,16 @@ func WaitHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	isleader := <-RoomStorage[id].Roles
+	// isleader := <-RoomStorage[id].Roles
+	http.ServeFile(w, r, "./website/static/html/game.html")
+	return
+	/*
 	if isleader {
 		http.ServeFile(w, r, "./website/static/html/waitingLeader.html")
 	} else {
 		http.ServeFile(w, r, "./website/static/html/waitingPlayer.html")
 	}
+	*/
 	// Websocket Connection that monitors players in the room.
 	// Once Mod/Admin presses "Start", then begin the Game
 }
