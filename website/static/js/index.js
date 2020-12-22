@@ -8,8 +8,8 @@ let errJoin = document.getElementById("errJoin");
 let popCre = document.getElementById("pop-create");
 let popJoin = document.getElementById("pop-join");
 // popup tells what popup is active
+console.log("NEW CAHNGE NEVER SEEN BEFORE")
 let popup = null;
-
 let creHandler = () => {
     if (popup) { return }
     popCre.style.display = "flex";
@@ -22,7 +22,6 @@ let joinHandler = () => {
 
 }
 let btnClicked = (e) => {
-    console.log("YESSIR")
     const btnClicked = e.target.nodeName === "BUTTON";
     if (!btnClicked) { return }
     switch (e.target.className) {
@@ -73,11 +72,11 @@ let btnClicked = (e) => {
                         }
                         //return res
                     })
-                    /*.then(res => {
-                        if (!res.redirected) return;
-                        window.location.replace(res.url);
+                /*.then(res => {
+                    if (!res.redirected) return;
+                    window.location.replace(res.url);
 
-                    }) */
+                }) */
             }
     }
 }
