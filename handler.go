@@ -1,39 +1,45 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	"github.com/gorilla/mux"
 )
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./website/static/html/index.html")
+	route := filepath.Join("website", "static", "html", "index.html")
+	http.ServeFile(w, r, route)
 }
 func WaitHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("WE HERE")
 	id := mux.Vars(r)["id"]
 	if !IdExists(RoomStorage, id) {
+		log.Println("CRYING")
 		http.NotFound(w, r)
 		return
 	}
-	// isleader := <-RoomStorage[id].Roles
-	http.ServeFile(w, r, "./website/static/html/game.html")
-	return
-	/*
-	if isleader {
-		http.ServeFile(w, r, "./website/static/html/waitingLeader.html")
-	} else {
-		http.ServeFile(w, r, "./website/static/html/waitingPlayer.html")
+	//isleader := <-RoomStorage[id].Roles
+	userRole := struct {
+		Leader bool
+	}{
+		Leader: true,
 	}
-	*/
-	// Websocket Connection that monitors players in the room.
-	// Once Mod/Admin presses "Start", then begin the Game
+	route := "website/static/html/game.html"
+	gameFile := template.Must(template.ParseFiles(route))
+	if err := gameFile.Execute(w, userRole); err != nil {
+		log.Fatal(err)
+		return
+	}
 }
 func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := DecodeBody(r.Body)
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 	log.Println(body)
 	// Check if Room Exists
@@ -43,23 +49,11 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := DecodeBody(r.Body)
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 	// Take in anything approach.
 	if body.Players == "" || body.Room == "" {
 		http.Error(w, "Empty values", 409)
-		return
-	}
-	isUnique := func() bool {
-		for _, val := range RoomStorage {
-			if (*val).Room == body.Room {
-				return false
-			}
-		}
-		return true
-	}()
-	if !isUnique {
-		log.Println(RoomStorage)
-		http.Error(w, "The room is already taken. Try another name", 409)
 		return
 	}
 	playerAmount, err := strconv.Atoi(body.Players)
@@ -78,7 +72,6 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		Room:    body.Room,
 		Pin:     pin,
 		Roles:   make(chan bool, playerAmount)}
-	go func() { RoomStorage[id].Roles <- true }()
-	http.Redirect(w, r, "/game/"+id, 303)
-
+	func() { RoomStorage[id].Roles <- true }()
+	http.Redirect(w, r, "/game/" + id, 302)
 }

@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/game.css">
-    <link rel="stylesheet" href="../css/waiting.css">
+    <link rel="preload" as="script" href="/website/static/js/board.js" id="boarding">
+    <link rel="stylesheet" href="/website/static/css/index.css">
+    <link rel="stylesheet" href="/website/static/css/game.css">
+    <link rel="stylesheet" href="/website/static/css/waiting.css">
     <!-- We need index.css for the btn style -->
-    <link rel="stylesheet" href="../css/index.css">
     <title>Chain Reaction Game</title>
 </head>
+
 <body>
     <div class="overview">
         <div class="noSelect">
@@ -45,29 +47,12 @@
             </div>
         </div>
         <div class="ent-ext button-area">
+            {{if .Leader}}
             <button class="ent">Start</button>
+            {{ end }}
             <button class="ext">Exit</button>
         </div>
     </div>
-    <script src="../js/board.js"></script>
-    <script>
-        let chain = new chainReaction(15, 15, "red");
-        chain.initBoard();
-        let bar = document.getElementById("bar").getContext("2d");
-        bar.canvas.width = chain.canvas.width;
-        // height is 10% of width
-        bar.canvas.height = bar.canvas.width * 0.05;
-        changeBarC = (color) => {
-            bar.fillStyle = color;
-            bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);
-        }
-        changeBarC("red")
-        chain.socket.onmessage = function (e) {
-            let data = JSON.parse(e.data);
-            chain.clicked(data.x, data.y);
-            changeBarC(data.color);
-        };
-    </script>
 </body>
-
+<script src="/website/static/js/board.js"></script>
 </html>

@@ -203,5 +203,21 @@ class chainReaction {
 }
 const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
 
-
-
+console.log("WE DID IT")
+let chain = new chainReaction(15, 15, "red");
+chain.initBoard();
+let bar = document.getElementById("bar").getContext("2d");
+bar.canvas.width = chain.canvas.width;
+// height is 10% of width
+bar.canvas.height = bar.canvas.width * 0.05;
+changeBarC = (color) => {
+  bar.fillStyle = color;
+  bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);
+}
+changeBarC("red")
+chain.socket.onmessage = function (e) {
+  let data = JSON.parse(e.data);
+  chain.clicked(data.x, data.y);
+  changeBarC(data.color);
+};
+console.log("WE DID IT")
