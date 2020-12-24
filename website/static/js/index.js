@@ -9,7 +9,6 @@ let popCre = document.getElementById("pop-create");
 let popJoin = document.getElementById("pop-join");
 // popup tells what popup is active
 let popup = null;
-
 let creHandler = () => {
     if (popup) { return }
     popCre.style.display = "flex";
@@ -57,27 +56,27 @@ let btnClicked = (e) => {
                 DOMName.value = ""
                 fetch("http://" + document.location.host + "/api/create", {
                     method: 'POST',
-                    redirect: 'follow',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ Players: players, Room: room }),
+                    redirect: 'follow',
+                    credentials: 'same-origin',
                 })
                     .then(res => {
                         switch (res.status) {
                             case 409:
                                 errCre.innerHTML = "ROOM IS TAKEN";
+                                break
                             case 400:
                                 errCre.innerHTML = "WHAT ARE YOU DOING?";
+                                break
+                            case 200:
+                                let newUrl = res.url.slice(0, -5)
+                                location.replace(newUrl)
                         }
-                        return res
-                    }).then(res => {
-                        if (!res.redirected) return;
-                        window.location.replace(res.url);
-
                     })
             }
     }
 }
-var m;
 window.onload = () => {
     spaces.addEventListener("click", btnClicked)
     cre.addEventListener("click", creHandler)

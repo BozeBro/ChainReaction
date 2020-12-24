@@ -23,7 +23,7 @@
   opacity: 1.0;
 }
 
-.layout {
+.overview {
   display: grid;
   grid-template-columns: 20% 60% 20%;
 }
@@ -36,10 +36,6 @@
   display: flex;
   justify-content: center;
 }
-.column {
-  display: flex;
-}
-
 .row {
   width: 60px;
   height: 60px;
@@ -59,3 +55,4 @@
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
+

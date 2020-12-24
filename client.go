@@ -8,6 +8,10 @@ import (
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
+	Color  string
+
+	Leader bool
+
 	hub *Hub
 
 	// The websocket connection.

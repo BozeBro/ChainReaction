@@ -1,25 +1,50 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
+
 	"github.com/gorilla/mux"
 )
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./website/static/html/index.html")
+	route := filepath.Join("website", "static", "html", "index.html")
+	http.ServeFile(w, r, route)
 }
 func WaitHandler(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
-	log.Println(id)
-	http.ServeFile(w, r, "./website/static/html/waiting.html")
+	log.Println("WE HERE")
+	id := mux.Vars(r)["id"]
+	if !IdExists(RoomStorage, id) {
+		log.Println("CRYING")
+		http.NotFound(w, r)
+		return
+	}
+	if len(RoomStorage[id].Roles) == 0 {
+		log.Println("Hijacking?")
+		return
+	}
+	//isleader := <-RoomStorage[id].Roles
+	isleader := true
+	userRole := struct {
+		Leader bool
+	}{
+		Leader: isleader,
+	}
+	route := "website/static/html/game.html"
+	gameFile := template.Must(template.ParseFiles(route))
+	if err := gameFile.Execute(w, userRole); err != nil {
+		log.Fatal(err)
+		return
+	}
 }
 func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := DecodeBody(r.Body)
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 	log.Println(body)
 	// Check if Room Exists
@@ -29,36 +54,35 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := DecodeBody(r.Body)
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 	// Take in anything approach.
 	if body.Players == "" || body.Room == "" {
 		http.Error(w, "Empty values", 409)
 		return
 	}
-	isUnique := func() bool {
-		for _, val := range RoomStorage {
-			if (*val).Room == body.Room {
-				return false
-			}
-		}
-		return true
-	}()
-	if !isUnique {
-		log.Println(RoomStorage)
-		http.Error(w, "The room is already taken. Try another name", 409)
-		return
-	}
 	playerAmount, err := strconv.Atoi(body.Players)
 	if err != nil {
 		// Someone attempting some hacks
-		http.Error(w, "You didn't send an integer value for player amount", 400)
-		log.Fatal(err)
+		// Might be unneccessary though
+		http.Error(w, "Nice Try nerd", 400)
+		log.Println(err)
+		return
 	}
 	// Create Proper Unique Data
 	id := MakeId()
 	pin := MakePin(body.Room)
-	RoomStorage[id] = &GameData{Players: playerAmount, Room: body.Room, Pin: pin}
-	http.Redirect(w, r, "/game/"+id, 303)
-	// Websocket Connection that monitors players in the room.
-	// Once Mod/Admin presses "Start", then begin the Game
+	RoomStorage[id] = &GameData{
+		Players: playerAmount,
+		Room:    body.Room,
+		Pin:     pin,
+		Hub:     newHub(),
+		Roles:   make(chan bool, playerAmount),
+		Rolesws: make(chan bool, playerAmount),
+	}
+	func() {
+		RoomStorage[id].Roles <- true
+		RoomStorage[id].Rolesws <- true
+	}()
+	http.Redirect(w, r, "/game/"+id+"/join", 302)
 }
