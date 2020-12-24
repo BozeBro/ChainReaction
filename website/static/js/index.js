@@ -62,7 +62,6 @@ let btnClicked = (e) => {
                     credentials: 'same-origin',
                 })
                     .then(res => {
-                        console.log(res.status)
                         switch (res.status) {
                             case 409:
                                 errCre.innerHTML = "ROOM IS TAKEN";
@@ -71,9 +70,8 @@ let btnClicked = (e) => {
                                 errCre.innerHTML = "WHAT ARE YOU DOING?";
                                 break
                             case 200:
-                                history.pushState({}, "Chain Reaction", res.url)
-                                //document.location.href = res.url
-                                res.text().then(html => document.body.innerHTML = html)
+                                let newUrl = res.url.slice(0, -5)
+                                location.replace(newUrl)
                         }
                     })
             }

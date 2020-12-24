@@ -22,11 +22,16 @@ func WaitHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	if len(RoomStorage[id].Roles) == 0 {
+		log.Println("Hijacking?")
+		return
+	}
 	//isleader := <-RoomStorage[id].Roles
+	isleader := true
 	userRole := struct {
 		Leader bool
 	}{
-		Leader: true,
+		Leader: isleader,
 	}
 	route := "website/static/html/game.html"
 	gameFile := template.Must(template.ParseFiles(route))
@@ -71,7 +76,13 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		Players: playerAmount,
 		Room:    body.Room,
 		Pin:     pin,
-		Roles:   make(chan bool, playerAmount)}
-	func() { RoomStorage[id].Roles <- true }()
-	http.Redirect(w, r, "/game/" + id, 302)
+		Hub:     newHub(),
+		Roles:   make(chan bool, playerAmount),
+		Rolesws: make(chan bool, playerAmount),
+	}
+	func() {
+		RoomStorage[id].Roles <- true
+		RoomStorage[id].Rolesws <- true
+	}()
+	http.Redirect(w, r, "/game/"+id+"/join", 302)
 }

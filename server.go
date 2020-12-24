@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"time"
-
+	"math/rand"
 	"github.com/gorilla/mux"
 )
 
@@ -16,29 +16,27 @@ var RoomStorage = make(Storage, 0)
 type GameData struct {
 	Room, Pin string
 	Players   int
+	Hub       *Hub
 	Roles     chan bool
+	Rolesws   chan bool
 }
 type ReqBody struct {
 	Pin, Room, Players, Name string
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	static := http.FileServer(http.Dir("./website/static"))
 	r := mux.NewRouter()
 	//hub := newHub()
-	/*
-		r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-			if !hub.alive {
-				hub.alive = true
-				go hub.run()
-			}
-			wSHandshake(hub, w, r)
-		})
-	*/
+	r.HandleFunc("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := mux.Vars(r)["id"]
+		WSHandshake(RoomStorage[id], w, r)
+	})
 	r.HandleFunc("/", HomeHandler).Methods("GET")
 	r.PathPrefix("/website/").Handler(http.StripPrefix("/website/static/", static))
 	r.HandleFunc("/game/{id}", WaitHandler).Methods("GET")
-	r.HandleFunc("/game/{id}/join", func (w http.ResponseWriter, r *http.Request)  {
+	r.HandleFunc("/game/{id}/join", func(w http.ResponseWriter, r *http.Request) {
 		return
 	})
 	api := r.PathPrefix("/api").Subrouter()

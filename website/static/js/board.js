@@ -1,6 +1,6 @@
 "use strict"
 class chainReaction {
-  constructor(rows = 8, cols = 8, color) {
+  constructor(rows = 8, cols = 8, color, socket) {
     /*
     canvas, ctx handle dynamic movement
     stat handle objects that aren't moving
@@ -8,28 +8,23 @@ class chainReaction {
     state tracks if an animation is taking place
       - blocks clicking event if false
     */
+    this.mycolor = null
+    this.start = false
+    this.socket = socket;
     this.canvas = document.getElementById("dynamic"); this.ctx = this.canvas.getContext("2d");
     this.statCtx = document.getElementById("static").getContext("2d");
     this.gr = document.getElementById("grid");
     this.grctx = this.gr.getContext("2d");
-    this.socket = new WebSocket("ws://" + document.location.host + "/ws");
     this.rows = rows;
     this.cols = cols;
     this.squareLength = Math.min(450 / rows, 450 / cols);
-    this.squares = [];
+    this.squares = []; // Tells [number amount of circles, Exploding amount, cur color]
     this.state = true; // Tracks if an animation is taking place
-    this.color = color;
-    this.gr.onclick = (event) => {
-      if (this.state === true) {
-        let canvasObj = event.target.getBoundingClientRect();
-        // Get the square coords clicked relative to
-        let x = Math.floor((event.clientX - canvasObj.left) / this.squareLength);
-        let y = Math.floor((event.clientY - canvasObj.top) / this.squareLength);
-        this.socket.send(JSON.stringify({ x: x, y: y, color: this.color }))
-      }
-    }
+    this.color = color; // This is the color of the player's turn
   }
   initBoard() {
+    // Make this.squares proper sizing
+    // Make the visual board
     this.statCtx.canvas.width = this.ctx.canvas.width = this.rows * this.squareLength;
     this.statCtx.canvas.height = this.ctx.canvas.height = this.cols * this.squareLength;
     this.grctx.canvas.width = this.ctx.canvas.width; this.grctx.canvas.height = this.ctx.canvas.height;
@@ -55,12 +50,13 @@ class chainReaction {
           if (h + 1 < cols) { valid += 1 }
           return valid;
         })(this.rows, this.cols);
-        this.squares[h][l] = [0, val];
+        this.squares[h][l] = [0, val, ""];
       }
     }
   }
   explode(exp) {
     // exp is the items that will explode. A stack
+    // Edit this.squares as well
     const d = 70 * this.squareLength / 1000 // Distance to move per frame
     let toAnimate = {
       "moved": [],
@@ -94,6 +90,7 @@ class chainReaction {
     }
     return new Promise(() =>
       requestAnimationFrame(() => this.animate(toAnimate, -d, d, 0)))
+      .then(console.log("FINISHED ANIMATION"))
   }
   clicked(x, y) {
     const curSquare = this.squares[y][x];
@@ -101,23 +98,26 @@ class chainReaction {
     this.squares[y][x][0] *= d;
     this.squares[y][x][0] += d;
     this.draw(x, y, this.squares[y][x][0]);
-    if (d === 0) { this.state = false; this.explode([[x, y]]) }
+    if (d === 0) { this.state = false; this.squares[y][x][-1] = ""; this.explode([[x, y]]) }
 
   }
   move(exp, info) {
     // Check if neighbors will explode.
     // Add coords and amount of circles of each square (For animation)
-    let expN = [];
+    // Change the color of neighboring squares (on this.squares)
+    let expN = []; // Exploding Neighbor
     for (let [x, y] of exp) {
       for (let [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         let nx = x + dx, ny = y + dy;
         if (0 <= nx && nx < this.rows && 0 <= ny && ny < this.cols) {
           let curSquare = this.squares[ny][nx];
-          const d = curSquare[0] + 1 < curSquare[1] ? 1 : 0;
-          this.squares[ny][nx][0] *= d;
-          this.squares[ny][nx][0] += d;
+          this.squares[ny][nx][-1] = this.color
+          if (curSquare[0] + 1 > curSquare[1]) {
+            this.squares[ny][nx][0] = 0
+            this.squares[ny][nx][-1] = ""
+            expN.push([nx, ny])
+          }
           info.moved.push([nx, ny, this.squares[ny][nx][0]]);
-          if (d === 0) { expN.push([nx, ny]) }
         }
       }
     }
@@ -203,21 +203,4 @@ class chainReaction {
 }
 const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
 
-console.log("WE DID IT")
-let chain = new chainReaction(15, 15, "red");
-chain.initBoard();
-let bar = document.getElementById("bar").getContext("2d");
-bar.canvas.width = chain.canvas.width;
-// height is 10% of width
-bar.canvas.height = bar.canvas.width * 0.05;
-changeBarC = (color) => {
-  bar.fillStyle = color;
-  bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);
-}
-changeBarC("red")
-chain.socket.onmessage = function (e) {
-  let data = JSON.parse(e.data);
-  chain.clicked(data.x, data.y);
-  changeBarC(data.color);
-};
-console.log("WE DID IT")
+
