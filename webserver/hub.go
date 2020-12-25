@@ -1,4 +1,4 @@
-package main
+package webserver
 
 import (
 	"encoding/json"
@@ -89,14 +89,10 @@ func (h *Hub) EditMsg(msg []byte) []byte {
 		h.Colors = make([]string, len(h.Clients))
 		i := 0
 		for k, _ := range h.Clients {
-			log.Print(k)
-			log.Println(" Client is")
 			h.Colors[i] = k.Color
 			i++
 		}
 	}
-	log.Print("h.I is")
-	log.Println(h.I)
 	next := h.Colors[h.I]
 	h.I++
 	if h.I >= len(h.Colors) {

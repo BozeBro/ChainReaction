@@ -8,13 +8,13 @@ class chainReaction {
     state tracks if an animation is taking place
       - blocks clicking event if false
     */
-    this.mycolor = null
+    this.__ms = 200 // milliseconds per animation. Meant to be a constant
+    this.mycolor = ""
     this.start = false
     this.socket = socket;
     this.canvas = document.getElementById("dynamic"); this.ctx = this.canvas.getContext("2d");
     this.statCtx = document.getElementById("static").getContext("2d");
-    this.gr = document.getElementById("grid");
-    this.grctx = this.gr.getContext("2d");
+    this.grctx = document.getElementById("grid").getContext("2d"); // Never changes. Meant for constant display
     this.rows = rows;
     this.cols = cols;
     this.squareLength = Math.min(450 / rows, 450 / cols);
@@ -54,117 +54,148 @@ class chainReaction {
       }
     }
   }
-  explode(exp) {
-    // exp is the items that will explode. A stack
-    // Edit this.squares as well
-    const d = 70 * this.squareLength / 1000 // Distance to move per frame
+  clicked(x, y) {
+    /* 
+    x - int : x position of the square clicked
+    y - int : y position of the square clicked
+    -----
+    Will Call explosion if square capacity is full
+     */
+    const curSquare = this.squares[y][x];
+    const newVal = curSquare[0] + 1 < curSquare[1] ? 1 : 0;
+    curSquare[0] *= newVal;
+    curSquare[0] += newVal;
+    this.draw(x, y, curSquare[0]);
+    if (newVal === 0) { this.state = false; curSquare[2] = ""; this.explode([[x, y]]) }
+
+  }
+  async explode(exp) {
+    /*
+    exp - [[x, y]] : the squares that are going to explode
+    -----
+    Recursive function that animates each level of explosion
+    Edit this.squares
+    Disable this.state so no one can click
+    Makes temporary global called this.exp to use in this.animate
+    */
+    if (exp.length === 0) {
+      this.state = true
+      return
+    }
+    const d = this.squareLength / this.__ms // Distance to move per frame
     let toAnimate = {
       "moved": [],
       "animations": [],
     }
-    while (exp.length !== 0) {
-      let info = {
-        "moved": [],
-        "animations": [],
+    for (let [x, y] of exp) {
+      // Gets First level of exploding / Animation Data
+      const posX = loc(x, this.squareLength)
+      const posY = loc(y, this.squareLength)
+      if (x + 1 < this.rows) {
+        toAnimate.animations.push([posX, posY, 1, 0])
       }
-      for (let [x, y] of exp) {
-        // Call move() on neighbors
-        const posX = loc(x, this.squareLength)
-        const posY = loc(y, this.squareLength)
-        if (x + 1 < this.rows) {
-          info.animations.push([posX, posY, 1, 0])
-        }
-        if (x - 1 >= 0) {
-          info.animations.push([posX, posY, -1, 0])
-        }
-        if (y + 1 < this.cols) {
-          info.animations.push([posX, posY, 0, 1])
-        }
-        if (y - 1 >= 0) {
-          info.animations.push([posX, posY, 0, -1])
-        }
+      if (x - 1 >= 0) {
+        toAnimate.animations.push([posX, posY, -1, 0])
       }
-      exp = this.move(exp, info)
-      toAnimate.animations.push(info.animations)
-      toAnimate.moved.push(info.moved)
+      if (y + 1 < this.cols) {
+        toAnimate.animations.push([posX, posY, 0, 1])
+      }
+      if (y - 1 >= 0) {
+        toAnimate.animations.push([posX, posY, 0, -1])
+      }
     }
-    return new Promise(() =>
-      requestAnimationFrame(() => this.animate(toAnimate, -d, d, 0)))
-      .then(console.log("FINISHED ANIMATION"))
-  }
-  clicked(x, y) {
-    const curSquare = this.squares[y][x];
-    const d = curSquare[0] + 1 < curSquare[1] ? 1 : 0;
-    this.squares[y][x][0] *= d;
-    this.squares[y][x][0] += d;
-    this.draw(x, y, this.squares[y][x][0]);
-    if (d === 0) { this.state = false; this.squares[y][x][-1] = ""; this.explode([[x, y]]) }
-
+    this.exp = this.move(exp, toAnimate) // toAnimate.moved is changed here as well.
+    m = await new Promise(() =>
+      requestAnimationFrame((ts) => this.animate(toAnimate, d, ts, ts)))
   }
   move(exp, info) {
+    /* 
+    exp - [[x, y]] : x and y coords of each square that is going to explode
+    info - [[x, y, v]] : Contains info on what squares to animate
+    */
     // Check if neighbors will explode.
     // Add coords and amount of circles of each square (For animation)
     // Change the color of neighboring squares (on this.squares)
-    let expN = []; // Exploding Neighbor
+    let expN = [];
+    // Exploding Neighbors
     for (let [x, y] of exp) {
       for (let [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         let nx = x + dx, ny = y + dy;
         if (0 <= nx && nx < this.rows && 0 <= ny && ny < this.cols) {
           let curSquare = this.squares[ny][nx];
-          this.squares[ny][nx][-1] = this.color
-          if (curSquare[0] + 1 > curSquare[1]) {
-            this.squares[ny][nx][0] = 0
-            this.squares[ny][nx][-1] = ""
+          curSquare[2] = this.color
+          curSquare[0] += 1
+          if (curSquare[0] >= curSquare[1]) {
+            curSquare[0] = 0
+            curSquare[2] = ""
             expN.push([nx, ny])
           }
-          info.moved.push([nx, ny, this.squares[ny][nx][0]]);
+          info.moved.push([nx, ny, curSquare[0]]);
         }
       }
     }
     return expN
   }
-  animate(toAnimate, i, d, ind) {
-    i += d
+  async animate(toAnimate, d, ts, start) {
+    /*
+    toAnimate - [{"moved": [], "animations": []}] ; Contains animation data
+    toAnimate.moved : Tells what to draw on static Canvas
+    toAnimate.animations : Instructs program how to animate (animation data)
+    i - int : Tells the next frame of the animation
+    d - int : How far each distance apart cicle should be drawn
+    ----
+    Animates each frame recursively.
+    this.exp is used here and ONLY here.
+    */
+    const elapsed = ts - start
+    const i = d * elapsed
     this.ctx.fillStyle = this.color
     this.ctx.lineWidth = 1
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    for (let [x, y, dx, dy] of toAnimate.animations[ind]) {
+    for (let [x, y, dx, dy] of toAnimate.animations) {
+      /*
+      x - int : Current square's original x position
+      y - int : Current square's original y position
+      dx - int : unit x vector. Either 1, -1, or 0 (for no movement)
+      dy - int : unit y vector. Either 1, -1, or 0 (for no movement)
+      -----
+      Movement will either be horizontal or vertical. NO diagonal
+      */
       if (dx !== 0) {
         this.ctx.beginPath();
-        this.ctx.arc(x + i * dx, y, this.squareLength / 4, 0, 2 * Math.PI);
+        this.ctx.arc(x + Math.min(i, this.squareLength) * dx, y, this.squareLength / 4, 0, 2 * Math.PI);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.closePath();
       } else {
         this.ctx.beginPath();
-        this.ctx.arc(x, y + i * dy, this.squareLength / 4, 0, 2 * Math.PI);
+        this.ctx.arc(x, y + Math.min(i, this.squareLength) * dy, this.squareLength / 4, 0, 2 * Math.PI);
         this.ctx.stroke();
         this.ctx.fill();
         this.ctx.closePath();
       }
     }
-    if (Math.abs(i) < this.squareLength) {
-      // Complete animation 
-      return new Promise(() => requestAnimationFrame(() => this.animate(toAnimate, i, d, ind)))
-    }
-    else if (ind + 1 < toAnimate.moved.length) {
-      // Go to next set to animate
-      for (let [x, y, v] of toAnimate.moved[ind]) {
-        this.draw(x, y, v)
-      }
-      return new Promise(() =>
-        requestAnimationFrame(() => this.animate(toAnimate, -d, d, ind + 1)))
+    if (elapsed < this.__ms) {
+      // Complete rest of animation 
+      await new Promise(() =>
+        requestAnimationFrame((ts) => this.animate(toAnimate, d, ts, start)))
     } else {
-      // Everything's settled now. Redraw stat screen
-      for (let [x, y, v] of toAnimate.moved[ind]) {
+      // Everything's finished now. Redraw static screen
+      for (let [x, y, v] of toAnimate.moved) {
         this.draw(x, y, v)
       }
-      this.state = true;
-      return new Promise(() =>
-        requestAnimationFrame(() => this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)))
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+      this.explode(this.exp)
+      this.state = true
+
     }
   }
   draw(x, y, v) {
+    /*
+    x - int : y coordinate of the square
+    y - int : X coordinate of the square
+    v - int : Tells how many circles are in a square
+    */
     let circlePos = this.squareLength / 7.5;
     let radius = this.squareLength / 4;
     this.statCtx.fillStyle = this.color;
