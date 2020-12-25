@@ -9,13 +9,6 @@ import (
 //Treat These as constants. You can change COLORS though.
 const CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
-var COLORS = []string{
-	"Black", "Brown",
-	"BlueViolet", "DarkRed",
-	"Aquamarine", "Green",
-	"Brown", "DarkOrange",
-	"DeepPink",
-}
 
 func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
 	// Decode Json message from HTTP Request.
@@ -64,19 +57,4 @@ func IdExists(rooms Storage, id string) bool {
 	// Checks if id exists in global games
 	_, ok := rooms[id]
 	return ok
-}
-
-func RandomColor() string {
-	// Gets random Color
-	clength := len(COLORS)
-	rand := rand.Intn(clength)
-	return COLORS[rand]
-}
-func isInside(colorList []string, color string) bool {
-	for _, c := range colorList {
-		if c == color {
-			return false	
-		}
-	}
-	return false
 }

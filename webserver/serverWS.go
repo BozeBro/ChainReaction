@@ -1,8 +1,10 @@
-package main
+package webserver
 
 import (
 	"log"
 	"net/http"
+	"github.com/BozeBro/ChainReaction/server"
+
 )
 
 type WSData struct {

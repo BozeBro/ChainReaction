@@ -1,4 +1,4 @@
-module stocks
+module github.com/BozeBro/ChainReaction
 
 go 1.15
 
