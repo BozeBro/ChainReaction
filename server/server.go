@@ -15,9 +15,10 @@ var RoomStorage = make(Storage, 0)
 type GameData struct {
 	Room, Pin string
 	Players   int
-	Hub       *webserver.Hub
-	Roles     chan bool
-	Rolesws   chan bool
+	Hub       *webserver.Hub // The game server
+	Roles     chan bool // Send roles to handler
+	Rolesws   chan bool // send roles to handler of websockets
+	Max int // Maximum amount of players
 }
 type ReqBody struct {
 	Pin, Room, Players, Name string
@@ -39,8 +40,8 @@ func MakeRouter() *mux.Router {
 		return
 	})
 	api := r.PathPrefix("/api").Subrouter()
-	api.HandleFunc("/create", CreateHandler).Methods("POST")
-	api.HandleFunc("/join", JoinHandler)
+	api.HandleFunc("/create/", CreateHandler).Methods("POST")
+	api.HandleFunc("/join/", JoinHandler).Methods("POST")
 	http.Handle("/", r)
 	return r
 }

@@ -6,8 +6,10 @@ import (
 )
 
 type Hub struct {
-	// alive ensures that only one hub will be created
-	Alive bool
+	// Channel that tells server that a player left
+	Delete chan bool
+	// Channel telling server to remove id
+	Stop chan bool
 	// Mapping of clients. Unordered
 	Clients map[*Client]bool
 
@@ -19,12 +21,19 @@ type Hub struct {
 
 	// Unregister requests from clients.
 	Unregister chan *Client
-	// Track who's turn it is
+	// Index of who's turn it is
 	I int
 	// Way of Tracking who's turn it is
 	Colors []string
+	// Has the data of the room
 }
-
+type GameData struct {
+	/*
+	Similar to server's GameData but without the chans
+	*/
+	Room, Pin string
+	Players, Max   int
+}
 type WSData struct {
 	Type  string `json:"type"`
 	X     int    `json:"x"`
@@ -36,7 +45,8 @@ type WSData struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		Alive:      false,
+		Delete:     make(chan bool),
+		Stop:       make(chan bool),
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
@@ -52,7 +62,7 @@ func (h *Hub) GetUniqueColor(c string) string {
 	return c
 }
 func (h *Hub) Run() {
-	defer func() { h.Alive = false }()
+	defer func() { h.Stop <- true }()
 	// wait for register, unregister, or broadcast chan to be filled
 	for {
 		select {
@@ -72,6 +82,7 @@ func (h *Hub) Run() {
 			if _, ok := h.Clients[client]; ok {
 				delete(h.Clients, client)
 				close(client.Received)
+				h.Delete <- true
 			}
 		case message := <-h.Broadcast:
 			newMsg := h.EditMsg(message)

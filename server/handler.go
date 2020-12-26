@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/BozeBro/ChainReaction/webserver"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/BozeBro/ChainReaction/webserver"
 )
 
 // Global variable that allows us to upgrade a connection
@@ -55,9 +55,37 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 		return
 	}
-	log.Println(body)
-	// Check if Room Exists
-	// Join that Room
+	// Do multiple loops so we know what to tell the user
+	rooms := []string{}
+	for id, gameData := range RoomStorage {
+		sameRoom := body.Room == gameData.Room
+		if sameRoom {
+			rooms = append(rooms, id)
+		}
+	}
+	if len(rooms) == 0 {
+		http.Error(w, "Room doesn't exist", http.StatusNotFound)
+		return
+	}
+	for _, id := range rooms {
+		gameData := RoomStorage[id]
+		samePin := body.Pin == gameData.Pin
+		notFull := gameData.Players+1 <= gameData.Max
+		if samePin && !notFull {
+			http.Error(w, "The room is full", http.StatusForbidden)
+			return
+		}
+		if samePin && notFull {
+			gameData.Players += 1
+			go func() {
+				gameData.Roles <- false
+				gameData.Rolesws <- false
+			}()
+			http.Redirect(w, r, "/game/"+id+"/join", 302)
+			return
+		}
+	}
+	http.Error(w, "Wrong Pin", 406)
 }
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := DecodeBody(r.Body)
@@ -82,13 +110,15 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	id := MakeId()
 	pin := MakePin(body.Room)
 	RoomStorage[id] = &GameData{
-		Players: playerAmount,
+		Max:     playerAmount,
+		Players: 1,
 		Room:    body.Room,
 		Pin:     pin,
 		Hub:     webserver.NewHub(),
 		Roles:   make(chan bool, playerAmount),
 		Rolesws: make(chan bool, playerAmount),
 	}
+	log.Println(pin)
 	func() {
 		RoomStorage[id].Roles <- true
 		RoomStorage[id].Rolesws <- true
@@ -110,17 +140,28 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request) {
 	//isleader := <-g.Rolesws
 	isleader := true
 	go func() {
-		if isleader && !g.Hub.Alive {
-			g.Hub.Alive = true
+		if isleader {
 			g.Hub.Run()
 		}
 	}()
 	client := &webserver.Client{
-		Hub: g.Hub,
+		Hub:      g.Hub,
 		Conn:     conn,
 		Received: make(chan []byte, 256),
 		Leader:   isleader}
 	client.Hub.Register <- client
 	go client.ReadMsg()
 	go client.WriteMsg()
+	go func() {
+		for {
+			select {
+			case <-g.Hub.Stop:
+				id := mux.Vars(r)["id"]
+				delete(RoomStorage, id)
+				return
+			case <-g.Hub.Delete:
+				g.Players -= 1
+			}
+		}
+	}()
 }

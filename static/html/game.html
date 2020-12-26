@@ -106,9 +106,9 @@
     };
     chain.initBoard();
     window.onload = () => {
-        let start = document.querySelector(".ent");
-        if (start !== null && start !== true) {
-            start.onclick = () => {
+        let enter = document.querySelector(".ent");
+        if (enter !== null && start !== true) {
+            enter.onclick = () => {
                 socket.send(JSON.stringify({ type: "start", val: true }));
             }
         }
