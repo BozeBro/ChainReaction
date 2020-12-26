@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/css/index.css">
-    <link rel="stylesheet" href="/static/css/game.css">
     <link rel="stylesheet" href="/static/css/waiting.css">
+    <link rel="stylesheet" href="/static/css/game.css">
     <!-- We need index.css for the btn style -->
     <title>Chain Reaction Game</title>
 </head>
@@ -55,7 +55,6 @@
 </body>
 <script src="/static/js/board.js"></script>
 <script>
-    "use strict"
 let path = document.location.pathname
 let id = path.slice(path.length - 8)
 let waiting = document.getElementById("waitingRoom");
@@ -75,7 +74,7 @@ let changeBarC = (color) => {
     bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);
 }
 
-chain.gr.onclick = (event) => {
+chain.grctx.canvas.onclick = (event) => {
     if (chain.state === true && start === true && chain.color === chain.mycolor) {
         let canvasObj = event.target.getBoundingClientRect();
         // Get the square coords clicked relative to

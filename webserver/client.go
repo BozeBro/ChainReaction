@@ -8,44 +8,42 @@ import (
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
+	// The color that represents the player and on the board
 	Color  string
-
+	// Can the player start the game or not?
 	Leader bool
-
-	hub *Hub
+	// The hub in which clients will play
+	Hub *Hub
 
 	// The websocket connection.
-	conn *websocket.Conn
+	Conn *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	received chan []byte
+	Received chan []byte
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
-func (c *Client) readMsg() {
+func (c *Client) ReadMsg() {
+	// Reads msg from the user and sends it to the hub
 	defer func() {
-		c.hub.unregister <- c
-		c.conn.Close()
+		c.Hub.Unregister <- c
+		c.Conn.Close()
 	}()
 	for {
-		_, msg, err := c.conn.ReadMessage()
+		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		c.hub.broadcast <- msg
+		c.Hub.Broadcast <- msg
 	}
 }
-func (c *Client) writeMsg() {
+func (c *Client) WriteMsg() {
+	// Sends msg from the hub to the client
 	txtMsg := 1
 	for {
 		select {
-		case msg := <-c.received:
-			err := c.conn.WriteMessage(txtMsg, msg)
+		case msg := <-c.Received:
+			err := c.Conn.WriteMessage(txtMsg, msg)
 			if err != nil {
 				log.Println(err)
 				return

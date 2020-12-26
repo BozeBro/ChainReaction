@@ -7,30 +7,39 @@ import (
 
 type Hub struct {
 	// alive ensures that only one hub will be created
-	alive bool
+	Alive bool
 	// Mapping of clients. Unordered
 	Clients map[*Client]bool
 
 	// incoming broadcasting req from clients
-	broadcast chan []byte
+	Broadcast chan []byte
 
 	// Register requests from the clients.
-	register chan *Client
+	Register chan *Client
 
 	// Unregister requests from clients.
-	unregister chan *Client
+	Unregister chan *Client
 	// Track who's turn it is
 	I int
 	// Way of Tracking who's turn it is
 	Colors []string
 }
 
-func newHub() *Hub {
+type WSData struct {
+	Type  string `json:"type"`
+	X     int    `json:"x"`
+	Y     int    `json:"y"`
+	Color string `json:"color"`
+	Val   bool   `json:"val"`
+	Next  string `json:"next"` // Next Color
+}
+
+func NewHub() *Hub {
 	return &Hub{
-		alive:      false,
-		broadcast:  make(chan []byte),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
+		Alive:      false,
+		Broadcast:  make(chan []byte),
+		Register:   make(chan *Client),
+		Unregister: make(chan *Client),
 		Clients:    make(map[*Client]bool),
 	}
 }
@@ -43,11 +52,11 @@ func (h *Hub) GetUniqueColor(c string) string {
 	return c
 }
 func (h *Hub) Run() {
-	defer func() { h.alive = false }()
+	defer func() { h.Alive = false }()
 	// wait for register, unregister, or broadcast chan to be filled
 	for {
 		select {
-		case client := <-h.register:
+		case client := <-h.Register:
 			client.Color = h.GetUniqueColor(RandomColor())
 			var wsData = &WSData{Color: client.Color, Type: "color"}
 			log.Println(client.Color)
@@ -58,19 +67,19 @@ func (h *Hub) Run() {
 				return
 			}
 			h.Clients[client] = true
-			client.received <- payload
-		case client := <-h.unregister:
+			client.Received <- payload
+		case client := <-h.Unregister:
 			if _, ok := h.Clients[client]; ok {
 				delete(h.Clients, client)
-				close(client.received)
+				close(client.Received)
 			}
-		case message := <-h.broadcast:
+		case message := <-h.Broadcast:
 			newMsg := h.EditMsg(message)
 			for client := range h.Clients {
 				select {
-				case client.received <- newMsg:
+				case client.Received <- newMsg:
 				default:
-					close(client.received)
+					close(client.Received)
 					delete(h.Clients, client)
 				}
 			}

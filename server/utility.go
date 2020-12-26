@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -8,7 +8,6 @@ import (
 
 //Treat These as constants. You can change COLORS though.
 const CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-
 
 func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
 	// Decode Json message from HTTP Request.
