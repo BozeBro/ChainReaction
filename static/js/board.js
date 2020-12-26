@@ -8,19 +8,20 @@ class chainReaction {
     state tracks if an animation is taking place
       - blocks clicking event if false
     */
-    this.__ms = 200 // milliseconds per animation. Meant to be a constant
+    this.__ms = 200 // length of entire animation in milliseconds. Meant to be a constant
     this.mycolor = ""
-    this.start = false
+    this.color = color; // This is the color of the player's turn
+    this.start = false 
     this.socket = socket;
     this.canvas = document.getElementById("dynamic"); this.ctx = this.canvas.getContext("2d");
     this.statCtx = document.getElementById("static").getContext("2d");
-    this.grctx = document.getElementById("grid").getContext("2d"); // Never changes. Meant for constant display
+    // grctx changes. Meant for constant display
+    this.grctx = document.getElementById("grid").getContext("2d"); 
     this.rows = rows;
     this.cols = cols;
     this.squareLength = Math.min(450 / rows, 450 / cols);
     this.squares = []; // Tells [number amount of circles, Exploding amount, cur color]
     this.state = true; // Tracks if an animation is taking place
-    this.color = color; // This is the color of the player's turn
   }
   initBoard() {
     // Make this.squares proper sizing
@@ -77,6 +78,9 @@ class chainReaction {
     Edit this.squares
     Disable this.state so no one can click
     Makes temporary global called this.exp to use in this.animate
+    // Check if neighbors will explode.
+    // Add coords and amount of circles of each square (For animation)
+    // Change the color of neighboring squares (on this.squares)
     */
     if (exp.length === 0) {
       this.state = true
@@ -87,41 +91,16 @@ class chainReaction {
       "moved": [],
       "animations": [],
     }
-    for (let [x, y] of exp) {
-      // Gets First level of exploding / Animation Data
-      const posX = loc(x, this.squareLength)
-      const posY = loc(y, this.squareLength)
-      if (x + 1 < this.rows) {
-        toAnimate.animations.push([posX, posY, 1, 0])
-      }
-      if (x - 1 >= 0) {
-        toAnimate.animations.push([posX, posY, -1, 0])
-      }
-      if (y + 1 < this.cols) {
-        toAnimate.animations.push([posX, posY, 0, 1])
-      }
-      if (y - 1 >= 0) {
-        toAnimate.animations.push([posX, posY, 0, -1])
-      }
-    }
-    this.exp = this.move(exp, toAnimate) // toAnimate.moved is changed here as well.
-    m = await new Promise(() =>
-      requestAnimationFrame((ts) => this.animate(toAnimate, d, ts, ts)))
-  }
-  move(exp, info) {
-    /* 
-    exp - [[x, y]] : x and y coords of each square that is going to explode
-    info - [[x, y, v]] : Contains info on what squares to animate
-    */
-    // Check if neighbors will explode.
-    // Add coords and amount of circles of each square (For animation)
-    // Change the color of neighboring squares (on this.squares)
     let expN = [];
     // Exploding Neighbors
     for (let [x, y] of exp) {
       for (let [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const posX = loc(x, this.squareLength)
+        const posY = loc(y, this.squareLength)
         let nx = x + dx, ny = y + dy;
         if (0 <= nx && nx < this.rows && 0 <= ny && ny < this.cols) {
+          // Add each neighbor of exploded to animation
+          toAnimate.animations.push([posX, posY, dx, dy]);
           let curSquare = this.squares[ny][nx];
           curSquare[2] = this.color
           curSquare[0] += 1
@@ -130,11 +109,13 @@ class chainReaction {
             curSquare[2] = ""
             expN.push([nx, ny])
           }
-          info.moved.push([nx, ny, curSquare[0]]);
+          toAnimate.moved.push([nx, ny, curSquare[0]]);
         }
       }
     }
-    return expN
+    this.exp = expN
+    await new Promise(() =>
+      requestAnimationFrame((ts) => this.animate(toAnimate, d, ts, ts)))
   }
   async animate(toAnimate, d, ts, start) {
     /*
@@ -233,5 +214,3 @@ class chainReaction {
   }
 }
 const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
-
-
