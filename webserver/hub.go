@@ -6,6 +6,7 @@ import (
 )
 
 type Hub struct {
+	Alive bool
 	// Channel that tells server that a player left
 	Delete chan bool
 	// Channel telling server to remove id
@@ -22,17 +23,18 @@ type Hub struct {
 	// Unregister requests from clients.
 	Unregister chan *Client
 	// Index of who's turn it is
-	I int
+	i int
 	// Way of Tracking who's turn it is
 	Colors []string
 	// Has the data of the room
+	GameData *GameData
 }
 type GameData struct {
 	/*
-	Similar to server's GameData but without the chans
+		Similar to server's GameData but without the chans
 	*/
-	Room, Pin string
-	Players, Max   int
+	Room, Pin    string
+	Players, Max int
 }
 type WSData struct {
 	Type  string `json:"type"`
@@ -43,14 +45,16 @@ type WSData struct {
 	Next  string `json:"next"` // Next Color
 }
 
-func NewHub() *Hub {
+func NewHub(gameData *GameData) *Hub {
 	return &Hub{
+		Alive:      false,
 		Delete:     make(chan bool),
 		Stop:       make(chan bool),
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		Clients:    make(map[*Client]bool),
+		GameData:   gameData,
 	}
 }
 func (h *Hub) GetUniqueColor(c string) string {
@@ -62,7 +66,11 @@ func (h *Hub) GetUniqueColor(c string) string {
 	return c
 }
 func (h *Hub) Run() {
-	defer func() { h.Stop <- true }()
+	defer func() {
+		h.Alive = false
+		h.Stop <- true
+	}()
+	h.Alive = true
 	// wait for register, unregister, or broadcast chan to be filled
 	for {
 		select {
@@ -78,6 +86,8 @@ func (h *Hub) Run() {
 			}
 			h.Clients[client] = true
 			client.Received <- payload
+			h.GameData.Players += 1
+			go h.Update()
 		case client := <-h.Unregister:
 			if _, ok := h.Clients[client]; ok {
 				delete(h.Clients, client)
@@ -113,10 +123,10 @@ func (h *Hub) EditMsg(msg []byte) []byte {
 			i++
 		}
 	}
-	next := h.Colors[h.I]
-	h.I++
-	if h.I >= len(h.Colors) {
-		h.I = 0
+	next := h.Colors[h.i]
+	h.i++
+	if h.i >= len(h.Colors) {
+		h.i = 0
 	}
 	newInfo.Next = next
 	newInfo.Color = next
@@ -125,6 +135,33 @@ func (h *Hub) EditMsg(msg []byte) []byte {
 		log.Fatal(err)
 		return nil
 	}
-	log.Println(next, h.Colors)
 	return newMsg
+}
+
+func (h *Hub) Update() {
+	log.Println("in updater")
+	log.Println(h.GameData.Players)
+	players := struct {
+		Type    string `json:"type"`
+		Players int    `json:"players"`
+	}{
+		Type:    "update",
+		Players: h.GameData.Players,
+	}
+	payload, err := json.Marshal(players)
+	if err != nil {
+		// Error should only happen if a bug is here
+		log.Fatal(err)
+		return
+	}
+	log.Println(len(h.Clients))
+	for client := range h.Clients {
+		select {
+		case client.Received <- payload:
+		default:
+			close(client.Received)
+			delete(h.Clients, client)
+			h.Delete <- true
+		}
+	}
 }

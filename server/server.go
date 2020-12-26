@@ -3,23 +3,9 @@ package server
 import (
 	"net/http"
 
-	"github.com/BozeBro/ChainReaction/webserver"
 	"github.com/gorilla/mux"
 )
 
-// The string will be the id
-type Storage map[string]*GameData
-
-var RoomStorage = make(Storage, 0)
-
-type GameData struct {
-	Room, Pin string
-	Players   int
-	Hub       *webserver.Hub // The game server
-	Roles     chan bool // Send roles to handler
-	Rolesws   chan bool // send roles to handler of websockets
-	Max int // Maximum amount of players
-}
 type ReqBody struct {
 	Pin, Room, Players, Name string
 }

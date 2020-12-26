@@ -79,7 +79,6 @@ let btnClicked = (e) => {
                     credentials: 'same-origin',
                 })
                     .then(res => {
-                        var m = res
                         switch (res.status) {
                             case 409:
                                 errCre.innerHTML = "ROOM IS TAKEN";

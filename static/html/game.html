@@ -32,7 +32,7 @@
         <div class="wait-title">
             <h2>Chain Reaction</h2>
         </div>
-        <div class="wait-current">1 / 4</div>
+        <div class="wait-current"><div id="players">{{  .Players  }}</div> / <div id="max">{{ .Max }}</div></div>
         <div>
             <div class="lds-roller">
                 <div></div>
@@ -59,6 +59,7 @@
     // true when game is ok to start.
     let path = document.location.pathname
     let id = path.slice(path.length - 8)
+    let players = document.getElementById("players")
     let waiting = document.getElementById("waitingRoom");
     let socket = new WebSocket("ws://" + document.location.host + "/ws/" + id);
     let chain = new chainReaction(15, 15, "red", socket);
@@ -88,7 +89,8 @@
     }
     chain.socket.onmessage = function (e) {
         let data = JSON.parse(e.data);
-        switch (data.type) {
+        console.log(data)
+        switch (data.type.toLowerCase()) {
             case "start":
                 start = true
                 waiting.style.display = "none";
@@ -102,6 +104,9 @@
                 break;
             case "color":
                 chain.mycolor = data.color
+                break;
+            case "update":
+                players.innerHTML = data.players
         }
     };
     chain.initBoard();
