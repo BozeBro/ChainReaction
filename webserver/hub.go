@@ -6,32 +6,56 @@ import (
 )
 
 type Hub struct {
-	// alive ensures that only one hub will be created
-	alive bool
+	// Tells server if the Hub is running
+	Alive bool
+	// Channel that tells server that a player left
+	Delete chan bool
+	// Channel telling server to remove id / kill the hub
+	Stop chan bool
 	// Mapping of clients. Unordered
 	Clients map[*Client]bool
 
-	// incoming broadcasting req from clients
-	broadcast chan []byte
+	// incoming broadcasting reqs from clients
+	Broadcast chan []byte
 
 	// Register requests from the clients.
-	register chan *Client
+	Register chan *Client
 
 	// Unregister requests from clients.
-	unregister chan *Client
-	// Track who's turn it is
-	I int
-	// Way of Tracking who's turn it is
+	Unregister chan *Client
+	// Index of who's turn it is
+	i int
+	// Move Order of players
 	Colors []string
+	// Has the data of the room
+	GameData *GameData
+}
+type GameData struct {
+	/*
+		Similar to server's GameData but without the chans
+	*/
+	Room, Pin    string
+	Players, Max int
+}
+type WSData struct {
+	Type  string `json:"type"` // Type of message allows front end to know how to deal with it
+	X     int    `json:"x"`
+	Y     int    `json:"y"`
+	Color string `json:"color"`
+	Val   bool   `json:"val"`
+	Next  string `json:"next"` // Next Color
 }
 
-func newHub() *Hub {
+func NewHub(gameData *GameData) *Hub {
 	return &Hub{
-		alive:      false,
-		broadcast:  make(chan []byte),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
+		Alive:      false,
+		Delete:     make(chan bool),
+		Stop:       make(chan bool),
+		Broadcast:  make(chan []byte),
+		Register:   make(chan *Client),
+		Unregister: make(chan *Client),
 		Clients:    make(map[*Client]bool),
+		GameData:   gameData,
 	}
 }
 func (h *Hub) GetUniqueColor(c string) string {
@@ -43,34 +67,56 @@ func (h *Hub) GetUniqueColor(c string) string {
 	return c
 }
 func (h *Hub) Run() {
-	defer func() { h.alive = false }()
+	/*
+	Equivalent to turning on the computer
+	Handles the registering, unregistering, and broadcasting
+	Will kill itself when all the players leave
+
+	*/
+	defer func() {
+		h.Alive = false
+		h.Stop <- true
+		return
+	}()
+	h.Alive = true
 	// wait for register, unregister, or broadcast chan to be filled
 	for {
 		select {
-		case client := <-h.register:
+		case client := <-h.Register:
+			// Assign unique color
 			client.Color = h.GetUniqueColor(RandomColor())
-			var wsData = &WSData{Color: client.Color, Type: "color"}
+			wsData := &WSData{Color: client.Color, Type: "color"}
 			log.Println(client.Color)
 			payload, err := json.Marshal(wsData)
 			if err != nil {
 				// This should never happen.
+				// Only in bugs
 				log.Fatal(err)
 				return
 			}
 			h.Clients[client] = true
-			client.received <- payload
-		case client := <-h.unregister:
+			// Send player info on his color
+			client.Received <- payload
+			h.GameData.Players += 1
+			go h.Update()
+		case client := <-h.Unregister:
 			if _, ok := h.Clients[client]; ok {
 				delete(h.Clients, client)
-				close(client.received)
+				close(client.Received)
+				h.Delete <- true
+				if len(h.Clients) == 0 {
+					return
+				}
 			}
-		case message := <-h.broadcast:
+		case message := <-h.Broadcast:
+			// EditMsg will add the next color onto the request
+			// It will readjust whose next turn it will be
 			newMsg := h.EditMsg(message)
 			for client := range h.Clients {
 				select {
-				case client.received <- newMsg:
+				case client.Received <- newMsg:
 				default:
-					close(client.received)
+					close(client.Received)
 					delete(h.Clients, client)
 				}
 			}
@@ -85,18 +131,21 @@ func (h *Hub) EditMsg(msg []byte) []byte {
 		return nil
 	}
 	if newInfo.Type == "start" {
-		// We will only see "start" in beginning of each game
+		/* We will only see "start" in beginning of each game
+		Make Color list / order of player moves
+		iterating through map is already random
+		*/
 		h.Colors = make([]string, len(h.Clients))
-		i := 0
-		for k, _ := range h.Clients {
-			h.Colors[i] = k.Color
-			i++
+		index := 0
+		for client, _ := range h.Clients {
+			h.Colors[index] = client.Color
+			index += 1
 		}
 	}
-	next := h.Colors[h.I]
-	h.I++
-	if h.I >= len(h.Colors) {
-		h.I = 0
+	next := h.Colors[h.i]
+	h.i += 1
+	if h.i == len(h.Colors) {
+		h.i = 0
 	}
 	newInfo.Next = next
 	newInfo.Color = next
@@ -105,6 +154,32 @@ func (h *Hub) EditMsg(msg []byte) []byte {
 		log.Fatal(err)
 		return nil
 	}
-	log.Println(next, h.Colors)
 	return newMsg
+}
+
+func (h *Hub) Update() {
+	/*
+	Function tells front end how many players are in the lobby
+	*/
+	players := struct {
+		Type    string `json:"type"`
+		Players int    `json:"players"`
+	}{
+		Type:    "update",
+		Players: h.GameData.Players,
+	}
+	payload, err := json.Marshal(players)
+	if err != nil {
+		// Error should only happen if a bug is here
+		log.Fatal(err)
+		return
+	}
+	for client := range h.Clients {
+		select {
+		case client.Received <- payload:
+		default:
+			close(client.Received)
+			delete(h.Clients, client)
+		}
+	}
 }

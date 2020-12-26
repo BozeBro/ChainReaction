@@ -34,14 +34,31 @@ let btnClicked = (e) => {
             if (popup.id === "pop-join") {
                 let room = document.getElementById("room").value;
                 let pin = document.getElementById("pin").value;
-                if (!(room && pin)) { return }
-                fetch("http://" + document.location.host + "/api/join", {
+                if (room === "" || pin === "") { return }
+                fetch("http://" + document.location.host + "/api/join/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ room: room, pin: pin, }),
                 })
                     .then((res) => {
-                        console.log(res)
+                        var m = res
+                        switch (res.status) {
+                        
+                            case 406:
+                                errJoin.innerHTML = "Pin is wrong"
+                                break
+                            case 403:
+                                errJoin.innerHTML = "The room is Full"
+                                break
+                            case 404:
+                                errJoin.innerHTML = "The room doesn't exist"
+                                break
+                            case 200:
+                                let newUrl = res.url.slice(0, -5)
+                                location.replace(newUrl)
+                            default:
+                                errJoin.innerHTML = "Something went wrong"
+                        }
                     })
 
             } else {
@@ -54,7 +71,7 @@ let btnClicked = (e) => {
                     return
                 }
                 DOMName.value = ""
-                fetch("http://" + document.location.host + "/api/create", {
+                fetch("http://" + document.location.host + "/api/create/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ Players: players, Room: room }),
@@ -72,6 +89,9 @@ let btnClicked = (e) => {
                             case 200:
                                 let newUrl = res.url.slice(0, -5)
                                 location.replace(newUrl)
+                            case 302:
+                            default:
+                                errCre.innerHTML = "Something went wrong"
                         }
                     })
             }

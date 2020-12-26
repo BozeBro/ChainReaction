@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -8,7 +8,6 @@ import (
 
 //Treat These as constants. You can change COLORS though.
 const CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-
 
 func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
 	// Decode Json message from HTTP Request.
@@ -47,7 +46,7 @@ func MakePin(room string) string {
 		pin += string(nums[rand.Intn(len(nums))])
 	}
 	for _, val := range RoomStorage {
-		if (*val).Room == room && (*val).Pin == pin {
+		if val.Hub.GameData.Room == room && val.Hub.GameData.Pin == pin {
 			return MakePin(room)
 		}
 	}
