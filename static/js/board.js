@@ -1,4 +1,7 @@
 "use strict"
+/*
+  See game.html for information on the event handlers
+*/
 class chainReaction {
   constructor(rows = 8, cols = 8, color, socket) {
     /*
