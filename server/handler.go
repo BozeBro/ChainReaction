@@ -36,7 +36,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 func WaitHandler(w http.ResponseWriter, r *http.Request) {
 	// Handler that serves game.file.
 	// Initialized to show waiting screen
-
+	log.Println(RoomStorage)
 	id := mux.Vars(r)["id"]
 	if !IdExists(RoomStorage, id) {
 		log.Println("Room Doesn't Exist")
@@ -154,8 +154,6 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		Roles:   make(chan bool, playerAmount),
 		Rolesws: make(chan bool, playerAmount),
 	}
-	log.Println(pin)
-	log.Println(body.Room)
 	func() {
 		RoomStorage[id].Roles <- true
 		RoomStorage[id].Rolesws <- true

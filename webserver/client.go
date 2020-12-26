@@ -26,7 +26,6 @@ func (c *Client) ReadMsg() {
 	// Reads msg from the user and sends it to the hub
 	defer func() {
 		c.Hub.Unregister <- c
-		c.Hub.Delete <- true
 		c.Conn.Close()
 	}()
 	for {

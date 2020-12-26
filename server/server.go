@@ -2,7 +2,7 @@ package server
 
 import (
 	"net/http"
-
+	"log"
 	"github.com/gorilla/mux"
 )
 
@@ -16,6 +16,7 @@ func MakeRouter() *mux.Router {
 	r := mux.NewRouter()
 	//hub := newHub()
 	r.HandleFunc("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
+		log.Println(RoomStorage)
 		id := mux.Vars(r)["id"]
 		WSHandshake(RoomStorage[id], w, r)
 	})
