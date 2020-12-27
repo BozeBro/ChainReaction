@@ -26,7 +26,23 @@
                 <canvas id="grid" width="450px" height="450px"></canvas>
             </div>
         </div>
-        <div></div>
+        <div>
+            <div id="userColor"></div>
+            <div>Your Pin is {{ .Pin }}</div>
+            <div>Your Room is {{ .Room }}</div>
+            {{ if .Leader }}
+            <div id="boardMatrix">
+                <form action="">
+                    <label for="rows">Rows</label><br>
+                    <input type="text" id="rows" name="rows" value="8"><br>
+                    <label for="columns">Columns</label><br>
+                    <input type="text" id="columns" name="columns" value="8"><br>
+                    <br>
+                    <button id="boardBtn" class="ent">Enter</button>
+                </form>
+            </div>
+            {{ end }}
+        </div>
     </div>
     <div id="waitingRoom">
         <div class="wait-title">
@@ -34,9 +50,10 @@
         </div>
         <div class="wait-current">
             <div id="players">{{ .Players }}</div>
-            <div> / </div>
+            <div>/</div>
             <div id="max">{{ .Max }}</div>
         </div>
+
         <div>
             <div class="lds-roller">
                 <div></div>
@@ -49,9 +66,9 @@
                 <div></div>
             </div>
         </div>
-        <div class="ent-ext button-area">
+        <div class="ent-ext">
             {{if .Leader}}
-            <button class="ent">Start</button>
+            <button id="entBtn" class="ent">Start</button>
             {{ end }}
             <button class="ext">Exit</button>
         </div>
@@ -61,12 +78,14 @@
 <script>
     // start is the only new variable
     // true when game is ok to start.
+    let userColor = document.getElementById("userColor")
     let path = document.location.pathname
     let id = path.slice(path.length - 8)
     let players = document.getElementById("players")
     let waiting = document.getElementById("waitingRoom");
     let socket = new WebSocket("ws://" + document.location.host + "/ws/" + id);
     let chain = new chainReaction(15, 15, "red", socket);
+
     // The bar above the players
     let bar = document.getElementById("bar").getContext("2d");
     let start = false
@@ -108,20 +127,41 @@
                 break;
             case "color":
                 chain.mycolor = data.color
+                userColor.style.color = chain.mycolor
+                userColor.innerHTML = `Your color is ${chain.mycolor}`
                 break;
             case "update":
                 players.innerHTML = data.players
         }
     };
     chain.initBoard();
-    window.onload = () => {
-        let enter = document.querySelector(".ent");
-        if (enter !== null && start !== true) {
-            enter.onclick = () => {
-                socket.send(JSON.stringify({ type: "start", val: true }));
-            }
+</script>
+{{if .Leader}}
+<script>
+    let rows = document.getElementById("rows");
+    let cols = document.getElementById("columns");
+    let boardBtn = document.getElementById("boardBtn");
+    boardBtn.onclick = () => {
+        if (start === true) { return }
+        chain.rows = rows.value !== "" ? Math.max(5, parseInt(rows.value)) : 5;
+        chain.cols = cols.value !== "" ? Math.max(5, parseInt(cols.value)) : 5;
+        if (chain.rows > 30) {
+            chain.rows = 30;
+            rows.value = "30";
+        }
+        if (chain.cols > 30) {
+            chain.cols = 30;
+            cols.value = "30";
+        }
+        chain.initBoard();
+    }
+    let enter = document.querySelector("#entBtn");
+    if (enter !== null && start !== true) {
+        enter.onclick = () => {
+            socket.send(JSON.stringify({ type: "start", val: true }));
         }
     }
 </script>
+{{end}}
 
 </html>

@@ -22,13 +22,15 @@ class chainReaction {
     this.grctx = document.getElementById("grid").getContext("2d"); 
     this.rows = rows;
     this.cols = cols;
-    this.squareLength = Math.min(450 / rows, 450 / cols);
+    this.squareLength = null // Calculate squarelength in initBoard
     this.squares = []; // Tells [number amount of circles, Exploding amount, cur color]
     this.state = true; // Tracks if an animation is taking place
   }
   initBoard() {
     // Make this.squares proper sizing
     // Make the visual board
+    // Allows us to call initBoard() many times
+    this.squareLength = Math.min(450 / rows, 450 / cols);
     this.statCtx.canvas.width = this.ctx.canvas.width = this.rows * this.squareLength;
     this.statCtx.canvas.height = this.ctx.canvas.height = this.cols * this.squareLength;
     this.grctx.canvas.width = this.ctx.canvas.width; this.grctx.canvas.height = this.ctx.canvas.height;

@@ -2,7 +2,7 @@ package server
 
 import (
 	"net/http"
-	"log"
+
 	"github.com/gorilla/mux"
 )
 
@@ -14,15 +14,17 @@ func MakeRouter() *mux.Router {
 	// http.Dir uses directory of current working / dir where program started
 	static := http.FileServer(http.Dir("./static"))
 	r := mux.NewRouter()
-	//hub := newHub()
 	r.HandleFunc("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
-		log.Println(RoomStorage)
 		id := mux.Vars(r)["id"]
-		WSHandshake(RoomStorage[id], w, r)
+		if _, ok := RoomStorage[id]; ok {
+			WSHandshake(RoomStorage[id], w, r)
+			return
+		}
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	})
-	r.HandleFunc("/", HomeHandler).Methods("GET")
+	r.HandleFunc("/", HomeHandler)
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", static))
-	r.HandleFunc("/game/{id}", WaitHandler).Methods("GET")
+	r.HandleFunc("/game/{id}", WaitHandler)
 	r.HandleFunc("/game/{id}/join", func(w http.ResponseWriter, r *http.Request) {
 		return
 	})

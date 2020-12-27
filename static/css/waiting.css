@@ -9,6 +9,9 @@
     z-index: 10;
     text-align: center;
 }
+#boardMatrix {
+  border-color: cadetblue;
+}
 .waiting {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -24,6 +27,7 @@
   grid-column: 2;
   display: flex;
   flex-direction: row;
+  justify-content: center;
 }
 
 .lds-roller {
@@ -110,3 +114,4 @@
     transform: rotate(360deg);
   }
 }
+

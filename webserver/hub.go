@@ -109,12 +109,9 @@ func (h *Hub) Run() {
 				}
 			}
 		case message := <-h.Broadcast:
-			// EditMsg will add the next color onto the request
-			// It will readjust whose next turn it will be
-			newMsg := h.EditMsg(message)
 			for client := range h.Clients {
 				select {
-				case client.Received <- newMsg:
+				case client.Received <- message:
 				default:
 					close(client.Received)
 					delete(h.Clients, client)
@@ -122,39 +119,6 @@ func (h *Hub) Run() {
 			}
 		}
 	}
-}
-func (h *Hub) EditMsg(msg []byte) []byte {
-	// Add the next color to the broadcasted msg
-	newInfo := &WSData{}
-	if err := json.Unmarshal(msg, newInfo); err != nil {
-		log.Fatal(err)
-		return nil
-	}
-	if newInfo.Type == "start" {
-		/* We will only see "start" in beginning of each game
-		Make Color list / order of player moves
-		iterating through map is already random
-		*/
-		h.Colors = make([]string, len(h.Clients))
-		index := 0
-		for client, _ := range h.Clients {
-			h.Colors[index] = client.Color
-			index += 1
-		}
-	}
-	next := h.Colors[h.i]
-	h.i += 1
-	if h.i == len(h.Colors) {
-		h.i = 0
-	}
-	newInfo.Next = next
-	newInfo.Color = next
-	newMsg, err := json.Marshal(newInfo)
-	if err != nil {
-		log.Fatal(err)
-		return nil
-	}
-	return newMsg
 }
 
 func (h *Hub) Update() {

@@ -36,7 +36,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 func WaitHandler(w http.ResponseWriter, r *http.Request) {
 	// Handler that serves game.file.
 	// Initialized to show waiting screen
-	log.Println(RoomStorage)
 	id := mux.Vars(r)["id"]
 	if !IdExists(RoomStorage, id) {
 		log.Println("Room Doesn't Exist")
@@ -65,10 +64,14 @@ func WaitHandler(w http.ResponseWriter, r *http.Request) {
 		Leader  bool
 		Players int
 		Max     int
+		Pin     string
+		Room    string
 	}{
 		Leader:  isleader,
 		Players: RoomStorage[id].Hub.GameData.Players,
 		Max:     RoomStorage[id].Hub.GameData.Max,
+		Room:    RoomStorage[id].Hub.GameData.Room,
+		Pin:     RoomStorage[id].Hub.GameData.Pin,
 	}
 	route := "static/html/game.html"
 	gameFile := template.Must(template.ParseFiles(route))
