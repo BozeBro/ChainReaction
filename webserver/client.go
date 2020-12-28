@@ -22,8 +22,6 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	Received chan []byte
-	// Tell Server to redirect user to home
-	Home chan bool
 }
 
 func (c *Client) ReadMsg() {
@@ -39,7 +37,7 @@ func (c *Client) ReadMsg() {
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
-			continue
+			return
 		}
 		newInfo := new(WSData)
 		if err := json.Unmarshal(msg, newInfo); err != nil {
@@ -47,11 +45,6 @@ func (c *Client) ReadMsg() {
 			return
 		}
 		switch newInfo.Type {
-		case "exit":
-			log.Println("HERE WE ARE")
-			// Person wants to leave. Defer will handle user
-			c.Home <- true
-			return
 		case "start":
 			// Person wants to start the game
 			if c.Leader {

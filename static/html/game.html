@@ -97,9 +97,7 @@
         bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);
     }
     ext.onclick = () => {
-        chain.socket.send(JSON.stringify({
-            type: "exit"
-        }))
+        document.location.href = "http://" + document.location.host
     }
     chain.grctx.canvas.onclick = (event) => {
         if (chain.state === true && start === true && chain.color === chain.mycolor) {

@@ -47,8 +47,4 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request) {
 	client.Hub.Register <- client
 	go client.ReadMsg()
 	go client.WriteMsg()
-	go func (w http.ResponseWriter, r *http.Request)  {
-		<-client.Home
-		http.Redirect(w, r, "/", http.StatusMovedPermanently)
-	}(w, r)
 }
