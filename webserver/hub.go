@@ -13,7 +13,7 @@ type Hub struct {
 	// Channel telling server to remove id / kill the hub
 	Stop chan bool
 	// Mapping of clients. Unordered
-	Clients map[*Client]bool
+	Clients map[*Client]int
 	// incoming broadcasting reqs from clients
 	Broadcast chan []byte
 	// Register requests from the clients.
@@ -45,9 +45,8 @@ func NewHub(roomData *RoomData) *Hub {
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
-		Clients:    make(map[*Client]bool),
+		Clients:    make(map[*Client]int),
 		RoomData:   roomData,
-		Match:      new(Chain),
 	}
 }
 func (h *Hub) GetUniqueColor(c string) string {
@@ -87,7 +86,7 @@ func (h *Hub) Run() {
 				log.Fatal(err)
 				return
 			}
-			h.Clients[client] = true
+			h.Clients[client] = 0
 			// Send player info on his color
 			client.Received <- payload
 			h.RoomData.Players += 1

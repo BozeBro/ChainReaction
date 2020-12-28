@@ -4,6 +4,7 @@ package webserver
 type Game interface {
 	InitBoard(int, int)
 	MovePiece(int, int, string) ([][][]int, [][][]int)
+	UpdateColor(string, string) bool
 	GetRows() int
 	GetCols() int
 }

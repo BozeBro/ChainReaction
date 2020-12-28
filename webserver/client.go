@@ -62,8 +62,7 @@ func (c *Client) ReadMsg() {
 				Make Color list / order of player moves
 				iterating through map is already random
 				*/
-				playInfo.Rows = makeLegal(playInfo.Rows)
-				playInfo.Cols = makeLegal(playInfo.Cols)
+				h.Match = &Chain{Hub: h}
 				h.Colors = make([]string, len(h.Clients))
 				index := 0
 				for client, _ := range h.Clients {

@@ -3,6 +3,7 @@ package webserver
 type Chain struct {
 	Len     int
 	Squares []*Squares
+	Hub     *Hub
 }
 type Squares struct {
 	Len   int      // Length of each array
@@ -11,16 +12,62 @@ type Squares struct {
 	Color []string // The color that occupies. "" if none
 }
 
-
+func (c *Chain) InitBoard(rows, cols int) {
+	rows, cols = makeLegal(5, rows, 30), makeLegal(5, cols, 30)
+	sq := make([]*Squares, cols)
+	c.Len = cols
+	for y := 0; y < cols; y++ {
+		sq[y] = &Squares{
+			Len:   rows,
+			Cur:   make([]int, rows),
+			Max:   make([]int, rows),
+			Color: make([]string, rows),
+		}
+		for x := 0; x < rows; x++ {
+			sq[y].Max[x], _ = c.findneighbors(x, y, rows, cols)
+		}
+	}
+	c.Squares = sq
+}
+func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
+	// Returns maximum neighbors and their coords
+	totalNeighbros := 0
+	coords := make([][]int, 0, 4)
+	for _, v := range [][]int{
+		[]int{1, 0}, []int{-1, 0}, []int{0, 1}, []int{0, -1}} {
+		nx := x + v[0]
+		ny := y + v[1]
+		if IsLegalMove(c, nx, ny) {
+			totalNeighbros += 1
+			coords = append(coords, []int{nx, ny})
+		}
+	}
+	return totalNeighbros, coords
+}
 
 /*
 Animation data is data sent to Front end that will show animation
 Moved / static data are the circles that remain from the explosion
 */
+
+func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
+	/*
+		x : x coordinate of the user clicked square
+		y : y coordinate of the user clicked square
+		color : color of the user
+	*/
+	c.Squares[y].Cur[x] += 1
+	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
+		return [][][]int{[][]int{[]int{x, y}}}, make([][][]int, 0)
+	}
+	c.Squares[y].Cur[x] = 0
+	return chained(c.explode, [][]int{[]int{x, y}}, color)
+}
+
 //explodeFunc used to clean syntax
 type explodeFunc func([][]int, string) ([][]int, [][]int, [][]int)
 
-func Chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]int) {
+func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]int) {
 	/*
 		explode - function to execute to receive animation data
 		exp -  nested array that contains coords of exploding squares
@@ -39,7 +86,7 @@ func Chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]i
 	}
 	return animations, moved
 }
-func (c *Chain) Explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
+func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 	/*
 		exp - Current exploding squares
 		color - color of the user
@@ -59,66 +106,54 @@ func (c *Chain) Explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 		} {
 			x, y := coords[0]+d[0], coords[1]+d[1]
 			if IsLegalMove(c, x, y) {
-				animations = append(animations, []int{d[0], d[1]})
 				sq := c.Squares[y]
+				isdead := c.UpdateColor(color, sq.Color[x])
+				deletedColor := sq.Color[x]
+				animations = append(animations, []int{d[0], d[1]})
 				sq.Color[x] = color
 				sq.Cur[x] += 1
 				if sq.Cur[x] >= sq.Max[x] {
+					isdead = c.UpdateColor(color, sq.Color[x])
 					sq.Cur[x] = 0
 					sq.Color[x] = ""
 					expN = append(expN, []int{x, y})
 				}
 				moved = append(moved, []int{x, y, sq.Cur[x]})
+				if isdead {
+					for index := 0; index < len(c.Hub.Colors); index++ {
+						if c.Hub.Colors[index]  == deletedColor {
+							c.Hub.Colors = append(c.Hub.Colors[:index], c.Hub.Colors[index+1:]...)
+						}
+					}
+					if len(c.Hub.Colors) == 1 {
+						return nil, animations, moved
+					}
+				}
 			}
 		}
 	}
 	return expN, moved, animations
 }
-func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
+func (c *Chain) UpdateColor(newColor, oldColor string) bool {
 	/*
-		x : x coordinate of the user clicked square
-		y : y coordinate of the user clicked square
-		color : color of the user
+		Update amount of squares each player controls.
+		true if oldColor is dead / out of squares
 	*/
-	c.Squares[y].Cur[x] += 1
-	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
-		return [][][]int{[][]int{[]int{x, y}}}, make([][][]int, 0)
+	if newColor == oldColor {
+		return false
 	}
-	c.Squares[y].Cur[x] = 0
-	return Chained(c.Explode, [][]int{[]int{x, y}}, color)
-}
-
-func (c *Chain) InitBoard(rows, cols int) {
-	rows, cols = makeLegal(rows), makeLegal(cols)
-	sq := make([]*Squares, cols)
-	c.Len = cols
-	for y := 0; y < cols; y++ {
-		sq[y] = &Squares{
-			Len:   rows,
-			Cur:   make([]int, rows),
-			Max:   make([]int, rows),
-			Color: make([]string, rows),
-		}
-		for x := 0; x < rows; x++ {
-			sq[y].Max[x], _ = c.findneighbors(x, y, rows, cols)
+	dead := false
+	for client := range c.Hub.Clients {
+		if client.Color == newColor {
+			c.Hub.Clients[client] += -1
+			if c.Hub.Clients[client] == 0 {
+				dead = true
+			}
+		} else if client.Color == oldColor {
+			c.Hub.Clients[client] += 1
 		}
 	}
-	c.Squares =  sq
-}
-func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
-	// Returns maximum neighbors and their coords
-	totalNeighbros := 0
-	coords := make([][]int, 0, 4)
-	for _, v := range [][]int{
-		[]int{1, 0}, []int{-1, 0}, []int{0, 1}, []int{0, -1}} {
-		nx := x + v[0]
-		ny := y + v[1]
-		if IsLegalMove(c, nx, ny) {
-			totalNeighbros += 1
-			coords = append(coords, []int{nx, ny})
-		}
-	}
-	return totalNeighbros, coords
+	return dead
 }
 
 func (c *Chain) GetRows() int {
@@ -127,14 +162,14 @@ func (c *Chain) GetRows() int {
 func (c *Chain) GetCols() int {
 	return c.Len
 }
-func makeLegal(dimension int) int {
+func makeLegal(lower, dimension, upper int) int {
 	/*
 		Disallow any dimension under 5 and over 30
 	*/
-	if dimension < 5 {
-		dimension = 5
-	} else if dimension > 30 {
-		dimension = 30
+	if dimension < lower {
+		dimension = lower
+	} else if dimension > upper {
+		dimension = upper
 	}
 	return dimension
 }
