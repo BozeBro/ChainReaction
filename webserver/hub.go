@@ -39,18 +39,6 @@ type RoomData struct {
 	Room, Pin    string
 	Players, Max int
 }
-type WSData struct {
-	Type      string    `json:"type"` // Type of message allows front end to know how to deal with it
-	X         int       `json:"x"`
-	Y         int       `json:"y"`
-	Color     string    `json:"color"`
-	Val       bool      `json:"val"`
-	Next      string    `json:"next"` // Next Color
-	Rows      int       `json:"rows"`
-	Cols      int       `json:"cols"`
-	Animation [][][]int `json:"animation"`
-	Static    [][][]int `json:"static"`
-}
 
 func NewHub(roomData *RoomData) *Hub {
 	return &Hub{

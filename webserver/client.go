@@ -23,6 +23,17 @@ type Client struct {
 	// Buffered channel of outbound messages.
 	Received chan []byte
 }
+type WSData struct {
+	Type      string    `json:"type"`  // Type of message allows front end to know how to deal with it
+	X         int       `json:"x"`     // X coordinate clicked
+	Y         int       `json:"y"`     // Y coordinate clicked
+	Color     string    `json:"color"` // Only used to assign player color
+	Next      string    `json:"next"`  // Next players turn
+	Rows      int       `json:"rows"`
+	Cols      int       `json:"cols"`
+	Animation [][][]int `json:"animation"` // Instrutios on animation
+	Static    [][][]int `json:"static"`    // What the new board will look like
+}
 
 func (c *Client) ReadMsg() {
 	// Reads msg from the user and sends it to the hub
@@ -39,12 +50,12 @@ func (c *Client) ReadMsg() {
 			log.Println(err)
 			return
 		}
-		newInfo := new(WSData)
-		if err := json.Unmarshal(msg, newInfo); err != nil {
+		playInfo := new(WSData)
+		if err := json.Unmarshal(msg, playInfo); err != nil {
 			log.Println(err)
 			return
 		}
-		switch newInfo.Type {
+		switch playInfo.Type {
 		case "start":
 			// Person wants to start the game
 			if c.Leader {
@@ -52,23 +63,24 @@ func (c *Client) ReadMsg() {
 				Make Color list / order of player moves
 				iterating through map is already random
 				*/
-				newInfo.Rows = makeLegal(newInfo.Rows)
-				newInfo.Cols = makeLegal(newInfo.Cols)
+				playInfo.Rows = makeLegal(playInfo.Rows)
+				playInfo.Cols = makeLegal(playInfo.Cols)
 				h.Colors = make([]string, len(h.Clients))
 				index := 0
 				for client, _ := range h.Clients {
 					h.Colors[index] = client.Color
 					index += 1
 				}
-				// Shuffle for good measure
+				// Randomize players
 				rand.Shuffle(len(h.Colors), func(i, j int) {
 					h.Colors[i], h.Colors[j] = h.Colors[j], h.Colors[i]
 				})
 				next := h.Colors[h.i]
-				newInfo.Next = next
-				newInfo.Color = next
-				h.Match.InitBoard(newInfo.Rows, newInfo.Cols)
-				newMsg, err := json.Marshal(newInfo)
+				playInfo.Next = next
+				playInfo.Color = next
+				h.i += 1
+				h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
+				newMsg, err := json.Marshal(playInfo)
 				if err != nil {
 					// Problems in the code
 					log.Fatal(err)
@@ -78,27 +90,25 @@ func (c *Client) ReadMsg() {
 			}
 		case "move":
 			// Handle User move
-			if h.Match.IsLegal(newInfo.X, h.Match.GetRows()) &&
-				h.Match.IsLegal(newInfo.Y, h.Match.GetCols()) {
-				ani, static := h.Match.MovePiece(newInfo.X, newInfo.X, c.Color)
-				newInfo.Animation = ani
-				newInfo.Static = static
+			if IsLegalMove(h.Match, playInfo.X, playInfo.Y) &&
+				c.Color == h.Colors[h.i] {
+				ani, static := h.Match.MovePiece(playInfo.X, playInfo.X, c.Color)
+				playInfo.Animation = ani
+				playInfo.Static = static
 				next := h.Colors[h.i]
-				newInfo.Next = next
-				newInfo.Color = next
+				playInfo.Next = next
+				playInfo.Color = next
 				h.i += 1
 				if h.i == len(h.Colors) {
 					h.i = 0
 				}
-				newMsg, err := json.Marshal(newInfo)
+				newMsg, err := json.Marshal(playInfo)
 				if err != nil {
 					// Problems in the code
 					log.Fatal(err)
 					return
 				}
 				h.Broadcast <- newMsg
-			} else {
-				log.Println("FAIL")
 			}
 		}
 	}
@@ -111,7 +121,6 @@ func (c *Client) WriteMsg() {
 		case msg := <-c.Received:
 			err := c.Conn.WriteMessage(txtMsg, msg)
 			if err != nil {
-				log.Println(err)
 				return
 			}
 		}

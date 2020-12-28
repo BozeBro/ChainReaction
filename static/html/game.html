@@ -102,12 +102,12 @@
     chain.grctx.canvas.onclick = (event) => {
         if (chain.state === true && start === true && chain.color === chain.mycolor) {
             let canvasObj = event.target.getBoundingClientRect();
-            // Get the square coords clicked relative to
+            // Get the square coords clicked
             let x = Math.floor((event.clientX - canvasObj.left) / chain.squareLength);
             let y = Math.floor((event.clientY - canvasObj.top) / chain.squareLength);
-            if (chain.squares[y][x][-1] === this.mycolor || chain.squares[y][x][-1] === "") {
+            if (chain.squares[y][x][2] === chain.mycolor || chain.squares[y][x][2] === "") {
                 // Prevent players from clicking other people's squares
-                chain.socket.send(JSON.stringify({ type: "move", x: x, y: y, color: chain.color }))
+                chain.socket.send(JSON.stringify({ type: "move", x: x, y: y}))
             }
         }
     }
@@ -128,8 +128,8 @@
                 break;
             case "color":
                 chain.mycolor = data.color
-                userColor.style.color = chain.mycolor
-                userColor.innerHTML = `Your color is ${chain.mycolor}`
+                userColor.style.color = data.color
+                userColor.innerHTML = `Your color is ${data.color}`
                 break;
             case "update":
                 players.innerHTML = data.players
@@ -163,7 +163,6 @@
         enter.onclick = () => {
             socket.send(JSON.stringify({
                 type: "start",
-                val: true,
                 cols: chain.cols,
                 rows: chain.rows,
             }));
