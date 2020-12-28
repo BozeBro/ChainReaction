@@ -67,6 +67,7 @@ func (c *Client) ReadMsg() {
 				next := h.Colors[h.i]
 				newInfo.Next = next
 				newInfo.Color = next
+				h.Match.InitBoard(newInfo.Rows, newInfo.Cols)
 				newMsg, err := json.Marshal(newInfo)
 				if err != nil {
 					// Problems in the code
@@ -75,10 +76,10 @@ func (c *Client) ReadMsg() {
 				}
 				h.Broadcast <- newMsg
 			}
-
 		case "move":
 			// Handle User move
-			if h.Match.IsLegal(newInfo.X, newInfo.Y) {
+			if h.Match.IsLegal(newInfo.X, h.Match.GetRows()) &&
+				h.Match.IsLegal(newInfo.Y, h.Match.GetCols()) {
 				ani, static := h.Match.MovePiece(newInfo.X, newInfo.X, c.Color)
 				newInfo.Animation = ani
 				newInfo.Static = static
@@ -96,6 +97,8 @@ func (c *Client) ReadMsg() {
 					return
 				}
 				h.Broadcast <- newMsg
+			} else {
+				log.Println("FAIL")
 			}
 		}
 	}

@@ -12,7 +12,7 @@ type Squares struct {
 }
 
 type Game interface {
-	InitBoard(int, int) []*Squares
+	InitBoard(int, int)
 	MovePiece(int, int, string) ([][][]int, [][][]int)
 	IsLegal(int, int) bool
 	GetRows() int
@@ -90,12 +90,14 @@ func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
 		return [][][]int{[][]int{[]int{x, y}}}, make([][][]int, 0)
 	}
+	c.Squares[y].Cur[x] = 0
 	return Chained(c.Explode, [][]int{[]int{x, y}}, color)
 }
 
-func (c *Chain) InitBoard(rows, cols int) []*Squares {
+func (c *Chain) InitBoard(rows, cols int) {
 	rows, cols = makeLegal(rows), makeLegal(cols)
 	sq := make([]*Squares, cols)
+	c.Len = cols
 	for y := 0; y < cols; y++ {
 		sq[y] = &Squares{
 			Len:   rows,
@@ -107,12 +109,11 @@ func (c *Chain) InitBoard(rows, cols int) []*Squares {
 			sq[y].Max[x], _ = c.findneighbors(x, y, rows, cols)
 		}
 	}
-	return sq
+	c.Squares =  sq
 }
 func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
 	// Returns maximum neighbors and their coords
 	totalNeighbros := 0
-	ind := 0
 	coords := make([][]int, 0, 4)
 	for _, v := range [][]int{
 		[]int{1, 0}, []int{-1, 0}, []int{0, 1}, []int{0, -1}} {
@@ -120,15 +121,15 @@ func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
 		ny := y + v[1]
 		if c.IsLegal(nx, rows) && c.IsLegal(ny, cols) {
 			totalNeighbros += 1
-			coords[ind] = []int{nx, ny}
-			ind += 1
+			coords = append(coords, []int{nx, ny})
 		}
 	}
 	return totalNeighbros, coords
 }
 
 func (c *Chain) IsLegal(pos, upper int) bool {
-	return 0 <= pos && pos < upper
+	bounds := 0 <= pos && pos < upper 
+	return bounds
 }
 func (c *Chain) GetRows() int {
 	return c.Squares[0].Len
