@@ -3,6 +3,7 @@ package webserver
 import (
 	"encoding/json"
 	"log"
+	"math/rand"
 
 	"github.com/gorilla/websocket"
 )
@@ -21,6 +22,8 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	Received chan []byte
+	// Tell Server to redirect user to home
+	Home chan bool
 }
 
 func (c *Client) ReadMsg() {
@@ -31,42 +34,77 @@ func (c *Client) ReadMsg() {
 		c.Hub.Unregister <- c
 		c.Conn.Close()
 	}()
+	h := c.Hub
 	for {
-		h := c.Hub
 		_, msg, err := c.Conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 		newInfo := new(WSData)
 		if err := json.Unmarshal(msg, newInfo); err != nil {
 			log.Println(err)
 			return
-		} else if newInfo.Type == "start" && !c.Leader {
-			// Someone tried to start the game while not being leader
-			// Most likely editing the css
+		}
+		switch newInfo.Type {
+		case "exit":
+			log.Println("HERE WE ARE")
+			// Person wants to leave. Defer will handle user
+			c.Home <- true
 			return
-		} else if newInfo.Type == "start" {
-			/* We will only see "start" in beginning of each game
-			Make Color list / order of player moves
-			iterating through map is already random
-			*/
-			h.Colors = make([]string, len(h.Clients))
-			index := 0
-			for client, _ := range h.Clients {
-				h.Colors[index] = client.Color
-				index += 1
+		case "start":
+			// Person wants to start the game
+			if c.Leader {
+				/* We will only see "start" in beginning of each game
+				Make Color list / order of player moves
+				iterating through map is already random
+				*/
+				newInfo.Rows = makeLegal(newInfo.Rows)
+				newInfo.Cols = makeLegal(newInfo.Cols)
+				h.Colors = make([]string, len(h.Clients))
+				index := 0
+				for client, _ := range h.Clients {
+					h.Colors[index] = client.Color
+					index += 1
+				}
+				// Shuffle for good measure
+				rand.Shuffle(len(h.Colors), func(i, j int) {
+					h.Colors[i], h.Colors[j] = h.Colors[j], h.Colors[i]
+				})
+				next := h.Colors[h.i]
+				newInfo.Next = next
+				newInfo.Color = next
+				newMsg, err := json.Marshal(newInfo)
+				if err != nil {
+					// Problems in the code
+					log.Fatal(err)
+					return
+				}
+				h.Broadcast <- newMsg
+			}
+
+		case "move":
+			// Handle User move
+			if h.Match.IsLegal(newInfo.X, newInfo.Y) {
+				ani, static := h.Match.MovePiece(newInfo.X, newInfo.X, c.Color)
+				newInfo.Animation = ani
+				newInfo.Static = static
+				next := h.Colors[h.i]
+				newInfo.Next = next
+				newInfo.Color = next
+				h.i += 1
+				if h.i == len(h.Colors) {
+					h.i = 0
+				}
+				newMsg, err := json.Marshal(newInfo)
+				if err != nil {
+					// Problems in the code
+					log.Fatal(err)
+					return
+				}
+				h.Broadcast <- newMsg
 			}
 		}
-		next := h.Colors[h.i]
-		h.i += 1
-		if h.i == len(h.Colors) {
-			h.i = 0
-		}
-		newInfo.Next = next
-		newInfo.Color = next
-		newMsg, err := json.Marshal(newInfo)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-		h.Broadcast <- newMsg
 	}
 }
 func (c *Client) WriteMsg() {

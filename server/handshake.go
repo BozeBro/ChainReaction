@@ -24,6 +24,19 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request) {
 	isleader := <-g.Rolesws
 	if isleader && !g.Hub.Alive {
 		go g.Hub.Run()
+		go func() {
+			for {
+				select {
+				case <-g.Hub.Stop:
+					id := mux.Vars(r)["id"]
+					delete(RoomStorage, id)
+					return
+				case <-g.Hub.Delete:
+					g.Hub.RoomData.Players -= 1
+					g.Hub.Update()
+				}
+			}
+		}()
 	}
 	client := &webserver.Client{
 		Hub:      g.Hub,
@@ -34,17 +47,8 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request) {
 	client.Hub.Register <- client
 	go client.ReadMsg()
 	go client.WriteMsg()
-	go func() {
-		for {
-			select {
-			case <-g.Hub.Stop:
-				id := mux.Vars(r)["id"]
-				delete(RoomStorage, id)
-				return
-			case <-g.Hub.Delete:
-				g.Hub.GameData.Players -= 1
-				g.Hub.Update()
-			}
-		}
-	}()
+	go func (w http.ResponseWriter, r *http.Request)  {
+		<-client.Home
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	}(w, r)
 }

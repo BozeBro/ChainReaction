@@ -28,9 +28,11 @@ type Hub struct {
 	// Move Order of players
 	Colors []string
 	// Has the data of the room
-	GameData *GameData
+	RoomData *RoomData
+	// Tracker of Game State. "Match" name to not confuse namespace
+	Match Game
 }
-type GameData struct {
+type RoomData struct {
 	/*
 		Similar to server's GameData but without the chans
 	*/
@@ -38,15 +40,19 @@ type GameData struct {
 	Players, Max int
 }
 type WSData struct {
-	Type  string `json:"type"` // Type of message allows front end to know how to deal with it
-	X     int    `json:"x"`
-	Y     int    `json:"y"`
-	Color string `json:"color"`
-	Val   bool   `json:"val"`
-	Next  string `json:"next"` // Next Color
+	Type      string    `json:"type"` // Type of message allows front end to know how to deal with it
+	X         int       `json:"x"`
+	Y         int       `json:"y"`
+	Color     string    `json:"color"`
+	Val       bool      `json:"val"`
+	Next      string    `json:"next"` // Next Color
+	Rows      int       `json:"rows"`
+	Cols      int       `json:"cols"`
+	Animation [][][]int `json:"animation"`
+	Static    [][][]int `json:"static"`
 }
 
-func NewHub(gameData *GameData) *Hub {
+func NewHub(roomData *RoomData) *Hub {
 	return &Hub{
 		Alive:      false,
 		Delete:     make(chan bool),
@@ -55,7 +61,8 @@ func NewHub(gameData *GameData) *Hub {
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		Clients:    make(map[*Client]bool),
-		GameData:   gameData,
+		RoomData:   roomData,
+		Match:      new(Chain),
 	}
 }
 func (h *Hub) GetUniqueColor(c string) string {
@@ -68,9 +75,9 @@ func (h *Hub) GetUniqueColor(c string) string {
 }
 func (h *Hub) Run() {
 	/*
-	Equivalent to turning on the computer
-	Handles the registering, unregistering, and broadcasting
-	Will kill itself when all the players leave
+		Equivalent to turning on the computer
+		Handles the registering, unregistering, and broadcasting
+		Will kill itself when all the players leave
 
 	*/
 	defer func() {
@@ -86,7 +93,6 @@ func (h *Hub) Run() {
 			// Assign unique color
 			client.Color = h.GetUniqueColor(RandomColor())
 			wsData := &WSData{Color: client.Color, Type: "color"}
-			log.Println(client.Color)
 			payload, err := json.Marshal(wsData)
 			if err != nil {
 				// This should never happen.
@@ -97,24 +103,22 @@ func (h *Hub) Run() {
 			h.Clients[client] = true
 			// Send player info on his color
 			client.Received <- payload
-			h.GameData.Players += 1
-			go h.Update()
+			h.RoomData.Players += 1
+			h.Update()
 		case client := <-h.Unregister:
-			if _, ok := h.Clients[client]; ok {
-				delete(h.Clients, client)
-				close(client.Received)
-				h.Delete <- true
-				if len(h.Clients) == 0 {
-					return
-				}
+			delete(h.Clients, client)
+			close(client.Received)
+			h.Delete <- true
+			if len(h.Clients) == 0 {
+				return
 			}
 		case message := <-h.Broadcast:
 			for client := range h.Clients {
 				select {
 				case client.Received <- message:
 				default:
-					close(client.Received)
 					delete(h.Clients, client)
+					close(client.Received)
 				}
 			}
 		}
@@ -123,14 +127,14 @@ func (h *Hub) Run() {
 
 func (h *Hub) Update() {
 	/*
-	Function tells front end how many players are in the lobby
+		Function tells front end how many players are in the lobby
 	*/
 	players := struct {
 		Type    string `json:"type"`
 		Players int    `json:"players"`
 	}{
 		Type:    "update",
-		Players: h.GameData.Players,
+		Players: h.RoomData.Players,
 	}
 	payload, err := json.Marshal(players)
 	if err != nil {
@@ -142,8 +146,8 @@ func (h *Hub) Update() {
 		select {
 		case client.Received <- payload:
 		default:
-			close(client.Received)
 			delete(h.Clients, client)
+			close(client.Received)
 		}
 	}
 }
