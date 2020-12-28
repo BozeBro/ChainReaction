@@ -1,10 +1,13 @@
 package webserver
 
+// Chain contains data relevant for Chain Reaction Game
 type Chain struct {
 	Len     int
 	Squares []*Squares
 	Hub     *Hub
 }
+
+// Squares contains data about each square
 type Squares struct {
 	Len   int      // Length of each array
 	Cur   []int    // How many circles are in the square
@@ -12,6 +15,7 @@ type Squares struct {
 	Color []string // The color that occupies. "" if none
 }
 
+// InitBoard Creates a board with dimensions rows x cols
 func (c *Chain) InitBoard(rows, cols int) {
 	rows, cols = makeLegal(5, rows, 30), makeLegal(5, cols, 30)
 	sq := make([]*Squares, cols)
@@ -38,7 +42,7 @@ func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
 		nx := x + v[0]
 		ny := y + v[1]
 		if IsLegalMove(c, nx, ny) {
-			totalNeighbros += 1
+			totalNeighbros++
 			coords = append(coords, []int{nx, ny})
 		}
 	}
@@ -50,13 +54,16 @@ Animation data is data sent to Front end that will show animation
 Moved / static data are the circles that remain from the explosion
 */
 
+// MovePiece is requirement for Game Interface
+// MovePiece Moves the piece on the chain board
+// It will call the chained(explode) function to handle explosion
 func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 	/*
 		x : x coordinate of the user clicked square
 		y : y coordinate of the user clicked square
 		color : color of the user
 	*/
-	c.Squares[y].Cur[x] += 1
+	c.Squares[y].Cur[x]++
 	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
 		return [][][]int{[][]int{[]int{x, y}}}, make([][][]int, 0)
 	}
@@ -111,7 +118,7 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 				deletedColor := sq.Color[x]
 				animations = append(animations, []int{d[0], d[1]})
 				sq.Color[x] = color
-				sq.Cur[x] += 1
+				sq.Cur[x]++
 				if sq.Cur[x] >= sq.Max[x] {
 					isdead = c.UpdateColor(color, sq.Color[x])
 					sq.Cur[x] = 0
@@ -121,7 +128,7 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 				moved = append(moved, []int{x, y, sq.Cur[x]})
 				if isdead {
 					for index := 0; index < len(c.Hub.Colors); index++ {
-						if c.Hub.Colors[index]  == deletedColor {
+						if c.Hub.Colors[index] == deletedColor {
 							c.Hub.Colors = append(c.Hub.Colors[:index], c.Hub.Colors[index+1:]...)
 						}
 					}
@@ -134,6 +141,9 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 	}
 	return expN, moved, animations
 }
+
+// UpdateColor updates amount of squares each player controls.
+// results true if oldColor is dead / out of squares
 func (c *Chain) UpdateColor(newColor, oldColor string) bool {
 	/*
 		Update amount of squares each player controls.
@@ -150,22 +160,27 @@ func (c *Chain) UpdateColor(newColor, oldColor string) bool {
 				dead = true
 			}
 		} else if client.Color == oldColor {
-			c.Hub.Clients[client] += 1
+			c.Hub.Clients[client]++
 		}
 	}
 	return dead
 }
 
+// GetRows is a requirement for Game interface
+// GetRows Gets the rows in the Chain Board
 func (c *Chain) GetRows() int {
 	return c.Squares[0].Len
 }
+
+// GetCols is a requirement for Game interface
+// GetCols Gets the cols in the Chain Board
 func (c *Chain) GetCols() int {
 	return c.Len
 }
+
+// makeLegal makes sure that dimensions are legal
+// Must be (lower, upper]
 func makeLegal(lower, dimension, upper int) int {
-	/*
-		Disallow any dimension under 5 and over 30
-	*/
 	if dimension < lower {
 		dimension = lower
 	} else if dimension > upper {

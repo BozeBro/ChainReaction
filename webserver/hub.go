@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"log"
 )
-
+// Hub is the server representative that provides a link to the clients
+// Handles stopping itself, tracking the players, keeping data, broadcasting, registering,
+// unregistering
 type Hub struct {
 	// Tells server if the Hub is running
 	Alive bool
@@ -29,6 +31,7 @@ type Hub struct {
 	// Tracker of Game State. "Match" name to not confuse namespace
 	Match Game
 }
+// RoomData provides about the. Will be for players trying to enter the room
 type RoomData struct {
 	/*
 		Similar to server's GameData but without the chans
@@ -36,7 +39,7 @@ type RoomData struct {
 	Room, Pin    string
 	Players, Max int
 }
-
+// NewHub Creates a newHub for a game to take place in
 func NewHub(roomData *RoomData) *Hub {
 	return &Hub{
 		Alive:      false,
@@ -49,21 +52,21 @@ func NewHub(roomData *RoomData) *Hub {
 		RoomData:   roomData,
 	}
 }
+// GetUniqueColor grabs a unique from COLORS in utility.go
+// It makes sure the color is unique
 func (h *Hub) GetUniqueColor(c string) string {
-	for client, _ := range h.Clients {
+	for client := range h.Clients {
 		if c == client.Color {
 			return h.GetUniqueColor(RandomColor())
 		}
 	}
 	return c
 }
-func (h *Hub) Run() {
-	/*
-		Equivalent to turning on the computer
-		Handles the registering, unregistering, and broadcasting
-		Will kill itself when all the players leave
 
-	*/
+// Run is equivalent to turning on the computer
+//		Handles the registering, unregistering, and broadcasting
+//		Will kill itself when all the players leave
+func (h *Hub) Run() {
 	defer func() {
 		h.Stop <- true
 	}()
@@ -75,11 +78,11 @@ func (h *Hub) Run() {
 		case client := <-h.Register:
 			// Assign unique color
 			client.Color = h.GetUniqueColor(RandomColor())
-			colorJson := &struct {
+			colorJSON := &struct {
 				Color string
 				Type  string
 			}{Color: client.Color, Type: "color"}
-			payload, err := json.Marshal(colorJson)
+			payload, err := json.Marshal(colorJSON)
 			if err != nil {
 				// This should never happen.
 				// Only in bugs
@@ -89,7 +92,7 @@ func (h *Hub) Run() {
 			h.Clients[client] = 0
 			// Send player info on his color
 			client.Received <- payload
-			h.RoomData.Players += 1
+			h.RoomData.Players++
 			h.Update()
 		case client := <-h.Unregister:
 			delete(h.Clients, client)
@@ -110,10 +113,8 @@ func (h *Hub) Run() {
 		}
 	}
 }
+// Update tells front end how many players are in the lobby
 func (h *Hub) Update() {
-	/*
-		Function tells front end how many players are in the lobby
-	*/
 	players := struct {
 		Type    string `json:"type"`
 		Players int    `json:"players"`
