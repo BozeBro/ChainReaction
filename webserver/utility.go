@@ -16,11 +16,3 @@ func RandomColor() string {
 	rand := rand.Intn(clength)
 	return COLORS[rand]
 }
-func isInside(colorList []string, color string) bool {
-	for _, c := range colorList {
-		if c == color {
-			return false	
-		}
-	}
-	return false
-}

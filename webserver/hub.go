@@ -14,13 +14,10 @@ type Hub struct {
 	Stop chan bool
 	// Mapping of clients. Unordered
 	Clients map[*Client]bool
-
 	// incoming broadcasting reqs from clients
 	Broadcast chan []byte
-
 	// Register requests from the clients.
 	Register chan *Client
-
 	// Unregister requests from clients.
 	Unregister chan *Client
 	// Index of who's turn it is
@@ -69,10 +66,9 @@ func (h *Hub) Run() {
 
 	*/
 	defer func() {
-		h.Alive = false
 		h.Stop <- true
-		return
 	}()
+	// No one can join the game
 	h.Alive = true
 	// wait for register, unregister, or broadcast chan to be filled
 	for {
@@ -80,8 +76,11 @@ func (h *Hub) Run() {
 		case client := <-h.Register:
 			// Assign unique color
 			client.Color = h.GetUniqueColor(RandomColor())
-			wsData := &WSData{Color: client.Color, Type: "color"}
-			payload, err := json.Marshal(wsData)
+			colorJson := &struct {
+				Color string
+				Type  string
+			}{Color: client.Color, Type: "color"}
+			payload, err := json.Marshal(colorJson)
 			if err != nil {
 				// This should never happen.
 				// Only in bugs
@@ -112,7 +111,6 @@ func (h *Hub) Run() {
 		}
 	}
 }
-
 func (h *Hub) Update() {
 	/*
 		Function tells front end how many players are in the lobby

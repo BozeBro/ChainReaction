@@ -27,7 +27,6 @@ type WSData struct {
 	Type      string    `json:"type"`  // Type of message allows front end to know how to deal with it
 	X         int       `json:"x"`     // X coordinate clicked
 	Y         int       `json:"y"`     // Y coordinate clicked
-	Color     string    `json:"color"` // Only used to assign player color
 	Next      string    `json:"next"`  // Next players turn
 	Rows      int       `json:"rows"`
 	Cols      int       `json:"cols"`
@@ -77,7 +76,6 @@ func (c *Client) ReadMsg() {
 				})
 				next := h.Colors[h.i]
 				playInfo.Next = next
-				playInfo.Color = next
 				h.i += 1
 				h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
 				newMsg, err := json.Marshal(playInfo)
@@ -97,7 +95,6 @@ func (c *Client) ReadMsg() {
 				playInfo.Static = static
 				next := h.Colors[h.i]
 				playInfo.Next = next
-				playInfo.Color = next
 				h.i += 1
 				if h.i == len(h.Colors) {
 					h.i = 0
