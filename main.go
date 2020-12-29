@@ -15,12 +15,12 @@ func main() {
 	r := server.MakeRouter()
 	srv := &http.Server{
 		Handler: r,
-		Addr:    "127.0.0.1:8000",
+		Addr:    "127.0.0.1:8080",
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	log.Println("serving at 127.0.0.1:8000")
+	log.Println("serving at 127.0.0.1:8080")
 	log.Fatal(srv.ListenAndServe())
 
 }

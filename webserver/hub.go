@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 )
+
 // Hub is the server representative that provides a link to the clients
 // Handles stopping itself, tracking the players, keeping data, broadcasting, registering,
 // unregistering
@@ -31,6 +32,7 @@ type Hub struct {
 	// Tracker of Game State. "Match" name to not confuse namespace
 	Match Game
 }
+
 // RoomData provides about the. Will be for players trying to enter the room
 type RoomData struct {
 	/*
@@ -39,6 +41,7 @@ type RoomData struct {
 	Room, Pin    string
 	Players, Max int
 }
+
 // NewHub Creates a newHub for a game to take place in
 func NewHub(roomData *RoomData) *Hub {
 	return &Hub{
@@ -52,6 +55,7 @@ func NewHub(roomData *RoomData) *Hub {
 		RoomData:   roomData,
 	}
 }
+
 // GetUniqueColor grabs a unique from COLORS in utility.go
 // It makes sure the color is unique
 func (h *Hub) GetUniqueColor(c string) string {
@@ -113,6 +117,7 @@ func (h *Hub) Run() {
 		}
 	}
 }
+
 // Update tells front end how many players are in the lobby
 func (h *Hub) Update() {
 	players := struct {

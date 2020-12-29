@@ -23,6 +23,7 @@ type Client struct {
 	// Buffered channel of outbound messages.
 	Received chan []byte
 }
+
 // WSData provides allowed fields to be received from the front end
 type WSData struct {
 	Type      string    `json:"type"` // Type of message allows front end to know how to deal with it
@@ -87,12 +88,14 @@ func (c *Client) ReadMsg() {
 				h.Broadcast <- newMsg
 			}
 		case "move":
+			log.Println(playInfo.X, playInfo.Y)
 			// Handle User move
 			if IsLegalMove(h.Match, playInfo.X, playInfo.Y) &&
 				c.Color == h.Colors[h.i] {
 				ani, static := h.Match.MovePiece(playInfo.X, playInfo.X, c.Color)
 				// Color Slice will be updated in the MovePiece Functions
 				if len(h.Colors) > 1 {
+					log.Println("gaming")
 					// Game is not over yet
 					playInfo.Animation = ani
 					playInfo.Static = static
@@ -117,6 +120,7 @@ func (c *Client) ReadMsg() {
 		}
 	}
 }
+
 // WriteMsg sends msg from the hub to the client
 func (c *Client) WriteMsg() {
 	txtMsg := 1

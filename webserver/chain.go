@@ -1,5 +1,7 @@
 package webserver
 
+import "log"
+
 // Chain contains data relevant for Chain Reaction Game
 type Chain struct {
 	Len     int
@@ -37,7 +39,7 @@ func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
 	totalNeighbros := 0
 	coords := make([][]int, 0, 4)
 	for _, v := range [][]int{
-		[]int{1, 0}, []int{-1, 0}, []int{0, 1}, []int{0, -1}} {
+		{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
 		nx := x + v[0]
 		ny := y + v[1]
 		if IsLegalMove(c, nx, ny) {
@@ -64,10 +66,10 @@ func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 	*/
 	c.Squares[y].Cur[x]++
 	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
-		return [][][]int{[][]int{[]int{x, y}}}, make([][][]int, 0)
+		return [][][]int{{{x, y}}}, make([][][]int, 0)
 	}
 	c.Squares[y].Cur[x] = 0
-	return chained(c.explode, [][]int{[]int{x, y}}, color)
+	return chained(c.explode, [][]int{{x, y}}, color)
 }
 
 //explodeFunc used to clean syntax
@@ -85,9 +87,11 @@ func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]i
 	animations := make([][][]int, 0)
 	moved := make([][][]int, 0)
 	for len(exp) != 0 {
-		newExp, newAni, newMove := explode(exp, color)
+		log.Println("yessa")
+		log.Println(exp)
+		newExp, newAni, newMoves := explode(exp, color)
 		animations = append(animations, newAni)
-		moved = append(moved, newMove)
+		moved = append(moved, newMoves)
 		exp = newExp
 	}
 	return animations, moved
@@ -105,12 +109,13 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 	for _, coords := range exp {
 		// d is all the possible neighbors of the coords
 		for _, d := range [][]int{
-			[]int{1, 0},
-			[]int{-1, 0},
-			[]int{0, 1},
-			[]int{0, -1},
+			{1, 0},
+			{-1, 0},
+			{0, 1},
+			{0, -1},
 		} {
 			x, y := coords[0]+d[0], coords[1]+d[1]
+			log.Printf("Is it a legal move? %v %v %v", IsLegalMove(c, x, y), x, y)
 			if IsLegalMove(c, x, y) {
 				sq := c.Squares[y]
 				isdead := c.UpdateColor(color, sq.Color[x])
