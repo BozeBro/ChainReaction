@@ -1,4 +1,7 @@
 "use strict"
+/*
+  See game.html for information on the event handlers
+*/
 class chainReaction {
   constructor(rows = 8, cols = 8, color, socket) {
     /*
@@ -11,21 +14,22 @@ class chainReaction {
     this.__ms = 200 // length of entire animation in milliseconds. Meant to be a constant
     this.mycolor = ""
     this.color = color; // This is the color of the player's turn
-    this.start = false 
+    this.start = false
     this.socket = socket;
     this.canvas = document.getElementById("dynamic"); this.ctx = this.canvas.getContext("2d");
     this.statCtx = document.getElementById("static").getContext("2d");
     // grctx changes. Meant for constant display
-    this.grctx = document.getElementById("grid").getContext("2d"); 
+    this.grctx = document.getElementById("grid").getContext("2d");
     this.rows = rows;
     this.cols = cols;
-    this.squareLength = Math.min(450 / rows, 450 / cols);
+    this.squareLength = Math.min(450 / this.rows, 450 / this.cols); 
     this.squares = []; // Tells [number amount of circles, Exploding amount, cur color]
     this.state = true; // Tracks if an animation is taking place
   }
   initBoard() {
     // Make this.squares proper sizing
     // Make the visual board
+    // Allows us to call initBoard() many times
     this.statCtx.canvas.width = this.ctx.canvas.width = this.rows * this.squareLength;
     this.statCtx.canvas.height = this.ctx.canvas.height = this.cols * this.squareLength;
     this.grctx.canvas.width = this.ctx.canvas.width; this.grctx.canvas.height = this.ctx.canvas.height;

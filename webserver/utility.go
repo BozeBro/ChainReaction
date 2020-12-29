@@ -3,6 +3,8 @@ package webserver
 import (
 	"math/rand"
 )
+// COLORS provides available colors to choose from
+// That is until I can find a color library.
 var COLORS = []string{
 	"Brown",
 	"BlueViolet", "Red",
@@ -10,17 +12,9 @@ var COLORS = []string{
 	"Brown", "DarkOrange",
 	"DeepPink",
 }
+// RandomColor grabs a random color from COLORS
 func RandomColor() string {
-	// Gets random Color
 	clength := len(COLORS)
 	rand := rand.Intn(clength)
 	return COLORS[rand]
-}
-func isInside(colorList []string, color string) bool {
-	for _, c := range colorList {
-		if c == color {
-			return false	
-		}
-	}
-	return false
 }

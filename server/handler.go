@@ -36,7 +36,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 func WaitHandler(w http.ResponseWriter, r *http.Request) {
 	// Handler that serves game.file.
 	// Initialized to show waiting screen
-	log.Println(RoomStorage)
 	id := mux.Vars(r)["id"]
 	if !IdExists(RoomStorage, id) {
 		log.Println("Room Doesn't Exist")
@@ -45,7 +44,7 @@ func WaitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(RoomStorage[id].Roles) == 0 && RoomStorage[id].Hub.Alive {
-		notFull := RoomStorage[id].Hub.GameData.Players+1 <= RoomStorage[id].Hub.GameData.Max
+		notFull := RoomStorage[id].Hub.RoomData.Players+1 <= RoomStorage[id].Hub.RoomData.Max
 		if notFull {
 			go func() {
 				RoomStorage[id].Roles <- false
@@ -65,10 +64,14 @@ func WaitHandler(w http.ResponseWriter, r *http.Request) {
 		Leader  bool
 		Players int
 		Max     int
+		Pin     string
+		Room    string
 	}{
 		Leader:  isleader,
-		Players: RoomStorage[id].Hub.GameData.Players,
-		Max:     RoomStorage[id].Hub.GameData.Max,
+		Players: RoomStorage[id].Hub.RoomData.Players,
+		Max:     RoomStorage[id].Hub.RoomData.Max,
+		Room:    RoomStorage[id].Hub.RoomData.Room,
+		Pin:     RoomStorage[id].Hub.RoomData.Pin,
 	}
 	route := "static/html/game.html"
 	gameFile := template.Must(template.ParseFiles(route))
@@ -86,10 +89,10 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Do multiple loops so we know what to tell the user
 	rooms := make([]string, 0)
-	for id, gameData := range RoomStorage {
-		sameRoom := body.Room == gameData.Hub.GameData.Room
+	for id, data := range RoomStorage {
+		sameRoom := body.Room == data.Hub.RoomData.Room
 		log.Println(sameRoom)
-		log.Println(body.Room, gameData.Hub.GameData.Room)
+		log.Println(body.Room, data.Hub.RoomData.Room)
 		if sameRoom {
 			rooms = append(rooms, id)
 		}
@@ -100,17 +103,17 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, id := range rooms {
 		// Checks if room has vacancy
-		gameData := RoomStorage[id]
-		samePin := body.Pin == gameData.Hub.GameData.Pin
-		notFull := gameData.Hub.GameData.Players+1 <= gameData.Hub.GameData.Max
+		data := RoomStorage[id]
+		samePin := body.Pin == data.Hub.RoomData.Pin
+		notFull := data.Hub.RoomData.Players+1 <= data.Hub.RoomData.Max
 		if samePin && !notFull {
 			http.Error(w, "The room is full", http.StatusForbidden)
 			return
 		}
 		if samePin && notFull {
 			go func() {
-				gameData.Roles <- false
-				gameData.Rolesws <- false
+				data.Roles <- false
+				data.Rolesws <- false
 			}()
 			http.Redirect(w, r, "/game/"+id+"/join", 302)
 			return
@@ -143,14 +146,14 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	// Create Proper Unique Data
 	id := MakeId()
 	pin := MakePin(body.Room)
-	gameData := &webserver.GameData{
+	gameinfo := &webserver.RoomData{
 		Room:    body.Room,
 		Pin:     pin,
 		Max:     playerAmount,
 		Players: 0, // Correct players will be in joinHandler
 	}
 	RoomStorage[id] = &GameData{
-		Hub:     webserver.NewHub(gameData),
+		Hub:     webserver.NewHub(gameinfo),
 		Roles:   make(chan bool, playerAmount),
 		Rolesws: make(chan bool, playerAmount),
 	}

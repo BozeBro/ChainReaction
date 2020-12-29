@@ -43,7 +43,7 @@ let btnClicked = (e) => {
                     .then((res) => {
                         var m = res
                         switch (res.status) {
-                        
+
                             case 406:
                                 errJoin.innerHTML = "Pin is wrong"
                                 break
