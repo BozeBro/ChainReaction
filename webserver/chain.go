@@ -18,20 +18,19 @@ type Squares struct {
 // InitBoard Creates a board with dimensions rows x cols
 func (c *Chain) InitBoard(rows, cols int) {
 	rows, cols = makeLegal(5, rows, 30), makeLegal(5, cols, 30)
-	sq := make([]*Squares, cols)
+	c.Squares = make([]*Squares, cols)
 	c.Len = cols
 	for y := 0; y < cols; y++ {
-		sq[y] = &Squares{
+		c.Squares[y] = &Squares{
 			Len:   rows,
 			Cur:   make([]int, rows),
 			Max:   make([]int, rows),
 			Color: make([]string, rows),
 		}
 		for x := 0; x < rows; x++ {
-			sq[y].Max[x], _ = c.findneighbors(x, y, rows, cols)
+			c.Squares[y].Max[x], _ = c.findneighbors(x, y, rows, cols)
 		}
 	}
-	c.Squares = sq
 }
 func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
 	// Returns maximum neighbors and their coords
