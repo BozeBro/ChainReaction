@@ -79,8 +79,8 @@ func (h *Hub) Run() {
 			// Assign unique color
 			client.Color = h.GetUniqueColor(RandomColor())
 			colorJSON := &struct {
-				Color string
-				Type  string
+				Color string `json:"color"`
+				Type  string `json:"type"`
 			}{Color: client.Color, Type: "color"}
 			payload, err := json.Marshal(colorJSON)
 			if err != nil {
