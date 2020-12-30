@@ -84,31 +84,25 @@
     let waiting = document.getElementById("waitingRoom");
     let socket = new WebSocket("ws://" + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red", socket);
-
-    // The bar above the players
-    let bar = document.getElementById("bar").getContext("2d");
-    let start = false
     bar.canvas.width = chain.canvas.width;
-    // height is 10% of width
-    bar.canvas.height = bar.canvas.width * 0.05;
-
-    let changeBarC = (color) => {
-        bar.fillStyle = color;
-        bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);
-    }
+// height is 10% of width
+bar.canvas.height = bar.canvas.width * 0.05;
     ext.onclick = () => {
         document.location.href = "http://" + document.location.host
     }
     chain.grctx.canvas.onclick = (event) => {
+        if (chain.state === true) {
         let canvasObj = event.target.getBoundingClientRect();
         // Get the square coords clicked
         let x = Math.floor((event.clientX - canvasObj.left) / chain.squareLength);
         let y = Math.floor((event.clientY - canvasObj.top) / chain.squareLength);
             chain.socket.send(JSON.stringify({ type: "move", x: x, y: y}))
+        }
     }
     chain.socket.onmessage = async function (e) {
         let data = JSON.parse(e.data);
         console.log(data)
+        var dat = data
         switch (data.type.toLowerCase()) {
             case "start":
                 start = true
@@ -121,15 +115,15 @@
                 changeBarC(data.turn)
                 break;
             case "move":
-                await new Promise(() => 
+                
+                chain.state = false
+                new Promise(() => 
                 requestAnimationFrame((ts) => chain.animate(
-                    data.animation, data.static, ts, ts, 0
+                    data.animation, data.static, ts, ts, 0, data.turn
                 )))
-                chain.color = data.turn;
-                changeBarC(data.turn);
                 break;
             case "color":
-                console.log("WE HERE")
+                if (data.type !== "color") {return}
                 chain.mycolor = data.color
                 userColor.style.color = data.color
                 userColor.innerHTML = `Your color is ${data.color}`

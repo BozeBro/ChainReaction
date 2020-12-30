@@ -59,9 +59,13 @@ class chainReaction {
       }
     }
   }
-  async animate(animations, moved, ts, start, ind) {
+  async animate(animations, moved, ts, start, ind, color) {
     if (animations.length === 0) {
-      this.draw(...moved[0])
+      this.draw(...moved[0][0]);
+      this.color = color;
+      changeBarC(color);
+      this.state = true
+      console.log("DRAWN")
       return
     }
     /*
@@ -108,16 +112,18 @@ class chainReaction {
     if (elapsed < this.__ms) {
       // Complete rest of animation 
       await new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(animations, moved, ts, start, ind)))
+        requestAnimationFrame((ts) => this.animate(animations, moved, ts, start, ind, color)))
     } else if (ind < animations.length) {
       for (let [x, y, v] of moved[ind]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
       await new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(animations[ind+1], moved[ind+1], ts, start, ind+1)))
+        requestAnimationFrame((ts) => this.animate(animations[ind+1], moved[ind+1], ts, start, ind+1, color)))
     } else {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+      this.color = color;
+      changeBarC(color);
       this.state = true
     }
   }
@@ -127,6 +133,7 @@ class chainReaction {
     y - int : X coordinate of the square
     v - int : Tells how many circles are in a square
     */
+   console.log("IN HERE")
     let circlePos = this.squareLength / 7.5;
     let radius = this.squareLength / 4;
     this.statCtx.fillStyle = this.color;
@@ -134,6 +141,7 @@ class chainReaction {
     switch (v) {
       // Handles the current circle count in a square
       case 1:
+        console.log("1")
         this.statCtx.beginPath();
         this.statCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
         this.statCtx.stroke();
@@ -141,6 +149,7 @@ class chainReaction {
         this.statCtx.closePath();
         break;
       case 2:
+        console.log("2")
         this.statCtx.beginPath();
         this.statCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
         this.statCtx.stroke();
@@ -148,6 +157,7 @@ class chainReaction {
         this.statCtx.closePath();
         break;
       case 3:
+        console.log("3")
         this.statCtx.beginPath();
         this.statCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), radius, 0, 2 * Math.PI);
         this.statCtx.stroke();
@@ -164,3 +174,10 @@ class chainReaction {
   }
 }
 const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
+let bar = document.getElementById("bar").getContext("2d");
+let start = false
+
+let changeBarC = (color) => {
+    bar.fillStyle = color;
+    bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);
+}

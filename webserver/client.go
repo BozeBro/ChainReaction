@@ -76,7 +76,8 @@ func (c *Client) ReadMsg() {
 					h.Colors[i], h.Colors[j] = h.Colors[j], h.Colors[i]
 				})
 				// Current person's turn
-				playInfo.Turn = h.Colors[0]
+				playInfo.Turn = h.Colors[1]
+				h.i++
 				h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
 				newMsg, err := json.Marshal(playInfo)
 				if err != nil {
@@ -90,7 +91,7 @@ func (c *Client) ReadMsg() {
 			// See if a person can click the square or not.
 			// Within bounds and compatible color
 			isLegal := h.Match.IsLegalMove(playInfo.X, playInfo.Y, c.Color)
-			if isLegal {
+			if isLegal && c.Color == h.Colors[h.i] {
 				// Move Piece, Update colorMap, record animation and new positions
 				ani, static := h.Match.MovePiece(playInfo.X, playInfo.Y, c.Color)
 				// Color Slice will be updated in the MovePiece Functions
