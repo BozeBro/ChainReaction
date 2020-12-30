@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 )
+
 // Hub is the server representative that provides a link to the clients
 // Handles stopping itself, tracking the players, keeping data, broadcasting, registering,
 // unregistering
@@ -31,6 +32,7 @@ type Hub struct {
 	// Tracker of Game State. "Match" name to not confuse namespace
 	Match Game
 }
+
 // RoomData provides about the. Will be for players trying to enter the room
 type RoomData struct {
 	/*
@@ -39,6 +41,7 @@ type RoomData struct {
 	Room, Pin    string
 	Players, Max int
 }
+
 // NewHub Creates a newHub for a game to take place in
 func NewHub(roomData *RoomData) *Hub {
 	return &Hub{
@@ -52,6 +55,7 @@ func NewHub(roomData *RoomData) *Hub {
 		RoomData:   roomData,
 	}
 }
+
 // GetUniqueColor grabs a unique from COLORS in utility.go
 // It makes sure the color is unique
 func (h *Hub) GetUniqueColor(c string) string {
@@ -79,8 +83,8 @@ func (h *Hub) Run() {
 			// Assign unique color
 			client.Color = h.GetUniqueColor(RandomColor())
 			colorJSON := &struct {
-				Color string
-				Type  string
+				Color string `json:"color"`
+				Type  string `json:"type"`
 			}{Color: client.Color, Type: "color"}
 			payload, err := json.Marshal(colorJSON)
 			if err != nil {
@@ -90,10 +94,11 @@ func (h *Hub) Run() {
 				return
 			}
 			h.Clients[client] = 0
-			// Send player info on his color
+			// Tell user what color the person is
 			client.Received <- payload
 			h.RoomData.Players++
-			h.Update()
+			// Update the amount of players in the lobby
+			go h.Update()
 		case client := <-h.Unregister:
 			delete(h.Clients, client)
 			close(client.Received)
@@ -113,6 +118,7 @@ func (h *Hub) Run() {
 		}
 	}
 }
+
 // Update tells front end how many players are in the lobby
 func (h *Hub) Update() {
 	players := struct {
@@ -128,12 +134,5 @@ func (h *Hub) Update() {
 		log.Fatal(err)
 		return
 	}
-	for client := range h.Clients {
-		select {
-		case client.Received <- payload:
-		default:
-			delete(h.Clients, client)
-			close(client.Received)
-		}
-	}
+	h.Broadcast <- payload
 }

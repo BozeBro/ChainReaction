@@ -1,5 +1,7 @@
 package webserver
 
+import "log"
+
 // Chain contains data relevant for Chain Reaction Game
 type Chain struct {
 	Len     int
@@ -18,30 +20,29 @@ type Squares struct {
 // InitBoard Creates a board with dimensions rows x cols
 func (c *Chain) InitBoard(rows, cols int) {
 	rows, cols = makeLegal(5, rows, 30), makeLegal(5, cols, 30)
-	sq := make([]*Squares, cols)
+	c.Squares = make([]*Squares, cols)
 	c.Len = cols
 	for y := 0; y < cols; y++ {
-		sq[y] = &Squares{
+		c.Squares[y] = &Squares{
 			Len:   rows,
 			Cur:   make([]int, rows),
 			Max:   make([]int, rows),
 			Color: make([]string, rows),
 		}
 		for x := 0; x < rows; x++ {
-			sq[y].Max[x], _ = c.findneighbors(x, y, rows, cols)
+			c.Squares[y].Max[x], _ = c.findneighbors(x, y, rows, cols)
 		}
 	}
-	c.Squares = sq
 }
 func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
 	// Returns maximum neighbors and their coords
 	totalNeighbros := 0
 	coords := make([][]int, 0, 4)
 	for _, v := range [][]int{
-		[]int{1, 0}, []int{-1, 0}, []int{0, 1}, []int{0, -1}} {
+		{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
 		nx := x + v[0]
 		ny := y + v[1]
-		if IsLegalMove(c, nx, ny) {
+		if IsBounded(c, nx, ny) {
 			totalNeighbros++
 			coords = append(coords, []int{nx, ny})
 		}
@@ -63,12 +64,14 @@ func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 		y : y coordinate of the user clicked square
 		color : color of the user
 	*/
+	log.Println(c.Squares)
 	c.Squares[y].Cur[x]++
+	c.Squares[y].Color[x] = color
 	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
-		return [][][]int{[][]int{[]int{x, y}}}, make([][][]int, 0)
+		return make([][][]int, 0), [][][]int{{{x, y, c.Squares[y].Cur[x]}}}
 	}
 	c.Squares[y].Cur[x] = 0
-	return chained(c.explode, [][]int{[]int{x, y}}, color)
+	return chained(c.explode, [][]int{{x, y}}, color)
 }
 
 //explodeFunc used to clean syntax
@@ -84,11 +87,11 @@ func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]i
 		Receives animation data and static data
 	*/
 	animations := make([][][]int, 0)
-	moved := make([][][]int, 0)
+	moved := make([][][]int, 0) // static is going to be zero
 	for len(exp) != 0 {
-		newExp, newAni, newMove := explode(exp, color)
+		newExp, newAni, newMoves := explode(exp, color)
 		animations = append(animations, newAni)
-		moved = append(moved, newMove)
+		moved = append(moved, newMoves)
 		exp = newExp
 	}
 	return animations, moved
@@ -96,50 +99,54 @@ func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]i
 func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 	/*
 		exp - Current exploding squares
-		color - color of the user
+		color - color of the user that is making the move
 		Function to handle exploding squares.
 		Returns a frame of animation and static data
 	*/
-	expN := make([][]int, 0)
+	expN := make([][]int, 0) // Neighbors that are going to explode next iteration
 	moved := make([][]int, 0)
 	animations := make([][]int, 0)
 	for _, coords := range exp {
 		// d is all the possible neighbors of the coords
 		for _, d := range [][]int{
-			[]int{1, 0},
-			[]int{-1, 0},
-			[]int{0, 1},
-			[]int{0, -1},
+			{1, 0},
+			{-1, 0},
+			{0, 1},
+			{0, -1},
 		} {
 			x, y := coords[0]+d[0], coords[1]+d[1]
-			if IsLegalMove(c, x, y) {
+			if IsBounded(c, x, y) {
+				// (coords of explosion site), direction they are going
+				animations = append(animations, []int{coords[0], coords[1], d[0], d[1]})
 				sq := c.Squares[y]
-				isdead := c.UpdateColor(color, sq.Color[x])
 				deletedColor := sq.Color[x]
-				animations = append(animations, []int{d[0], d[1]})
+				isdead := c.UpdateColor(color, sq.Color[x])
 				sq.Color[x] = color
 				sq.Cur[x]++
-				if sq.Cur[x] >= sq.Max[x] {
-					isdead = c.UpdateColor(color, sq.Color[x])
+				if sq.Cur[x] == sq.Max[x] {
+					isdead = c.UpdateColor(color, sq.Color[x]) || isdead
 					sq.Cur[x] = 0
 					sq.Color[x] = ""
+					moved = append(moved, []int{coords[0], coords[1], sq.Cur[x]})
 					expN = append(expN, []int{x, y})
 				}
 				moved = append(moved, []int{x, y, sq.Cur[x]})
 				if isdead {
+					// Remove the players from the list of alive people
 					for index := 0; index < len(c.Hub.Colors); index++ {
 						if c.Hub.Colors[index] == deletedColor {
 							c.Hub.Colors = append(c.Hub.Colors[:index], c.Hub.Colors[index+1:]...)
+							break
 						}
 					}
 					if len(c.Hub.Colors) == 1 {
-						return nil, animations, moved
+						return make([][]int, 0), animations, moved
 					}
 				}
 			}
 		}
 	}
-	return expN, moved, animations
+	return expN, animations, moved
 }
 
 // UpdateColor updates amount of squares each player controls.
@@ -149,17 +156,17 @@ func (c *Chain) UpdateColor(newColor, oldColor string) bool {
 		Update amount of squares each player controls.
 		true if oldColor is dead / out of squares
 	*/
-	if newColor == oldColor {
-		return false
-	}
 	dead := false
+	if newColor == oldColor {
+		return dead
+	}
 	for client := range c.Hub.Clients {
-		if client.Color == newColor {
+		if client.Color == oldColor {
 			c.Hub.Clients[client] += -1
 			if c.Hub.Clients[client] == 0 {
 				dead = true
 			}
-		} else if client.Color == oldColor {
+		} else if client.Color == newColor {
 			c.Hub.Clients[client]++
 		}
 	}
