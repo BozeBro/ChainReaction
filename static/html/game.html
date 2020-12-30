@@ -32,9 +32,9 @@
             <div class="noSelect">Your Room is {{ .Room }}</div>
             {{ if .Leader }}
             <div id="boardMatrix">
-                <label for="rows">Rows</label><br>
+                <label for="rows" class="noSelect">Rows</label><br>
                 <input type="text" id="rows" name="rows" value="8"><br>
-                <label for="columns">Columns</label><br>
+                <label for="columns" class="noSelect">Columns</label><br>
                 <input type="text" id="columns" name="columns" value="8"><br>
                 <br>
                 <button id="boardBtn" class="ent">Enter</button>
@@ -121,12 +121,16 @@
                 start = true
                 waiting.style.display = "none";
                 chain.color = data.next
+                chain.rows = data.rows
+                chain.cols = data.cols
+                chain.squareLength = Math.min(450 / chain.rows, 450 / chain.cols);
+                chain.initBoard();
                 changeBarC(data.next)
                 break;
             case "move":
+                chain.color = data.next;
                 chain.clicked(data.x, data.y);
                 changeBarC(data.next);
-                chain.color = data.next
                 break;
             case "color":
                 console.log("WE HERE")

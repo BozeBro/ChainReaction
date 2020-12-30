@@ -56,6 +56,7 @@ func (c *Client) ReadMsg() {
 			log.Println(err)
 			return
 		}
+		log.Println(playInfo)
 		switch playInfo.Type {
 		case "start":
 			// Person wants to start the game
@@ -77,7 +78,6 @@ func (c *Client) ReadMsg() {
 				})
 				next := h.Colors[h.i]
 				playInfo.Next = next
-				h.i++
 				h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
 				newMsg, err := json.Marshal(playInfo)
 				if err != nil {
@@ -88,23 +88,21 @@ func (c *Client) ReadMsg() {
 				h.Broadcast <- newMsg
 			}
 		case "move":
-			log.Println(playInfo.X, playInfo.Y)
 			// Handle User move
-			if IsLegalMove(h.Match, playInfo.X, playInfo.Y) &&
-				c.Color == h.Colors[h.i] {
-				ani, static := h.Match.MovePiece(playInfo.X, playInfo.X, c.Color)
+			isLegal := h.Match.IsLegalMove(playInfo.X, playInfo.Y, c.Color)
+			if isLegal {
+				ani, static := h.Match.MovePiece(playInfo.X, playInfo.Y, c.Color)
 				// Color Slice will be updated in the MovePiece Functions
 				if len(h.Colors) > 1 {
-					log.Println("gaming")
 					// Game is not over yet
 					playInfo.Animation = ani
 					playInfo.Static = static
-					next := h.Colors[h.i]
-					playInfo.Next = next
 					h.i++
 					if h.i == len(h.Colors) {
 						h.i = 0
 					}
+					next := h.Colors[h.i]
+					playInfo.Next = next
 					newMsg, err := json.Marshal(playInfo)
 					if err != nil {
 						// Problems in the code
@@ -116,6 +114,7 @@ func (c *Client) ReadMsg() {
 					// One player remaining. That player wins.
 					log.Println("WINNER WINNER")
 				}
+			} else {
 			}
 		}
 	}

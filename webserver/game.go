@@ -7,6 +7,7 @@ type Game interface {
 	UpdateColor(string, string) bool
 	GetRows() int
 	GetCols() int
+	IsLegalMove(int, int, string) bool
 }
 
 // IsLegalMove Tells if a move is allowed
@@ -20,7 +21,7 @@ func (c *Chain) IsLegalMove(x, y int, color string) bool {
 }
 
 // IsLegalMove is general functions that tells if a move is within bounds
-func IsLegalMove(g Game, x, y int) bool {
+func IsBounded(g Game, x, y int) bool {
 	validRow := 0 <= x && x < g.GetRows()
 	validCol := 0 <= y && y < g.GetCols()
 	return validRow && validCol

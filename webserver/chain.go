@@ -42,7 +42,7 @@ func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
 		{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
 		nx := x + v[0]
 		ny := y + v[1]
-		if IsLegalMove(c, nx, ny) {
+		if IsBounded(c, nx, ny) {
 			totalNeighbros++
 			coords = append(coords, []int{nx, ny})
 		}
@@ -65,6 +65,7 @@ func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 		color : color of the user
 	*/
 	c.Squares[y].Cur[x]++
+	c.Squares[y].Color[x] = color
 	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
 		return [][][]int{{{x, y}}}, make([][][]int, 0)
 	}
@@ -115,8 +116,7 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 			{0, -1},
 		} {
 			x, y := coords[0]+d[0], coords[1]+d[1]
-			log.Printf("Is it a legal move? %v %v %v", IsLegalMove(c, x, y), x, y)
-			if IsLegalMove(c, x, y) {
+			if IsBounded(c, x, y) {
 				sq := c.Squares[y]
 				isdead := c.UpdateColor(color, sq.Color[x])
 				deletedColor := sq.Color[x]
