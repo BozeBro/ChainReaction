@@ -82,7 +82,7 @@
     let players = document.getElementById("players")
     let waiting = document.getElementById("waitingRoom");
     let socket = new WebSocket("ws://" + document.location.host + "/ws/" + id);
-    let chain = new chainReaction(8, 8, "red", socket);
+    let chain = new chainReaction(8, 8, "red");
     bar.canvas.width = chain.canvas.width;
 // height is 10% of width
 bar.canvas.height = bar.canvas.width * 0.05;
@@ -95,10 +95,10 @@ bar.canvas.height = bar.canvas.width * 0.05;
         // Get the square coords clicked
         let x = Math.floor((event.clientX - canvasObj.left) / chain.squareLength);
         let y = Math.floor((event.clientY - canvasObj.top) / chain.squareLength);
-            chain.socket.send(JSON.stringify({ type: "move", x: x, y: y}))
+            socket.send(JSON.stringify({ type: "move", x: x, y: y}))
         }
     }
-    chain.socket.onmessage = (e) => {
+    socket.onmessage = (e) => {
         let data = JSON.parse(e.data);
         console.log(data)
         var dat = data
