@@ -19,7 +19,6 @@
             <div class="bar-wrap">
                 <canvas id="bar"></canvas>
             </div>
-            <div class="players noSelect">Ryan vs Benedict</div>
             <div id="interface">
                 <canvas id="dynamic" width="450px" height="450px"></canvas>
                 <canvas id="static" width="450px" height="450px"></canvas>
@@ -27,7 +26,7 @@
             </div>
         </div>
         <div>
-            <div id="userColor" class="noSelect"></div>
+            <div class="noSelect"><h2 id="userColor"></h2></div>
             <div class="noSelect">Your Pin is {{ .Pin }}</div>
             <div class="noSelect">Your Room is {{ .Room }}</div>
             {{ if .Leader }}

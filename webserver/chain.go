@@ -1,7 +1,5 @@
 package webserver
 
-import "log"
-
 // Chain contains data relevant for Chain Reaction Game
 type Chain struct {
 	Len     int
@@ -65,11 +63,15 @@ func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 		color : color of the user
 	*/
 	c.Squares[y].Cur[x]++
-	c.Squares[y].Color[x] = color
 	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
+		c.UpdateColor(color, c.Squares[y].Color[x])
+		c.Squares[y].Color[x] = color
+
 		return make([][][]int, 0), [][][]int{{{x, y, c.Squares[y].Cur[x]}}}
 	}
 	c.Squares[y].Cur[x] = 0
+	c.Squares[y].Color[x] = ""
+	c.UpdateColor("", color)
 	return chained(c.explode, [][]int{{x, y}}, color)
 }
 
@@ -138,15 +140,12 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 							break
 						}
 					}
-					if len(c.Hub.Colors) == 1 {
-						return make([][]int, 0), animations, moved
-					}
 				}
 			}
 		}
-		for _, v := range c.Hub.Colors {
-			log.Println(v)
-		}
+	}
+	if len(c.Hub.Colors) == 1 {
+		return make([][]int, 0), animations, moved
 	}
 	return expN, animations, moved
 }

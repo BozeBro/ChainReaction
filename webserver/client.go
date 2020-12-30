@@ -95,26 +95,26 @@ func (c *Client) ReadMsg() {
 				// Move Piece, Update colorMap, record animation and new positions
 				ani, static := h.Match.MovePiece(playInfo.X, playInfo.Y, c.Color)
 				// Color Slice will be updated in the MovePiece Functions
-				if len(h.Colors) > 1 {
-					h.i++
-					if h.i == len(h.Colors) {
-						h.i = 0
-					}
-					// Game is not over yet
-					playInfo.Animation = ani
-					playInfo.Static = static
-					// Getting next person
-					playInfo.Turn = h.Colors[h.i]
-					newMsg, err := json.Marshal(playInfo)
-					if err != nil {
-						// Problems in the code
-						log.Fatal(err)
-						break
-					}
-					h.Broadcast <- newMsg
-
-				} else {
-					// One player remaining. That player wins.
+				for _, num := range h.Clients {
+					log.Print(num)
+				}
+				h.i++
+				if h.i >= len(h.Colors) {
+					h.i = 0
+				}
+				// Game is not over yet
+				playInfo.Animation = ani
+				playInfo.Static = static
+				// Getting next person
+				playInfo.Turn = h.Colors[h.i]
+				newMsg, err := json.Marshal(playInfo)
+				if err != nil {
+					// Problems in the code
+					log.Fatal(err)
+					break
+				}
+				h.Broadcast <- newMsg
+				if len(h.Colors) == 1 {
 					log.Println("WINNER WINNER")
 				}
 			}
