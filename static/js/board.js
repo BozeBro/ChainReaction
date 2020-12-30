@@ -84,6 +84,7 @@ class chainReaction {
     this.ctx.fillStyle = this.color
     this.ctx.lineWidth = 1
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    this.ligma = animations
     for (let [x, y, dx, dy] of animations[ind]) {
       x = loc(x, this.squareLength)
       y = loc(y, this.squareLength)
@@ -113,15 +114,18 @@ class chainReaction {
       // Complete rest of animation 
       await new Promise(() =>
         requestAnimationFrame((ts) => this.animate(animations, moved, ts, start, ind, color)))
-    } else if (ind < animations.length) {
+    } else if (ind + 1 < animations.length) {
       for (let [x, y, v] of moved[ind]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
       await new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(animations[ind+1], moved[ind+1], ts, start, ind+1, color)))
+        requestAnimationFrame((ts) => this.animate(animations, moved, ts, start, ind+1, color)))
     } else {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+      for (let [x, y, v] of moved[ind]) {
+        this.draw(x, y, v)
+      }
       this.color = color;
       changeBarC(color);
       this.state = true
@@ -133,42 +137,55 @@ class chainReaction {
     y - int : X coordinate of the square
     v - int : Tells how many circles are in a square
     */
-   console.log("IN HERE")
     let circlePos = this.squareLength / 7.5;
     let radius = this.squareLength / 4;
     this.statCtx.fillStyle = this.color;
     this.statCtx.lineWidth = 1;
-    switch (v) {
-      // Handles the current circle count in a square
-      case 1:
-        console.log("1")
-        this.statCtx.beginPath();
+    const draw1 = () => {
+      this.statCtx.beginPath();
         this.statCtx.arc(loc(x, this.squareLength, -1 * circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
         this.statCtx.stroke();
         this.statCtx.fill();
         this.statCtx.closePath();
-        break;
-      case 2:
-        console.log("2")
-        this.statCtx.beginPath();
+    }
+    const draw2 = () => {
+      draw1()
+      this.statCtx.beginPath();
         this.statCtx.arc(loc(x, this.squareLength, circlePos), loc(y, this.squareLength, -1 * circlePos), radius, 0, 2 * Math.PI);
         this.statCtx.stroke();
         this.statCtx.fill();
         this.statCtx.closePath();
-        break;
-      case 3:
-        console.log("3")
-        this.statCtx.beginPath();
+    }
+    const draw3 = () => {
+      draw2()
+      this.statCtx.beginPath();
         this.statCtx.arc(loc(x, this.squareLength), loc(y, this.squareLength, circlePos), radius, 0, 2 * Math.PI);
         this.statCtx.stroke();
         this.statCtx.fill();
         this.statCtx.closePath();
+    }
+    const erase = () => {
+      this.statCtx.beginPath();
+        this.statCtx.clearRect(x * this.squareLength, y * this.squareLength, this.squareLength, this.squareLength);
+        this.statCtx.closePath();
+    }
+    switch (v) {
+      // Handles the current circle count in a square
+      case 1:
+        erase()
+        draw1()
+        break;
+      case 2:
+        erase()
+        draw2()
+        break;
+      case 3:
+        erase()
+        draw3()
         break;
       default:
         // Clear the circles
-        this.statCtx.beginPath();
-        this.statCtx.clearRect(x * this.squareLength, y * this.squareLength, this.squareLength, this.squareLength);
-        this.statCtx.closePath();
+        erase()
         break;
     }
   }

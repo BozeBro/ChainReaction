@@ -87,7 +87,7 @@ func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]i
 		Receives animation data and static data
 	*/
 	animations := make([][][]int, 0)
-	moved := [][][]int{exp} // static is going to be zero
+	moved := make([][][]int, 0) // static is going to be zero
 	for len(exp) != 0 {
 		newExp, newAni, newMoves := explode(exp, color)
 		animations = append(animations, newAni)
@@ -124,6 +124,7 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 				sq.Color[x] = color
 				sq.Cur[x]++
 				if sq.Cur[x] == sq.Max[x] {
+					moved = append(moved, []int{coords[0], coords[1], sq.Cur[x]})
 					isdead = c.UpdateColor(color, sq.Color[x]) || isdead
 					sq.Cur[x] = 0
 					sq.Color[x] = ""
@@ -145,7 +146,7 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 			}
 		}
 	}
-	return expN, moved, animations
+	return expN, animations, moved
 }
 
 // UpdateColor updates amount of squares each player controls.
