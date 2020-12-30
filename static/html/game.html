@@ -100,37 +100,33 @@
         document.location.href = "http://" + document.location.host
     }
     chain.grctx.canvas.onclick = (event) => {
-        if (chain.state === true && start === true && chain.color === chain.mycolor) {
-            let canvasObj = event.target.getBoundingClientRect();
-            // Get the square coords clicked
-            let x = Math.floor((event.clientX - canvasObj.left) / chain.squareLength);
-            let y = Math.floor((event.clientY - canvasObj.top) / chain.squareLength);
-
-            if (chain.squares[y][x][2] === chain.mycolor || chain.squares[y][x][2] === "") {
-                console.log(x, y)
-                // Prevent players from clicking other people's squares
-                chain.socket.send(JSON.stringify({ type: "move", x: x, y: y}))
-            }
-        }
+        let canvasObj = event.target.getBoundingClientRect();
+        // Get the square coords clicked
+        let x = Math.floor((event.clientX - canvasObj.left) / chain.squareLength);
+        let y = Math.floor((event.clientY - canvasObj.top) / chain.squareLength);
+            chain.socket.send(JSON.stringify({ type: "move", x: x, y: y}))
     }
-    chain.socket.onmessage = function (e) {
+    chain.socket.onmessage = async function (e) {
         let data = JSON.parse(e.data);
         console.log(data)
         switch (data.type.toLowerCase()) {
             case "start":
                 start = true
                 waiting.style.display = "none";
-                chain.color = data.next
+                chain.color = data.turn
                 chain.rows = data.rows
                 chain.cols = data.cols
                 chain.squareLength = Math.min(450 / chain.rows, 450 / chain.cols);
                 chain.initBoard();
-                changeBarC(data.next)
+                changeBarC(data.turn)
                 break;
             case "move":
-                chain.color = data.next;
-                chain.clicked(data.x, data.y);
-                changeBarC(data.next);
+                await new Promise(() => 
+                requestAnimationFrame((ts) => chain.animate(
+                    data.animation, data.static, ts, ts, 0
+                )))
+                chain.color = data.turn;
+                changeBarC(data.turn);
                 break;
             case "color":
                 console.log("WE HERE")

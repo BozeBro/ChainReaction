@@ -29,7 +29,7 @@ type WSData struct {
 	Type      string    `json:"type"` // Type of message allows front end to know how to deal with it
 	X         int       `json:"x"`    // X coordinate clicked
 	Y         int       `json:"y"`    // Y coordinate clicked
-	Next      string    `json:"next"` // Next players turn
+	Turn      string    `json:"turn"` // players turn
 	Rows      int       `json:"rows"`
 	Cols      int       `json:"cols"`
 	Animation [][][]int `json:"animation"` // Instrutios on animation
@@ -56,7 +56,6 @@ func (c *Client) ReadMsg() {
 			log.Println(err)
 			return
 		}
-		log.Println(playInfo)
 		switch playInfo.Type {
 		case "start":
 			// Person wants to start the game
@@ -76,45 +75,47 @@ func (c *Client) ReadMsg() {
 				rand.Shuffle(len(h.Colors), func(i, j int) {
 					h.Colors[i], h.Colors[j] = h.Colors[j], h.Colors[i]
 				})
-				next := h.Colors[h.i]
-				playInfo.Next = next
+				// Current person's turn
+				playInfo.Turn = h.Colors[0]
 				h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
 				newMsg, err := json.Marshal(playInfo)
 				if err != nil {
 					// Problems in the code
 					log.Fatal(err)
-					return
+					break
 				}
 				h.Broadcast <- newMsg
 			}
 		case "move":
-			// Handle User move
+			// See if a person can click the square or not.
+			// Within bounds and compatible color
 			isLegal := h.Match.IsLegalMove(playInfo.X, playInfo.Y, c.Color)
 			if isLegal {
+				// Move Piece, Update colorMap, record animation and new positions
 				ani, static := h.Match.MovePiece(playInfo.X, playInfo.Y, c.Color)
 				// Color Slice will be updated in the MovePiece Functions
 				if len(h.Colors) > 1 {
-					// Game is not over yet
-					playInfo.Animation = ani
-					playInfo.Static = static
 					h.i++
 					if h.i == len(h.Colors) {
 						h.i = 0
 					}
-					next := h.Colors[h.i]
-					playInfo.Next = next
+					// Game is not over yet
+					playInfo.Animation = ani
+					playInfo.Static = static
+					// Getting next person
+					playInfo.Turn = h.Colors[h.i]
 					newMsg, err := json.Marshal(playInfo)
 					if err != nil {
 						// Problems in the code
 						log.Fatal(err)
-						return
+						break
 					}
 					h.Broadcast <- newMsg
+
 				} else {
 					// One player remaining. That player wins.
 					log.Println("WINNER WINNER")
 				}
-			} else {
 			}
 		}
 	}

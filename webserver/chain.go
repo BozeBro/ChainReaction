@@ -1,7 +1,5 @@
 package webserver
 
-import "log"
-
 // Chain contains data relevant for Chain Reaction Game
 type Chain struct {
 	Len     int
@@ -67,7 +65,7 @@ func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 	c.Squares[y].Cur[x]++
 	c.Squares[y].Color[x] = color
 	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
-		return [][][]int{{{x, y}}}, make([][][]int, 0)
+		return make([][][]int, 0), [][][]int{{{x, y}}}
 	}
 	c.Squares[y].Cur[x] = 0
 	return chained(c.explode, [][]int{{x, y}}, color)
@@ -86,10 +84,8 @@ func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]i
 		Receives animation data and static data
 	*/
 	animations := make([][][]int, 0)
-	moved := make([][][]int, 0)
+	moved := [][][]int{exp} // static is going to be zero
 	for len(exp) != 0 {
-		log.Println("yessa")
-		log.Println(exp)
 		newExp, newAni, newMoves := explode(exp, color)
 		animations = append(animations, newAni)
 		moved = append(moved, newMoves)
@@ -100,11 +96,11 @@ func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]i
 func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 	/*
 		exp - Current exploding squares
-		color - color of the user
+		color - color of the user that is making the move
 		Function to handle exploding squares.
 		Returns a frame of animation and static data
 	*/
-	expN := make([][]int, 0)
+	expN := make([][]int, 0) // Neighbors that are going to explode next iteration
 	moved := make([][]int, 0)
 	animations := make([][]int, 0)
 	for _, coords := range exp {
@@ -117,27 +113,30 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 		} {
 			x, y := coords[0]+d[0], coords[1]+d[1]
 			if IsBounded(c, x, y) {
+				// (coords of explosion site), direction they are going
+				animations = append(animations, []int{coords[0], coords[1], d[0], d[1]})
 				sq := c.Squares[y]
-				isdead := c.UpdateColor(color, sq.Color[x])
 				deletedColor := sq.Color[x]
-				animations = append(animations, []int{d[0], d[1]})
+				isdead := c.UpdateColor(color, sq.Color[x])
 				sq.Color[x] = color
 				sq.Cur[x]++
-				if sq.Cur[x] >= sq.Max[x] {
-					isdead = c.UpdateColor(color, sq.Color[x])
+				if sq.Cur[x] == sq.Max[x] {
+					isdead = c.UpdateColor(color, sq.Color[x]) || isdead
 					sq.Cur[x] = 0
 					sq.Color[x] = ""
 					expN = append(expN, []int{x, y})
 				}
 				moved = append(moved, []int{x, y, sq.Cur[x]})
 				if isdead {
+					// Remove the players from the list of alive people
 					for index := 0; index < len(c.Hub.Colors); index++ {
 						if c.Hub.Colors[index] == deletedColor {
 							c.Hub.Colors = append(c.Hub.Colors[:index], c.Hub.Colors[index+1:]...)
+							break
 						}
 					}
 					if len(c.Hub.Colors) == 1 {
-						return nil, animations, moved
+						return make([][]int, 0), animations, moved
 					}
 				}
 			}
@@ -153,17 +152,17 @@ func (c *Chain) UpdateColor(newColor, oldColor string) bool {
 		Update amount of squares each player controls.
 		true if oldColor is dead / out of squares
 	*/
-	if newColor == oldColor {
-		return false
-	}
 	dead := false
+	if newColor == oldColor {
+		return dead
+	}
 	for client := range c.Hub.Clients {
-		if client.Color == newColor {
+		if client.Color == oldColor {
 			c.Hub.Clients[client] += -1
 			if c.Hub.Clients[client] == 0 {
 				dead = true
 			}
-		} else if client.Color == oldColor {
+		} else if client.Color == newColor {
 			c.Hub.Clients[client]++
 		}
 	}

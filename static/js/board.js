@@ -59,69 +59,11 @@ class chainReaction {
       }
     }
   }
-  clicked(x, y) {
-    /* 
-    x - int : x position of the square clicked
-    y - int : y position of the square clicked
-    -----
-    Will Call explosion if square capacity is full
-     */
-    const curSquare = this.squares[y][x];
-    const newVal = curSquare[0] + 1 < curSquare[1] ? 1 : 0;
-    curSquare[0] *= newVal;
-    curSquare[0] += newVal;
-    this.draw(x, y, curSquare[0]);
-    if (newVal === 0) { this.state = false; curSquare[2] = ""; this.explode([[x, y]]) }
-
-  }
-  async explode(exp) {
-    /*
-    exp - [[x, y]] : the squares that are going to explode
-    -----
-    Recursive function that animates each level of explosion
-    Edit this.squares
-    Disable this.state so no one can click
-    Makes temporary global called this.exp to use in this.animate
-    // Check if neighbors will explode.
-    // Add coords and amount of circles of each square (For animation)
-    // Change the color of neighboring squares (on this.squares)
-    */
-    if (exp.length === 0) {
-      this.state = true
+  async animate(animations, moved, ts, start, ind) {
+    if (animations.length === 0) {
+      this.draw(...moved[0])
       return
     }
-    const d = this.squareLength / this.__ms // Distance to move per frame
-    let toAnimate = {
-      "moved": [],
-      "animations": [],
-    }
-    let expN = [];
-    // Exploding Neighbors
-    for (let [x, y] of exp) {
-      for (let [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        const posX = loc(x, this.squareLength)
-        const posY = loc(y, this.squareLength)
-        let nx = x + dx, ny = y + dy;
-        if (0 <= nx && nx < this.rows && 0 <= ny && ny < this.cols) {
-          // Add each neighbor of exploded to animation
-          toAnimate.animations.push([posX, posY, dx, dy]);
-          let curSquare = this.squares[ny][nx];
-          curSquare[2] = this.color
-          curSquare[0] += 1
-          if (curSquare[0] >= curSquare[1]) {
-            curSquare[0] = 0
-            curSquare[2] = ""
-            expN.push([nx, ny])
-          }
-          toAnimate.moved.push([nx, ny, curSquare[0]]);
-        }
-      }
-    }
-    this.exp = expN
-    await new Promise(() =>
-      requestAnimationFrame((ts) => this.animate(toAnimate, d, ts, ts)))
-  }
-  async animate(toAnimate, d, ts, start) {
     /*
     toAnimate - [{"moved": [], "animations": []}] ; Contains animation data
     toAnimate.moved : Tells what to draw on static Canvas
@@ -132,12 +74,15 @@ class chainReaction {
     Animates each frame recursively.
     this.exp is used here and ONLY here.
     */
+    let d = this.squareLength / this.__ms
     const elapsed = ts - start
     const i = d * elapsed
     this.ctx.fillStyle = this.color
     this.ctx.lineWidth = 1
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    for (let [x, y, dx, dy] of toAnimate.animations) {
+    for (let [x, y, dx, dy] of animations[ind]) {
+      x = loc(x, this.squareLength)
+      y = loc(y, this.squareLength)
       /*
       x - int : Current square's original x position
       y - int : Current square's original y position
@@ -163,16 +108,17 @@ class chainReaction {
     if (elapsed < this.__ms) {
       // Complete rest of animation 
       await new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(toAnimate, d, ts, start)))
-    } else {
-      // Everything's finished now. Redraw static screen
-      for (let [x, y, v] of toAnimate.moved) {
+        requestAnimationFrame((ts) => this.animate(animations, moved, ts, start, ind)))
+    } else if (ind < animations.length) {
+      for (let [x, y, v] of moved[ind]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-      this.explode(this.exp)
+      await new Promise(() =>
+        requestAnimationFrame((ts) => this.animate(animations[ind+1], moved[ind+1], ts, start, ind+1)))
+    } else {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
       this.state = true
-
     }
   }
   draw(x, y, v) {

@@ -94,10 +94,11 @@ func (h *Hub) Run() {
 				return
 			}
 			h.Clients[client] = 0
-			// Send player info on his color
+			// Tell user what color the person is
 			client.Received <- payload
 			h.RoomData.Players++
-			h.Update()
+			// Update the amount of players in the lobby
+			go h.Update()
 		case client := <-h.Unregister:
 			delete(h.Clients, client)
 			close(client.Received)
@@ -133,12 +134,5 @@ func (h *Hub) Update() {
 		log.Fatal(err)
 		return
 	}
-	for client := range h.Clients {
-		select {
-		case client.Received <- payload:
-		default:
-			delete(h.Clients, client)
-			close(client.Received)
-		}
-	}
+	h.Broadcast <- payload
 }
