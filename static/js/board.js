@@ -11,7 +11,7 @@ class chainReaction {
     state tracks if an animation is taking place
       - blocks clicking event if false
     */
-    this.__ms = 1000 // length of entire animation in milliseconds. Meant to be a constant
+    this.__ms = 200 // length of entire animation in milliseconds. Meant to be a constant
     this.mycolor = ""
     this.color = color; // This is the color of the player's turn
     this.start = false
