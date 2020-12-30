@@ -6,10 +6,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type ReqBody struct {
-	Pin, Room, Players, Name string
-}
-
+// Creates a route that will handle the routes for Chain Reaction
 func MakeRouter() *mux.Router {
 	// http.Dir uses directory of current working / dir where program started
 	static := http.FileServer(http.Dir("./static"))

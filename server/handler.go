@@ -50,10 +50,10 @@ func WaitHandler(w http.ResponseWriter, r *http.Request) {
 				RoomStorage[id].Roles <- false
 				RoomStorage[id].Rolesws <- false
 			}()
-			http.Redirect(w, r, "/game/"+id, 302)
+			http.Redirect(w, r, "/game/"+id, http.StatusFound)
 			return
 		}
-		http.Redirect(w, r, "/", 302)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	} else if len(RoomStorage[id].Roles) == 0 && !RoomStorage[id].Hub.Alive {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
@@ -115,11 +115,11 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 				data.Roles <- false
 				data.Rolesws <- false
 			}()
-			http.Redirect(w, r, "/game/"+id+"/join", 302)
+			http.Redirect(w, r, "/game/"+id+"/join", http.StatusFound)
 			return
 		}
 	}
-	http.Error(w, "Wrong Pin", 406)
+	http.Error(w, "Wrong Pin", http.StatusNotAcceptable)
 }
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	/*
@@ -132,14 +132,14 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Take in anything approach.
 	if body.Players == "" || body.Room == "" {
-		http.Error(w, "Empty values", 409)
+		http.Error(w, "Empty values", http.StatusConflict)
 		return
 	}
 	playerAmount, err := strconv.Atoi(body.Players)
 	if err != nil {
 		// Someone attempting some hacks
 		// Might be unneccessary though
-		http.Error(w, "Nice Try nerd", 400)
+		http.Error(w, "Nice Try nerd", http.StatusBadRequest)
 		log.Println(err)
 		return
 	}
@@ -161,5 +161,5 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		RoomStorage[id].Roles <- true
 		RoomStorage[id].Rolesws <- true
 	}()
-	http.Redirect(w, r, "/game/"+id+"/join", 302)
+	http.Redirect(w, r, "/game/"+id+"/join", http.StatusFound)
 }
