@@ -11,7 +11,7 @@ class chainReaction {
     state tracks if an animation is taking place
       - blocks clicking event if false
     */
-    this.__ms = 200 // length of entire animation in milliseconds. Meant to be a constant
+    this.__ms = 1000 // length of entire animation in milliseconds. Meant to be a constant
     this.mycolor = ""
     this.color = color; // This is the color of the player's turn
     this.start = false
@@ -59,14 +59,13 @@ class chainReaction {
       }
     }
   }
-  async animate(animations, moved, ts, start, ind, color) {
+  animate(animations, moved, ts, start, ind, color) {
     if (animations.length === 0) {
-      this.draw(...moved[0][0]);
+      chain.draw(...moved[ind][0]);
       this.color = color;
       changeBarC(color);
-      this.state = true
-      console.log("DRAWN")
-      return
+      this.state = true;
+      return;
     }
     /*
     toAnimate - [{"moved": [], "animations": []}] ; Contains animation data
@@ -78,25 +77,25 @@ class chainReaction {
     Animates each frame recursively.
     this.exp is used here and ONLY here.
     */
-    let d = this.squareLength / this.__ms
-    const elapsed = ts - start
-    const i = d * elapsed
-    this.ctx.fillStyle = this.color
-    this.ctx.lineWidth = 1
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.ligma = animations
+    const d = this.squareLength / this.__ms;
+    const elapsed = ts - start;
+    const i = d * elapsed;
+    this.ctx.fillStyle = this.color;
+    this.ctx.lineWidth = 1;
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     for (let [x, y, dx, dy] of animations[ind]) {
-      x = loc(x, this.squareLength)
-      y = loc(y, this.squareLength)
+      x = loc(x, this.squareLength);
+      y = loc(y, this.squareLength);
       /*
       x - int : Current square's original x position
       y - int : Current square's original y position
       dx - int : unit x vector. Either 1, -1, or 0 (for no movement)
       dy - int : unit y vector. Either 1, -1, or 0 (for no movement)
       -----
-      Movement will either be horizontal or vertical. NO diagonal
+      Movement will either be horizontal or vertical. NO diagonals
       */
       if (dx !== 0) {
+        // If dx is 0, then dy must be moving
         this.ctx.beginPath();
         this.ctx.arc(x + Math.min(i, this.squareLength) * dx, y, this.squareLength / 4, 0, 2 * Math.PI);
         this.ctx.stroke();
@@ -112,20 +111,20 @@ class chainReaction {
     }
     if (elapsed < this.__ms) {
       // Complete rest of animation 
-      await new Promise(() =>
+      return new Promise(() =>
         requestAnimationFrame((ts) => this.animate(animations, moved, ts, start, ind, color)))
     } else if (ind + 1 < animations.length) {
-      for (let [x, y, v] of moved[ind]) {
+      for (let [x, y, v] of moved[ind+1]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-      await new Promise(() =>
+      return new Promise(() =>
         requestAnimationFrame((ts) => this.animate(animations, moved, ts, ts, ind+1, color)))
     } else {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-      for (let [x, y, v] of moved[ind]) {
+      for (let [x, y, v] of moved[ind+1]) {
         this.draw(x, y, v)
       }
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
       this.color = color;
       changeBarC(color);
       this.state = true

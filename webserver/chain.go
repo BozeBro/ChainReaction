@@ -64,7 +64,6 @@ func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 		y : y coordinate of the user clicked square
 		color : color of the user
 	*/
-	log.Println(c.Squares)
 	c.Squares[y].Cur[x]++
 	c.Squares[y].Color[x] = color
 	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
@@ -86,8 +85,9 @@ func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]i
 		Loops through the explode function until no more until come out.
 		Receives animation data and static data
 	*/
+	x, y := exp[0][0], exp[0][1]
 	animations := make([][][]int, 0)
-	moved := make([][][]int, 0) // static is going to be zero
+	moved := [][][]int{{{x, y, 0}}} // static is going to be zero
 	for len(exp) != 0 {
 		newExp, newAni, newMoves := explode(exp, color)
 		animations = append(animations, newAni)
@@ -127,7 +127,6 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 					isdead = c.UpdateColor(color, sq.Color[x]) || isdead
 					sq.Cur[x] = 0
 					sq.Color[x] = ""
-					moved = append(moved, []int{coords[0], coords[1], sq.Cur[x]})
 					expN = append(expN, []int{x, y})
 				}
 				moved = append(moved, []int{x, y, sq.Cur[x]})
@@ -144,6 +143,9 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 					}
 				}
 			}
+		}
+		for _, v := range c.Hub.Colors {
+			log.Println(v)
 		}
 	}
 	return expN, animations, moved
