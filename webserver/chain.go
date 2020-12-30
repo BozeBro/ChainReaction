@@ -124,10 +124,10 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 				sq.Color[x] = color
 				sq.Cur[x]++
 				if sq.Cur[x] == sq.Max[x] {
-					moved = append(moved, []int{coords[0], coords[1], sq.Cur[x]})
 					isdead = c.UpdateColor(color, sq.Color[x]) || isdead
 					sq.Cur[x] = 0
 					sq.Color[x] = ""
+					moved = append(moved, []int{coords[0], coords[1], sq.Cur[x]})
 					expN = append(expN, []int{x, y})
 				}
 				moved = append(moved, []int{x, y, sq.Cur[x]})

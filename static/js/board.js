@@ -120,7 +120,7 @@ class chainReaction {
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
       await new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(animations, moved, ts, start, ind+1, color)))
+        requestAnimationFrame((ts) => this.animate(animations, moved, ts, ts, ind+1, color)))
     } else {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
       for (let [x, y, v] of moved[ind]) {
