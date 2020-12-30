@@ -1,7 +1,5 @@
-"use strict"
-/*
-  See game.html for information on the event handlers
-*/
+"use strict";
+// See game.html for information on the event handlers
 class chainReaction {
   constructor(rows = 8, cols = 8, color) {
     /*
@@ -11,7 +9,7 @@ class chainReaction {
     */
     this.__ms = 200 // length of entire animation in milliseconds. Meant to be a constant
     this.mycolor = "" // Player color is initialized at "start" JSON
-    this.color = color; // This is the color of the player's turn
+    this.color = color; // This is the color of current player's turn
     this.start = false // stops anyone from clicking the screen until the game starts
     this.canvas = document.getElementById("dynamic"); this.ctx = this.canvas.getContext("2d");
     this.statCtx = document.getElementById("static").getContext("2d");
@@ -21,7 +19,7 @@ class chainReaction {
     this.cols = cols;
     this.squareLength = Math.min(450 / this.rows, 450 / this.cols); 
     this.state = true; // Tracks if an animation is taking place
-  }
+  };
   initBoard() {
     // Make the visual board within boundary of 450px
     // Allows us to call initBoard() many times, for each time we start a game.
@@ -43,10 +41,10 @@ class chainReaction {
         this.grctx.closePath();
       }
     }
-  }
-  animate(animations, static, ts, start, ind, color) {
+  };
+  animate(animations, unmoving, ts, start, ind, color) {
     /*
-    static : Tells what to draw on static Canvas before each animation
+    unmoving : Tells what to draw on unmoving Canvas before each animation
     animations : Instructs program how to animate - should be a linear line
     i - int : Tells the next frame of the animation
     start : starting time of animation
@@ -57,7 +55,7 @@ class chainReaction {
     Animates each frame recursively.
     */
     if (animations.length === 0) {
-      chain.draw(...static[ind][0]);
+      chain.draw(...unmoving[ind][0]);
       this.color = color;
       changeBarC(color);
       this.state = true;
@@ -98,18 +96,18 @@ class chainReaction {
     if (elapsed < this.__ms) {
       // Complete rest of animation 
       return new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(animations, static, ts, start, ind, color)))
+        requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, start, ind, color)))
     } else if (ind + 1 < animations.length) {
       // COmplete next level of explosion / animation
-      for (let [x, y, v] of static[ind+1]) {
+      for (let [x, y, v] of unmoving[ind+1]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
       return new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(animations, static, ts, ts, ind+1, color)))
+        requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, ts, ind+1, color)))
     } else {
-      // Draw the last static square. Clear screen.
-      for (let [x, y, v] of static[ind+1]) {
+      // Draw the last unmoving square. Clear screen.
+      for (let [x, y, v] of unmoving[ind+1]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)

@@ -20,8 +20,9 @@ func MakeRouter() *mux.Router {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	})
 	r.HandleFunc("/", HomeHandler)
+	// Only the browser should be asking for the static files
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", static))
-	r.HandleFunc("/game/{id}", WaitHandler)
+	r.HandleFunc("/game/{id}", LobbyHandler)
 	r.HandleFunc("/game/{id}/join", func(w http.ResponseWriter, r *http.Request) {
 		return
 	})
