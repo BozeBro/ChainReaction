@@ -99,7 +99,7 @@ bar.canvas.height = bar.canvas.width * 0.05;
             chain.socket.send(JSON.stringify({ type: "move", x: x, y: y}))
         }
     }
-    chain.socket.onmessage = async function (e) {
+    chain.socket.onmessage = (e) => {
         let data = JSON.parse(e.data);
         console.log(data)
         var dat = data
@@ -115,8 +115,8 @@ bar.canvas.height = bar.canvas.width * 0.05;
                 changeBarC(data.turn)
                 break;
             case "move":
-                
                 chain.state = false
+                chain.draw(...data.static[0][0])
                 new Promise(() => 
                 requestAnimationFrame((ts) => chain.animate(
                     data.animation, data.static, ts, ts, 0, data.turn
