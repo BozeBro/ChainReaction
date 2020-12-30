@@ -87,8 +87,9 @@ let btnClicked = (e) => {
                                 errCre.innerHTML = "WHAT ARE YOU DOING?";
                                 break
                             case 200:
-                                let newUrl = res.url.slice(0, -5)
-                                location.replace(newUrl)
+                                //let newUrl = res.url.slice(0, -5)
+                                history.pushState({}, "Heading to the Game", res.url)
+                                //location.replace(newUrl)
                             case 302:
                             default:
                                 errCre.innerHTML = "Something went wrong"

@@ -3,7 +3,6 @@ package server
 import (
 	"log"
 	"net/http"
-	"path/filepath"
 	"strconv"
 
 	"github.com/BozeBro/ChainReaction/webserver"
@@ -27,13 +26,7 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	route := filepath.Join("static", "html", "index.html")
-	http.ServeFile(w, r, route)
-}
-
 func JoinHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println(RoomStorage)
 	body, err := DecodeBody(r.Body)
 	if err != nil {
 		log.Fatal(err)
@@ -43,8 +36,6 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	rooms := make([]string, 0)
 	for id, data := range RoomStorage {
 		sameRoom := body.Room == data.Hub.RoomData.Room
-		log.Println(sameRoom)
-		log.Println(body.Room, data.Hub.RoomData.Room)
 		if sameRoom {
 			rooms = append(rooms, id)
 		}
@@ -67,7 +58,8 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 				data.Roles <- false
 				data.Rolesws <- false
 			}()
-			http.Redirect(w, r, "/game/"+id+"/join", http.StatusFound)
+			http.Redirect(w, r, "/game/"+id, http.StatusMovedPermanently)
+			//http.Redirect(w, r, "/game/"+id+"/join", http.StatusFound)
 			return
 		}
 	}
