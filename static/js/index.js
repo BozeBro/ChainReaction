@@ -35,7 +35,7 @@ let btnClicked = (e) => {
                 let room = document.getElementById("room").value;
                 let pin = document.getElementById("pin").value;
                 if (room === "" || pin === "") { return }
-                fetch("http://" + document.location.host + "/api/join/", {
+                fetch("/api/join/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ room: room, pin: pin, }),
@@ -71,7 +71,7 @@ let btnClicked = (e) => {
                     return
                 }
                 DOMName.value = ""
-                fetch("http://" + document.location.host + "/api/create/", {
+                fetch("/api/create/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ Players: players, Room: room }),
