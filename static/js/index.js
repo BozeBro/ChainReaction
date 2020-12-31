@@ -35,13 +35,12 @@ let btnClicked = (e) => {
                 let room = document.getElementById("room").value;
                 let pin = document.getElementById("pin").value;
                 if (room === "" || pin === "") { return }
-                fetch("http://" + document.location.host + "/api/join/", {
+                fetch("/api/join/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ room: room, pin: pin, }),
                 })
-                    .then((res) => {
-                        var m = res
+                    .then(async (res) => {
                         switch (res.status) {
 
                             case 406:
@@ -54,8 +53,7 @@ let btnClicked = (e) => {
                                 errJoin.innerHTML = "The room doesn't exist"
                                 break
                             case 200:
-                                let newUrl = res.url.slice(0, -5)
-                                location.replace(newUrl)
+                                location.href = '/game/' + await res.text()
                             default:
                                 errJoin.innerHTML = "Something went wrong"
                         }
@@ -71,14 +69,14 @@ let btnClicked = (e) => {
                     return
                 }
                 DOMName.value = ""
-                fetch("http://" + document.location.host + "/api/create/", {
+                fetch("/api/create/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ Players: players, Room: room }),
                     redirect: 'follow',
                     credentials: 'same-origin',
                 })
-                    .then(res => {
+                    .then(async (res) => {
                         switch (res.status) {
                             case 409:
                                 errCre.innerHTML = "ROOM IS TAKEN";
@@ -87,10 +85,7 @@ let btnClicked = (e) => {
                                 errCre.innerHTML = "WHAT ARE YOU DOING?";
                                 break
                             case 200:
-                                //let newUrl = res.url.slice(0, -5)
-                                history.pushState({}, "Heading to the Game", res.url)
-                                //location.replace(newUrl)
-                            case 302:
+                                location.href = '/game/' + await res.text()
                             default:
                                 errCre.innerHTML = "Something went wrong"
                         }

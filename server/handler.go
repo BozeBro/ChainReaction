@@ -58,17 +58,18 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 				data.Roles <- false
 				data.Rolesws <- false
 			}()
-			http.Redirect(w, r, "/game/"+id, http.StatusMovedPermanently)
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Write([]byte(id))
+			//http.Redirect(w, r, "/game/"+id, http.StatusMovedPermanently)
 			//http.Redirect(w, r, "/game/"+id+"/join", http.StatusFound)
 			return
 		}
 	}
 	http.Error(w, "Wrong Pin", http.StatusNotAcceptable)
 }
+
+//Creates room. Redirects to empty handler. Redirects to JoinHandler
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
-	/*
-		Creates room. Redirects to empty handler. Redirects to joinHandler
-	*/
 	body, err := DecodeBody(r.Body)
 	if err != nil {
 		log.Fatal(err)
@@ -105,5 +106,6 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		RoomStorage[id].Roles <- true
 		RoomStorage[id].Rolesws <- true
 	}()
-	http.Redirect(w, r, "/game/"+id+"/join", http.StatusFound)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(id))
 }
