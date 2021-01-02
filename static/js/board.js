@@ -17,7 +17,9 @@ class chainReaction {
     this.grctx = document.getElementById("grid").getContext("2d");
     this.rows = rows;
     this.cols = cols;
-    this.squareLength = Math.min(450 / this.rows, 450 / this.cols); 
+    this.squareLength = Math.min(screen.height * .80 / this.rows, screen.height * .80 / this.cols); 
+    this.squares = []; // Tells [number amount of circles, Exploding amount, cur color]
+
     this.state = true; // Tracks if an animation is taking place
   };
   initBoard() {
@@ -41,26 +43,20 @@ class chainReaction {
         this.grctx.closePath();
       }
     }
-  };
-  animate(animations, unmoving, ts, start, ind, color) {
+  }
+  animate(animations, moved, ts, start, ind, color) {
     /*
-    unmoving : Tells what to draw on unmoving Canvas before each animation
-    animations : Instructs program how to animate - should be a linear line
+    toAnimate - [{"moved": [], "animations": []}] ; Contains animation data
+    toAnimate.moved : Tells what to draw on static Canvas
+    toAnimate.animations : Instructs program how to animate (animation data)
     i - int : Tells the next frame of the animation
-    start : starting time of animation
-    ts - : timestamp that will us to know how much time has passed
-    ind - int : Tells what level of explosion we are at.
-    color - string : color of the next player's turn. Used to change the bar
+    d - int : How far each distance apart cicle should be drawn
     ----
     Animates each frame recursively.
+    this.exp is used here and ONLY here.
     */
-    if (animations.length === 0) {
-      chain.draw(...unmoving[ind][0]);
-      this.color = color;
-      changeBarC(color);
-      this.state = true;
-      return;
-    }
+
+
     const d = this.squareLength / this.__ms;
     const elapsed = ts - start;
     const i = d * elapsed;

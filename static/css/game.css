@@ -1,4 +1,6 @@
-
+#winner {
+  font-size: medium;
+}
 #interface {
   display: flex;
   justify-content: center;

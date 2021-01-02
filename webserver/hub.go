@@ -67,9 +67,9 @@ func (h *Hub) GetUniqueColor(c string) string {
 	return c
 }
 
-// Run is equivalent to turning on the computer
-//		Handles the registering, unregistering, and broadcasting
-//		Will kill itself when all the players leave
+//  Run is equivalent to turning on the computer
+//	Handles the registering, unregistering, and broadcasting
+//	Will kill itself when all the players leave
 func (h *Hub) Run() {
 	defer func() {
 		h.Stop <- true
