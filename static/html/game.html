@@ -130,10 +130,8 @@ bar.canvas.height = bar.canvas.width * 0.05;
                     // We have an explosion
                     chain.state = false;
                     chain.draw(...data.static[0][0]);
-                    new Promise(() => 
-                        requestAnimationFrame((ts) => chain.animate(
-                            data.animation, data.static, ts, ts, 0, data.turn
-                    )));
+                    requestAnimationFrame((ts) => chain.animate(
+                            data.animation, data.static, ts, ts, 0, data.turn));
                 }
                 break;
             case "color":
