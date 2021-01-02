@@ -136,3 +136,16 @@ func (h *Hub) Update() {
 	}
 	h.Broadcast <- payload
 }
+
+func (h *Hub) end(color string) error {
+	payload := &struct {
+		Type   string `json:"type"`
+		Winner string `json:"winner"`
+	}{Type: "end", Winner: color}
+	msg, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	h.Broadcast <- msg
+	return nil
+}

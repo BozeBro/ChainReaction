@@ -44,7 +44,7 @@ class chainReaction {
       }
     }
   }
-  animate(animations, moved, ts, start, ind, color) {
+  animate(animations, unmoving, ts, start, ind, color) {
     /*
     toAnimate - [{"moved": [], "animations": []}] ; Contains animation data
     toAnimate.moved : Tells what to draw on static Canvas

@@ -53,7 +53,7 @@ func (c *Client) ReadMsg() {
 		playInfo := new(WSData)
 		if err := json.Unmarshal(msg, playInfo); err != nil {
 			log.Println(err)
-			continue
+			return
 		}
 		switch playInfo.Type {
 		case "start":
@@ -76,7 +76,6 @@ func (c *Client) ReadMsg() {
 				// Current person's turn
 				// used 0 here to hammer in that 0 is the first person
 				playInfo.Turn = h.Colors[0]
-				h.i++
 				h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
 				newMsg, err := json.Marshal(playInfo)
 				if err != nil {
@@ -113,14 +112,12 @@ func (c *Client) ReadMsg() {
 					break
 				}
 				h.Broadcast <- newMsg
-				if len(h.Colors) == 1 {
-					go func() {
-						err := h.end()
-						if err != nil {
-							log.Fatal(err)
-							return
-						}
-					}()
+			}
+			if len(h.Colors) == 1 {
+				err := h.end(h.Colors[0])
+				if err != nil {
+					log.Fatal(err)
+					return
 				}
 			}
 		}
