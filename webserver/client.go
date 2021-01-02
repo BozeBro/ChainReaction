@@ -53,7 +53,7 @@ func (c *Client) ReadMsg() {
 		playInfo := new(WSData)
 		if err := json.Unmarshal(msg, playInfo); err != nil {
 			log.Println(err)
-			continue
+			return
 		}
 		switch playInfo.Type {
 		case "start":
@@ -114,16 +114,11 @@ func (c *Client) ReadMsg() {
 				h.Broadcast <- newMsg
 			}
 			if len(h.Colors) == 1 {
-				payload := &struct {
-					Type   string `json:"type"`
-					Winner string `json:"winner"`
-				}{Type: "end", Winner: h.Colors[0]}
-				msg, err := json.Marshal(payload)
+				err := h.end(h.Colors[0])
 				if err != nil {
 					log.Fatal(err)
 					return
 				}
-				h.Broadcast <- msg
 			}
 		}
 	}
