@@ -15,7 +15,7 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(g.Rolesws) == 0 {
-		http.Error(w, "You did not enter properly", 409)
+		http.Error(w, "You did not enter properly", http.StatusConflict)
 		return
 	}
 	if len(g.Rolesws) == 0 {

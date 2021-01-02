@@ -2,14 +2,12 @@ package server
 
 import (
 	"net/http"
+	"path/filepath"
 
 	"github.com/gorilla/mux"
 )
 
-type ReqBody struct {
-	Pin, Room, Players, Name string
-}
-
+// Creates a route that will handle the routes for Chain Reaction
 func MakeRouter() *mux.Router {
 	// http.Dir uses directory of current working / dir where program started
 	static := http.FileServer(http.Dir("./static"))
@@ -22,12 +20,13 @@ func MakeRouter() *mux.Router {
 		}
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	})
-	r.HandleFunc("/", HomeHandler)
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", static))
-	r.HandleFunc("/game/{id}", WaitHandler)
-	r.HandleFunc("/game/{id}/join", func(w http.ResponseWriter, r *http.Request) {
-		return
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		route := filepath.Join("static", "html", "index.html")
+		http.ServeFile(w, r, route)
 	})
+	// Only the browser should be asking for the static files
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", static))
+	r.HandleFunc("/game/{id}", LobbyHandler)
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/create/", CreateHandler).Methods("POST")
 	api.HandleFunc("/join/", JoinHandler).Methods("POST")
