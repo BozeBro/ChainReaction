@@ -113,15 +113,6 @@ func (c *Client) ReadMsg() {
 					break
 				}
 				h.Broadcast <- newMsg
-				if len(h.Colors) == 1 {
-					go func() {
-						err := h.end()
-						if err != nil {
-							log.Fatal(err)
-							return
-						}
-					}()
-				}
 			}
 		}
 	}
