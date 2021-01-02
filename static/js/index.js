@@ -41,7 +41,6 @@ let btnClicked = (e) => {
                     body: JSON.stringify({ room: room, pin: pin, }),
                 })
                     .then((res) => {
-                        var m = res
                         switch (res.status) {
 
                             case 406:

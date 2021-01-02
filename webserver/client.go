@@ -54,7 +54,7 @@ func (c *Client) ReadMsg() {
 		playInfo := new(WSData)
 		if err := json.Unmarshal(msg, playInfo); err != nil {
 			log.Println(err)
-			return
+			continue
 		}
 		switch playInfo.Type {
 		case "start":
@@ -85,7 +85,9 @@ func (c *Client) ReadMsg() {
 					log.Fatal(err)
 					break
 				}
-				h.Broadcast <- newMsg
+				go func() {
+					h.Broadcast <- newMsg
+				}()
 			}
 		case "move":
 			// See if a person can click the square or not.
@@ -95,9 +97,6 @@ func (c *Client) ReadMsg() {
 				// Move Piece, Update colorMap, record animation and new positions
 				ani, static := h.Match.MovePiece(playInfo.X, playInfo.Y, c.Color)
 				// Color Slice will be updated in the MovePiece Functions
-				for _, num := range h.Clients {
-					log.Print(num)
-				}
 				h.i++
 				if h.i >= len(h.Colors) {
 					h.i = 0
@@ -115,7 +114,13 @@ func (c *Client) ReadMsg() {
 				}
 				h.Broadcast <- newMsg
 				if len(h.Colors) == 1 {
-					log.Println("WINNER WINNER")
+					go func() {
+						err := h.end()
+						if err != nil {
+							log.Fatal(err)
+							return
+						}
+					}()
 				}
 			}
 		}

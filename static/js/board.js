@@ -22,7 +22,7 @@ class chainReaction {
     this.grctx = document.getElementById("grid").getContext("2d");
     this.rows = rows;
     this.cols = cols;
-    this.squareLength = Math.min(450 / this.rows, 450 / this.cols); 
+    this.squareLength = Math.min(screen.height * .80 / this.rows, screen.height * .80 / this.cols); 
     this.squares = []; // Tells [number amount of circles, Exploding amount, cur color]
     this.state = true; // Tracks if an animation is taking place
   }
@@ -60,13 +60,6 @@ class chainReaction {
     }
   }
   animate(animations, moved, ts, start, ind, color) {
-    if (animations.length === 0) {
-      chain.draw(...moved[ind][0]);
-      this.color = color;
-      changeBarC(color);
-      this.state = true;
-      return;
-    }
     /*
     toAnimate - [{"moved": [], "animations": []}] ; Contains animation data
     toAnimate.moved : Tells what to draw on static Canvas

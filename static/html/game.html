@@ -29,6 +29,7 @@
             <div class="noSelect"><h2 id="userColor"></h2></div>
             <div class="noSelect">Your Pin is {{ .Pin }}</div>
             <div class="noSelect">Your Room is {{ .Room }}</div>
+            <div class="noSelect" id="winner"></div>
             {{ if .Leader }}
             <div id="boardMatrix">
                 <label for="rows" class="noSelect">Rows</label><br>
@@ -81,6 +82,7 @@
     let id = path.slice(path.length - 8)
     let players = document.getElementById("players")
     let waiting = document.getElementById("waitingRoom");
+    let winner = document.getElementById("winner");
     let socket = new WebSocket("ws://" + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red", socket);
     bar.canvas.width = chain.canvas.width;
@@ -106,29 +108,49 @@ bar.canvas.height = bar.canvas.width * 0.05;
             case "start":
                 start = true
                 waiting.style.display = "none";
-                chain.color = data.turn
-                chain.rows = data.rows
-                chain.cols = data.cols
-                chain.squareLength = Math.min(450 / chain.rows, 450 / chain.cols);
+                winner.innerHTML = "";
+                chain.color = data.turn;
+                chain.rows = data.rows;
+                chain.cols = data.cols;
+                chain.squareLength = Math.min(screen.height * .80 / chain.rows, screen.height * .80 / chain.cols);
                 chain.initBoard();
-                changeBarC(data.turn)
+                changeBarC(data.turn);
                 break;
             case "move":
-                chain.state = false
-                chain.draw(...data.static[0][0])
-                new Promise(() => 
-                requestAnimationFrame((ts) => chain.animate(
-                    data.animation, data.static, ts, ts, 0, data.turn
-                )))
+                if (data.animation.length === 0) {
+                    // Made a move, no explosion
+                    chain.draw(...data.static[0][0]);
+                    chain.color = data.turn;
+                    changeBarC(data.turn);
+                } else if (data.static.length === 0) {
+                    // A person left the game
+                    chain.color = data.turn;
+                    changeBarC(data.turn);
+                } else {
+                    // We have an explosion
+                    chain.state = false;
+                    chain.draw(...data.static[0][0]);
+                    new Promise(() => 
+                        requestAnimationFrame((ts) => chain.animate(
+                            data.animation, data.static, ts, ts, 0, data.turn
+                    )));
+                }
                 break;
             case "color":
                 if (data.type !== "color") {return}
-                chain.mycolor = data.color
-                userColor.style.color = data.color
-                userColor.innerHTML = `Your color is ${data.color}`
+                chain.mycolor = data.color;
+                userColor.style.color = data.color;
+                userColor.innerHTML = `Your color is ${data.color}`;
                 break;
             case "update":
-                players.innerHTML = data.players
+                players.innerHTML = data.players;
+                break;
+            case "end":
+                console.log(`The winner is ${data.winner}`);
+                start = false;
+                waiting.style.display = "";
+                winner.innerHTML = `The winner is ${data.winner}!!`;
+                winner.style.color = data.winner;
         }
     };
     chain.initBoard();
@@ -151,7 +173,7 @@ bar.canvas.height = bar.canvas.width * 0.05;
             chain.cols = 30;
             cols.value = "30";
         }
-        chain.squareLength = Math.min(450 / chain.rows, 450 / chain.cols);
+        chain.squareLength = Math.min(screen.height * .80 / chain.rows, screen.height * .80 / chain.cols);
         chain.initBoard();
     }
     let enter = document.querySelector("#entBtn");
