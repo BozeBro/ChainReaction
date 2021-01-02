@@ -76,7 +76,6 @@ func (c *Client) ReadMsg() {
 				// Current person's turn
 				// used 0 here to hammer in that 0 is the first person
 				playInfo.Turn = h.Colors[0]
-				h.i++
 				h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
 				newMsg, err := json.Marshal(playInfo)
 				if err != nil {
@@ -113,6 +112,18 @@ func (c *Client) ReadMsg() {
 					break
 				}
 				h.Broadcast <- newMsg
+			}
+			if len(h.Colors) == 1 {
+				payload := &struct {
+					Type   string `json:"type"`
+					Winner string `json:"winner"`
+				}{Type: "end", Winner: h.Colors[0]}
+				msg, err := json.Marshal(payload)
+				if err != nil {
+					log.Fatal(err)
+					return
+				}
+				h.Broadcast <- msg
 			}
 		}
 	}

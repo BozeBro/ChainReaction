@@ -92,7 +92,7 @@ bar.canvas.height = bar.canvas.width * 0.05;
         document.location.href = "http://" + document.location.host
     }
     chain.grctx.canvas.onclick = (event) => {
-        if (chain.state === true) {
+        if (chain.state === true && start === true) {
         let canvasObj = event.target.getBoundingClientRect();
         // Get the square coords clicked
         let x = Math.floor((event.clientX - canvasObj.left) / chain.squareLength);
