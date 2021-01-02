@@ -9,6 +9,11 @@ import (
 //Treat These as constants. You can change COLORS though.
 const CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
+// All the valid keys that will be used to create a room.
+type ReqBody struct {
+	Pin, Room, Players, Name string
+}
+
 func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
 	// Decode Json message from HTTP Request.
 	// Send decoded into struct

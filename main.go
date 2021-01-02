@@ -22,5 +22,4 @@ func main() {
 	}
 	log.Println("serving at 127.0.0.1:8000")
 	log.Fatal(srv.ListenAndServe())
-
 }

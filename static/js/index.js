@@ -40,7 +40,7 @@ let btnClicked = (e) => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ room: room, pin: pin, }),
                 })
-                    .then((res) => {
+                    .then(async (res) => {
                         switch (res.status) {
 
                             case 406:
@@ -53,8 +53,7 @@ let btnClicked = (e) => {
                                 errJoin.innerHTML = "The room doesn't exist"
                                 break
                             case 200:
-                                let newUrl = res.url.slice(0, -5)
-                                location.replace(newUrl)
+                                location.href = '/game/' + await res.text()
                             default:
                                 errJoin.innerHTML = "Something went wrong"
                         }
@@ -77,7 +76,7 @@ let btnClicked = (e) => {
                     redirect: 'follow',
                     credentials: 'same-origin',
                 })
-                    .then(res => {
+                    .then(async (res) => {
                         switch (res.status) {
                             case 409:
                                 errCre.innerHTML = "ROOM IS TAKEN";
@@ -86,9 +85,7 @@ let btnClicked = (e) => {
                                 errCre.innerHTML = "WHAT ARE YOU DOING?";
                                 break
                             case 200:
-                                let newUrl = res.url.slice(0, -5)
-                                location.replace(newUrl)
-                            case 302:
+                                location.href = '/game/' + await res.text()
                             default:
                                 errCre.innerHTML = "Something went wrong"
                         }

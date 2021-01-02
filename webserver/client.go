@@ -26,19 +26,18 @@ type Client struct {
 
 // WSData provides allowed fields to be received from the front end
 type WSData struct {
-	Type      string    `json:"type"` // Type of message allows front end to know how to deal with it
-	X         int       `json:"x"`    // X coordinate clicked
-	Y         int       `json:"y"`    // Y coordinate clicked
-	Turn      string    `json:"turn"` // players turn
-	Rows      int       `json:"rows"`
-	Cols      int       `json:"cols"`
-	Animation [][][]int `json:"animation"` // Instrutios on animation
-	Static    [][][]int `json:"static"`    // What the new board will look like
+	Type      string    `json:"type"`      // Type of message allows front end to know how to deal with it
+	X         int       `json:"x"`         // X coordinate clicked - "move"
+	Y         int       `json:"y"`         // Y coordinate clicked - "move"
+	Turn      string    `json:"turn"`      // players turn - "move"
+	Animation [][][]int `json:"animation"` // Instrutios on animation - "move"
+	Static    [][][]int `json:"static"`    // What the new board will look like - "move"
+	Rows      int       `json:"rows"`      // Amount of rows - Sent at "start"
+	Cols      int       `json:"cols"`      // Amount of columns - Sent at "start"
 }
 
 // ReadMsg Reads msg from the user and sends it to the hub
-// Does the security checks
-// Will edit the message to add the next color
+// Does the security checks and game checking
 func (c *Client) ReadMsg() {
 	defer func() {
 		c.Hub.Unregister <- c
@@ -58,7 +57,7 @@ func (c *Client) ReadMsg() {
 		}
 		switch playInfo.Type {
 		case "start":
-			// Person wants to start the game
+			// Person wants to start the game. Make sure it is the leader
 			if c.Leader {
 				/* We will only see "start" in beginning of each game
 				Make Color list / order of player moves
@@ -71,17 +70,18 @@ func (c *Client) ReadMsg() {
 					h.Colors[index] = client.Color
 					index++
 				}
-				// Randomize players
 				rand.Shuffle(len(h.Colors), func(i, j int) {
 					h.Colors[i], h.Colors[j] = h.Colors[j], h.Colors[i]
 				})
 				// Current person's turn
-				playInfo.Turn = h.Colors[1]
+				// used 0 here to hammer in that 0 is the first person
+				playInfo.Turn = h.Colors[0]
 				h.i++
 				h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
 				newMsg, err := json.Marshal(playInfo)
 				if err != nil {
 					// Problems in the code
+					// Try again
 					log.Fatal(err)
 					break
 				}

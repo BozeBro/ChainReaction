@@ -1,21 +1,16 @@
-"use strict"
-/*
-  See game.html for information on the event handlers
-*/
+"use strict";
+// See game.html for information on the event handlers
 class chainReaction {
-  constructor(rows = 8, cols = 8, color, socket) {
+  constructor(rows = 8, cols = 8, color) {
     /*
     canvas, ctx handle dynamic movement
     stat handle objects that aren't moving
     gr, grctx is just the grid
-    state tracks if an animation is taking place
-      - blocks clicking event if false
     */
     this.__ms = 200 // length of entire animation in milliseconds. Meant to be a constant
-    this.mycolor = ""
-    this.color = color; // This is the color of the player's turn
-    this.start = false
-    this.socket = socket;
+    this.mycolor = "" // Player color is initialized at "start" JSON
+    this.color = color; // This is the color of current player's turn
+    this.start = false // stops anyone from clicking the screen until the game starts
     this.canvas = document.getElementById("dynamic"); this.ctx = this.canvas.getContext("2d");
     this.statCtx = document.getElementById("static").getContext("2d");
     // grctx changes. Meant for constant display
@@ -24,12 +19,12 @@ class chainReaction {
     this.cols = cols;
     this.squareLength = Math.min(screen.height * .80 / this.rows, screen.height * .80 / this.cols); 
     this.squares = []; // Tells [number amount of circles, Exploding amount, cur color]
+
     this.state = true; // Tracks if an animation is taking place
-  }
+  };
   initBoard() {
-    // Make this.squares proper sizing
-    // Make the visual board
-    // Allows us to call initBoard() many times
+    // Make the visual board within boundary of 450px
+    // Allows us to call initBoard() many times, for each time we start a game.
     this.statCtx.canvas.width = this.ctx.canvas.width = this.rows * this.squareLength;
     this.statCtx.canvas.height = this.ctx.canvas.height = this.cols * this.squareLength;
     this.grctx.canvas.width = this.ctx.canvas.width; this.grctx.canvas.height = this.ctx.canvas.height;
@@ -37,7 +32,6 @@ class chainReaction {
     this.grctx.lineWidth = 1;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     for (let h = 0; h < this.cols; h++) {
-      this.squares[h] = [];
       for (let l = 0; l < this.rows; l++) {
         this.grctx.beginPath();
         this.grctx.strokeRect(
@@ -47,15 +41,6 @@ class chainReaction {
           this.squareLength
         );
         this.grctx.closePath();
-        let val = (function (rows, cols) {
-          let valid = 0;
-          if (l - 1 >= 0) { valid += 1 }
-          if (l + 1 < rows) { valid += 1 }
-          if (h - 1 >= 0) { valid += 1 }
-          if (h + 1 < cols) { valid += 1 }
-          return valid;
-        })(this.rows, this.cols);
-        this.squares[h][l] = [0, val, ""];
       }
     }
   }
@@ -70,6 +55,8 @@ class chainReaction {
     Animates each frame recursively.
     this.exp is used here and ONLY here.
     */
+
+
     const d = this.squareLength / this.__ms;
     const elapsed = ts - start;
     const i = d * elapsed;
@@ -80,8 +67,8 @@ class chainReaction {
       x = loc(x, this.squareLength);
       y = loc(y, this.squareLength);
       /*
-      x - int : Current square's original x position
-      y - int : Current square's original y position
+      x - int : Current square's position relative to canvas
+      y - int : Current square's position relative to canvas
       dx - int : unit x vector. Either 1, -1, or 0 (for no movement)
       dy - int : unit y vector. Either 1, -1, or 0 (for no movement)
       -----
@@ -105,16 +92,18 @@ class chainReaction {
     if (elapsed < this.__ms) {
       // Complete rest of animation 
       return new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(animations, moved, ts, start, ind, color)))
+        requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, start, ind, color)))
     } else if (ind + 1 < animations.length) {
-      for (let [x, y, v] of moved[ind+1]) {
+      // COmplete next level of explosion / animation
+      for (let [x, y, v] of unmoving[ind+1]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
       return new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(animations, moved, ts, ts, ind+1, color)))
+        requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, ts, ind+1, color)))
     } else {
-      for (let [x, y, v] of moved[ind+1]) {
+      // Draw the last unmoving square. Clear screen.
+      for (let [x, y, v] of unmoving[ind+1]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -178,7 +167,6 @@ class chainReaction {
       default:
         // Clear the circles
         erase()
-        break;
     }
   }
 }
