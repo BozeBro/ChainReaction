@@ -29,11 +29,9 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request) {
 				select {
 				case <-g.Hub.Stop:
 					id := mux.Vars(r)["id"]
+					g.Hub.CloseChans()
 					delete(RoomStorage, id)
 					return
-				case <-g.Hub.Delete:
-					g.Hub.RoomData.Players -= 1
-					g.Hub.Update()
 				}
 			}
 		}()

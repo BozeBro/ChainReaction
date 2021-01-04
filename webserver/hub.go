@@ -11,8 +11,6 @@ import (
 type Hub struct {
 	// Tells server if the Hub is running
 	Alive bool
-	// Channel that tells server that a player left
-	Delete chan bool
 	// Channel telling server to remove id / kill the hub
 	Stop chan bool
 	// Mapping of clients. Unordered
@@ -46,7 +44,6 @@ type RoomData struct {
 func NewHub(roomData *RoomData) *Hub {
 	return &Hub{
 		Alive:      false,
-		Delete:     make(chan bool),
 		Stop:       make(chan bool),
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
@@ -110,12 +107,18 @@ func (h *Hub) Run() {
 			}
 			delete(h.Clients, client)
 			close(client.Received)
-			h.Delete <- true
 			if len(h.Clients) == 0 {
 				return
 			}
+			if len(h.Clients) == 1 {
+				err := h.end(h.Colors[0])
+				if err != nil {
+					log.Fatal(err)
+					return
+				}
+			}
+			h.RoomData.Players -= 1
 			go h.Update()
-
 		case message := <-h.Broadcast:
 			for client := range h.Clients {
 				select {
@@ -158,4 +161,10 @@ func (h *Hub) end(color string) error {
 	}
 	h.Broadcast <- msg
 	return nil
+}
+func (h *Hub) CloseChans() {
+	close(h.Stop)
+	close(h.Broadcast)
+	close(h.Register)
+	close(h.Unregister)
 }
