@@ -42,7 +42,9 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request) {
 		Received: make(chan []byte, 256),
 		Leader:   isleader,
 	}
-	client.Hub.Register <- client
+	go func() {
+		client.Hub.Register <- client
+	}()
 	go client.ReadMsg()
 	go client.WriteMsg()
 }
