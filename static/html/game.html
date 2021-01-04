@@ -102,8 +102,8 @@ bar.canvas.height = bar.canvas.width * 0.05;
     }
     socket.onmessage = (e) => {
         let data = JSON.parse(e.data);
-        console.log(data)
-        var dat = data
+        console.log(e, data)
+        var m = data
         switch (data.type.toLowerCase()) {
             case "start":
                 start = true
@@ -117,15 +117,20 @@ bar.canvas.height = bar.canvas.width * 0.05;
                 changeBarC(data.turn);
                 break;
             case "move":
+                // handle when person leaves.
+                data.animation = !data.animation ? data.animation : [];
+                data.static = !data.static ? data.static : [];
                 if (data.animation.length === 0) {
                     // Made a move, no explosion
                     chain.draw(...data.static[0][0]);
                     chain.color = data.turn;
                     changeBarC(data.turn);
+                    break;
                 } else if (data.static.length === 0) {
                     // A person left the game
                     chain.color = data.turn;
                     changeBarC(data.turn);
+                    break;
                 } else {
                     // We have an explosion
                     chain.state = false;
