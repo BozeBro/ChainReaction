@@ -118,19 +118,15 @@ bar.canvas.height = bar.canvas.width * 0.05;
                 break;
             case "move":
                 // handle when person leaves.
-                data.animation = !data.animation ? data.animation : [];
-                data.static = !data.static ? data.static : [];
                 if (data.animation.length === 0) {
                     // Made a move, no explosion
                     chain.draw(...data.static[0][0]);
                     chain.color = data.turn;
                     changeBarC(data.turn);
-                    break;
                 } else if (data.static.length === 0) {
                     // A person left the game
                     chain.color = data.turn;
                     changeBarC(data.turn);
-                    break;
                 } else {
                     // We have an explosion
                     chain.state = false;
@@ -148,6 +144,9 @@ bar.canvas.height = bar.canvas.width * 0.05;
             case "update":
                 players.innerHTML = data.players;
                 break;
+            case "changeColor":
+                chain.color = data.turn;
+                changeBarC(data.turn);
             case "end":
                 console.log(`The winner is ${data.winner}`);
                 start = false;

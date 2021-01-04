@@ -97,17 +97,25 @@ func (h *Hub) Run() {
 			// Update the amount of players in the lobby
 			go h.Update()
 		case client := <-h.Unregister:
-			if len(h.Clients)-1 == 1 && len(h.Colors) > 0 {
-				// The alone player is the winner
-				h.RoomData.Players--
-				err := h.end(h.Colors[0])
-				if err != nil {
-					log.Fatal(err)
-					return
-				}
-			} else if len(h.Clients)-1 == 0 {
+			delete(h.Clients, client)
+			close(client.Received)
+			if len(h.Clients) == 0 {
 				// NO one is in the lobby
 				return
+			}
+			h.RoomData.Players--
+			go h.Update()
+			if len(h.Clients) == 1 && len(h.Colors) > 0 {
+				// The alone player is the winner
+				for client := range h.Clients {
+					// must loop to get the person
+					err := h.end(client.Color)
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+				}
+
 			} else if len(h.Colors) > 0 {
 				// Handle if leaver was its turn
 				curTurn := h.Colors[h.i]
@@ -122,7 +130,7 @@ func (h *Hub) Run() {
 				if curTurn != h.Colors[h.i] {
 					payload := &WSData{
 						Turn: curTurn,
-						Type: "move",
+						Type: "changeColor",
 					}
 					newMsg, err := json.Marshal(payload)
 					if err != nil {
@@ -134,10 +142,6 @@ func (h *Hub) Run() {
 					}()
 				}
 			}
-			delete(h.Clients, client)
-			close(client.Received)
-			h.RoomData.Players--
-			go h.Update()
 		case message := <-h.Broadcast:
 			for client := range h.Clients {
 				select {
