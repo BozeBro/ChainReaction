@@ -91,16 +91,14 @@ class chainReaction {
     }
     if (elapsed < this.__ms) {
       // Complete rest of animation 
-      return new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, start, ind, color)))
+      requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, start, ind, color))
     } else if (ind + 1 < animations.length) {
       // COmplete next level of explosion / animation
       for (let [x, y, v] of unmoving[ind+1]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-      return new Promise(() =>
-        requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, ts, ind+1, color)))
+      requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, ts, ind+1, color))
     } else {
       // Draw the last unmoving square. Clear screen.
       for (let [x, y, v] of unmoving[ind+1]) {
@@ -110,6 +108,7 @@ class chainReaction {
       this.color = color;
       changeBarC(color);
       this.state = true
+      cancelAnimationFrame(ts)
     }
   }
   draw(x, y, v) {

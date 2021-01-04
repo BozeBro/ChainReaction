@@ -11,8 +11,6 @@ import (
 type Hub struct {
 	// Tells server if the Hub is running
 	Alive bool
-	// Channel that tells server that a player left
-	Delete chan bool
 	// Channel telling server to remove id / kill the hub
 	Stop chan bool
 	// Mapping of clients. Unordered
@@ -46,7 +44,6 @@ type RoomData struct {
 func NewHub(roomData *RoomData) *Hub {
 	return &Hub{
 		Alive:      false,
-		Delete:     make(chan bool),
 		Stop:       make(chan bool),
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
@@ -95,16 +92,55 @@ func (h *Hub) Run() {
 			}
 			h.Clients[client] = 0
 			// Tell user what color the person is
-			client.Received <- payload
+			go func() { client.Received <- payload }()
 			h.RoomData.Players++
 			// Update the amount of players in the lobby
 			go h.Update()
 		case client := <-h.Unregister:
 			delete(h.Clients, client)
 			close(client.Received)
-			h.Delete <- true
 			if len(h.Clients) == 0 {
+				// NO one is in the lobby
 				return
+			}
+			h.RoomData.Players--
+			go h.Update()
+			if len(h.Clients) == 1 && len(h.Colors) > 0 {
+				// The alone player is the winner
+				for client := range h.Clients {
+					// must loop to get the person
+					err := h.end(client.Color)
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+				}
+
+			} else if len(h.Colors) > 0 {
+				// Handle if leaver was its turn
+				curTurn := h.Colors[h.i]
+				for index, color := range h.Colors {
+					if client.Color == color {
+						h.Colors = append(h.Colors[:index], h.Colors[index+1:]...)
+					}
+				}
+				if h.i > len(h.Colors) {
+					h.i = 0
+				}
+				if curTurn != h.Colors[h.i] {
+					payload := &WSData{
+						Turn: curTurn,
+						Type: "changeColor",
+					}
+					newMsg, err := json.Marshal(payload)
+					if err != nil {
+						log.Fatal(err)
+						return
+					}
+					go func() {
+						h.Broadcast <- newMsg
+					}()
+				}
 			}
 		case message := <-h.Broadcast:
 			for client := range h.Clients {
@@ -121,7 +157,7 @@ func (h *Hub) Run() {
 
 // Update tells front end how many players are in the lobby
 func (h *Hub) Update() {
-	players := struct {
+	players := &struct {
 		Type    string `json:"type"`
 		Players int    `json:"players"`
 	}{
@@ -146,6 +182,14 @@ func (h *Hub) end(color string) error {
 	if err != nil {
 		return err
 	}
-	h.Broadcast <- msg
+	go func() {
+		h.Broadcast <- msg
+	}()
 	return nil
+}
+func (h *Hub) CloseChans() {
+	close(h.Stop)
+	close(h.Broadcast)
+	close(h.Register)
+	close(h.Unregister)
 }
