@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"path/filepath"
 
@@ -21,6 +22,7 @@ func MakeRouter() *mux.Router {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	})
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Print("HELLO")
 		route := filepath.Join("static", "html", "index.html")
 		http.ServeFile(w, r, route)
 	})

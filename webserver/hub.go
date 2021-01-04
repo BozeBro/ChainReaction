@@ -100,12 +100,22 @@ func (h *Hub) Run() {
 			// Update the amount of players in the lobby
 			go h.Update()
 		case client := <-h.Unregister:
+			for index, color := range h.Colors {
+				if client.Color == color {
+					h.Colors = append(h.Colors[:index], h.Colors[index+1:]...)
+				}
+			}
+			if h.i > len(h.Colors) {
+				h.i = 0
+			}
 			delete(h.Clients, client)
 			close(client.Received)
 			h.Delete <- true
 			if len(h.Clients) == 0 {
 				return
 			}
+			go h.Update()
+
 		case message := <-h.Broadcast:
 			for client := range h.Clients {
 				select {
