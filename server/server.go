@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"path/filepath"
 
 	"github.com/gorilla/mux"
 )
@@ -11,6 +10,9 @@ import (
 func MakeRouter() *mux.Router {
 	// http.Dir uses directory of current working / dir where program started
 	static := http.FileServer(http.Dir("./static"))
+	//router := mux.NewRouter()
+	//router.HandleFunc("/chain", HomeHandler)
+
 	r := mux.NewRouter()
 	r.HandleFunc("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
@@ -20,10 +22,7 @@ func MakeRouter() *mux.Router {
 		}
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	})
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		route := filepath.Join("static", "html", "index.html")
-		http.ServeFile(w, r, route)
-	})
+	r.HandleFunc("/", HomeHandler)
 	// Only the browser should be asking for the static files
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", static))
 	r.HandleFunc("/game/{id}", LobbyHandler)
