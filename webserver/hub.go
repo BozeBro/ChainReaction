@@ -134,7 +134,7 @@ func (h *Hub) Run() {
 				}
 				if curTurn != h.Colors[h.i] {
 					payload := &WSData{
-						Turn: curTurn,
+						Turn: h.Colors[h.i],
 						Type: "changeColor",
 					}
 					newMsg, err := json.Marshal(payload)

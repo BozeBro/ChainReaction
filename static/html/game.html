@@ -143,9 +143,10 @@ bar.canvas.height = bar.canvas.width * 0.05;
             case "update":
                 players.innerHTML = data.players;
                 break;
-            case "changeColor":
+            case "changecolor":
                 chain.color = data.turn;
                 changeBarC(data.turn);
+                break;
             case "end":
                 console.log(`The winner is ${data.winner}`);
                 start = false;
