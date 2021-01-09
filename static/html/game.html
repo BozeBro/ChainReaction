@@ -12,8 +12,8 @@
 
 <body>
     <div class="overview">
-        <div class="noSelect">
-            <h2>CHAIN REACTION</h2>
+        <div>
+            <span class="navHome">CHAIN REACTION</span>
         </div>
         <div class="general">
             <div class="bar-wrap">
@@ -76,6 +76,7 @@
 <script>
     // start is the only new variable
     // true when game is ok to start.
+    let goHome = document.querySelector(".navHome")
     let ext = document.querySelector(".ext")
     let userColor = document.getElementById("userColor")
     let path = document.location.pathname
@@ -88,9 +89,8 @@
     bar.canvas.width = chain.canvas.width;
 // height is 10% of width
 bar.canvas.height = bar.canvas.width * 0.05;
-    ext.onclick = () => {
-        document.location.href = "http://" + document.location.host
-    }
+    goHome.onclick = () => document.location.href = "http://" + document.location.host
+    ext.onclick = () => document.location.href = "http://" + document.location.host
     chain.grctx.canvas.onclick = (event) => {
         if (chain.state === true && start === true) {
         let canvasObj = event.target.getBoundingClientRect();
@@ -102,8 +102,6 @@ bar.canvas.height = bar.canvas.width * 0.05;
     }
     socket.onmessage = (e) => {
         let data = JSON.parse(e.data);
-        console.log(e, data)
-        var m = data
         switch (data.type.toLowerCase()) {
             case "start":
                 start = true
