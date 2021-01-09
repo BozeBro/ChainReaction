@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -22,14 +23,19 @@ func main() {
 	finish := make(chan error)
 	r, playerCounter := server.MakeRouter()
 	ticker := time.NewTicker(time.Hour * 24)
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
 	srv := &http.Server{
 		Handler: r,
-		Addr:    "chainreactionsite.herokuapp.com",
+		Addr:    ":" + port,
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	log.Println("Starting on chainreactionsite.herokuapp.com:80")
+	log.Println("Starting on :" + port)
 	go func() {
 		for {
 			select {
