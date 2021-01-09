@@ -13,6 +13,7 @@ func MakeRouter() (*mux.Router, *PlayerCounter) {
 	static := http.FileServer(http.Dir("./static"))
 	roomStorage := make(Storage, 0)
 	r := mux.NewRouter()
+	r.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "favicon.ico") })
 	r.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "robots.txt") })
 	r.HandleFunc("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
