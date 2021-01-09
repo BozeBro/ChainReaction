@@ -24,12 +24,12 @@ func main() {
 	ticker := time.NewTicker(time.Second * 24)
 	srv := &http.Server{
 		Handler: r,
-		Addr:    "chainreactionsite.herokuapp.com:8000",
+		Addr:    "127.0.0.1:8000",
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	log.Println("Starting on chainreactionsite.herokuapp.com:8000")
+	log.Println("Starting on 127.0.0.1:8000")
 	go func() {
 		for {
 			select {
