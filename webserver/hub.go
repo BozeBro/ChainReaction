@@ -87,7 +87,7 @@ func (h *Hub) Run() {
 			if err != nil {
 				// This should never happen.
 				// Only in bugs
-				log.Fatal(err)
+				log.Println(err)
 				return
 			}
 			h.Clients[client] = 0
@@ -111,7 +111,7 @@ func (h *Hub) Run() {
 					// must loop to get the person
 					err := h.end(client.Color)
 					if err != nil {
-						log.Fatal(err)
+						log.Println(err)
 						return
 					}
 				}
@@ -134,7 +134,7 @@ func (h *Hub) Run() {
 					}
 					newMsg, err := json.Marshal(payload)
 					if err != nil {
-						log.Fatal(err)
+						log.Println(err)
 						return
 					}
 					go func() {
@@ -167,7 +167,7 @@ func (h *Hub) Update() {
 	payload, err := json.Marshal(players)
 	if err != nil {
 		// Error should only happen if a bug is here
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 	h.Broadcast <- payload

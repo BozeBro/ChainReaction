@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request) {
+func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
@@ -30,7 +30,7 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request) {
 				case <-g.Hub.Stop:
 					id := mux.Vars(r)["id"]
 					g.Hub.CloseChans()
-					delete(RoomStorage, id)
+					delete(roomStorage, id)
 					return
 				}
 			}
