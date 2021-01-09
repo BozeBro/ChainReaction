@@ -15,6 +15,8 @@ type Hub struct {
 	Stop chan bool
 	// Mapping of clients. Unordered
 	Clients map[*Client]int
+	// Channel to tell the http that a player left
+	Leaver chan bool
 	// incoming broadcasting reqs from clients
 	Broadcast chan []byte
 	// Register requests from the clients.
@@ -105,6 +107,9 @@ func (h *Hub) Run() {
 			}
 			h.RoomData.Players--
 			go h.Update()
+			go func() {
+				h.Leaver <- true
+			}()
 			if len(h.Clients) == 1 && len(h.Colors) > 0 {
 				// The alone player is the winner
 				for client := range h.Clients {
