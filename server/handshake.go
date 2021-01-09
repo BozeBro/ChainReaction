@@ -8,18 +8,20 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorage Storage) {
+// Struct to keep track of total gamers on the server
+type PlayerCounter struct {
+	TotalPlayers int
+}
+
+func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorage Storage, pc *PlayerCounter) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	if len(g.Rolesws) == 0 {
-		http.Error(w, "You did not enter properly", http.StatusConflict)
-		return
-	}
-	if len(g.Rolesws) == 0 {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+		return
 	}
 	isleader := <-g.Rolesws
 	if isleader && !g.Hub.Alive {
@@ -28,10 +30,11 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorag
 			for {
 				select {
 				case <-g.Hub.Stop:
-					id := mux.Vars(r)["id"]
 					g.Hub.CloseChans()
-					delete(roomStorage, id)
+					delete(roomStorage, mux.Vars(r)["id"])
 					return
+				case <-g.Hub.Leaver:
+					pc.TotalPlayers--
 				}
 			}
 		}()
@@ -47,4 +50,5 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorag
 	}()
 	go client.ReadMsg()
 	go client.WriteMsg()
+	pc.TotalPlayers++
 }
