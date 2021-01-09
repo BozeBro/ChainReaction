@@ -37,7 +37,7 @@ func main() {
 				var oldVal int
 				file, err := ioutil.ReadFile("data.txt")
 				if err != nil {
-					err := ioutil.WriteFile("data.txt", []byte(fmt.Sprintf("%d", playerCounter.TotalPlayers)), SUIDRWRR)
+					err := ioutil.WriteFile("data.txt", []byte(fmt.Sprintf("%d", playerCounter.Max)), SUIDRWRR)
 					if err != nil {
 						log.Println("Main.go:line 40: The file probably didn't exist.", err)
 					}
@@ -52,8 +52,8 @@ func main() {
 						oldVal = 0
 					}
 				}
-				if playerCounter.TotalPlayers > oldVal {
-					err := ioutil.WriteFile("data.txt", []byte(fmt.Sprintf("%d", playerCounter.TotalPlayers)), SUIDRWRR)
+				if playerCounter.Max > oldVal {
+					err := ioutil.WriteFile("data.txt", []byte(fmt.Sprintf("%d", playerCounter.Max)), SUIDRWRR)
 					if err != nil {
 						log.Printf("The error is occuring in the main file. Trying to write to a file. %s", err)
 					}
