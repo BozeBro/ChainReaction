@@ -30,6 +30,10 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, route)
 }
 func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
+	if r.Method != "POST" {
+		log.Print("HERE WE ARE")
+		return
+	}
 	body, err := DecodeBody(r.Body)
 	if err != nil {
 		log.Println(err)
@@ -71,6 +75,9 @@ func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 
 //Creates room. Redirects to empty handler. Redirects to JoinHandler
 func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
+	if r.Method != "POST" {
+		return
+	}
 	body, err := DecodeBody(r.Body)
 	if err != nil {
 		log.Println(err)
@@ -105,6 +112,8 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 	}
 	go func() {
 		roomStorage[id].Roles <- true
+	}()
+	go func() {
 		roomStorage[id].Rolesws <- true
 	}()
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

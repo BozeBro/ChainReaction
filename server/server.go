@@ -6,8 +6,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type routeHandler func(http.ResponseWriter, *http.Request)
-
 // Creates a route that will handle the routes for Chain Reaction
 func MakeRouter() *mux.Router {
 	// http.Dir uses directory of current working / dir where program started
