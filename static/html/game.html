@@ -85,13 +85,13 @@
     let players = document.getElementById("players")
     let waiting = document.getElementById("waitingRoom");
     let winner = document.getElementById("winner");
-    let socket = new WebSocket("ws://" + document.location.host + "/ws/" + id);
+    let socket = new WebSocket("wss://" + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red");
     bar.canvas.width = chain.canvas.width;
 // height is 10% of width
 bar.canvas.height = bar.canvas.width * 0.05;
-    goHome.onclick = () => document.location.href = "http://" + document.location.host
-    ext.onclick = () => document.location.href = "http://" + document.location.host
+    goHome.onclick = () => document.location.href = "https://" + document.location.host
+    ext.onclick = () => document.location.href = "https://" + document.location.host
     chain.grctx.canvas.onclick = (event) => {
         if (chain.state === true && start === true) {
         let canvasObj = event.target.getBoundingClientRect();
