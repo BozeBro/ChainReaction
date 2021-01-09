@@ -85,8 +85,8 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 	if err != nil {
 		// Someone attempting some hacks
 		// Might be unneccessary though
+		log.Println(err, "Player count was not a number?? shouldn't be possible")
 		http.Error(w, "Nice Try nerd", http.StatusBadRequest)
-		log.Println(err)
 		return
 	}
 	// Create Proper Unique Data
@@ -103,7 +103,7 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 		Roles:   make(chan bool, playerAmount),
 		Rolesws: make(chan bool, playerAmount),
 	}
-	func() {
+	go func() {
 		roomStorage[id].Roles <- true
 		roomStorage[id].Rolesws <- true
 	}()
