@@ -21,15 +21,15 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	finish := make(chan error)
 	r, playerCounter := server.MakeRouter()
-	ticker := time.NewTicker(time.Second * 24)
+	ticker := time.NewTicker(time.Hour * 24)
 	srv := &http.Server{
 		Handler: r,
-		Addr:    "127.0.0.1:8000",
+		Addr:    "chainreactionsite.herokuapp.com",
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	log.Println("Starting on 127.0.0.1:8000")
+	log.Println("Starting on chainreactionsite.herokuapp.com:80")
 	go func() {
 		for {
 			select {
@@ -37,7 +37,7 @@ func main() {
 				var oldVal int
 				file, err := ioutil.ReadFile("data.txt")
 				if err != nil {
-					err := ioutil.WriteFile("data.txt", []byte(fmt.Sprintf("%d", playerCounter.TotalPlayers)), SUIDRWRR)
+					err := ioutil.WriteFile("data.txt", []byte(fmt.Sprintf("%d", playerCounter.Max)), SUIDRWRR)
 					if err != nil {
 						log.Println("Main.go:line 40: The file probably didn't exist.", err)
 					}
@@ -52,8 +52,8 @@ func main() {
 						oldVal = 0
 					}
 				}
-				if playerCounter.TotalPlayers > oldVal {
-					err := ioutil.WriteFile("data.txt", []byte(fmt.Sprintf("%d", playerCounter.TotalPlayers)), SUIDRWRR)
+				if playerCounter.Max > oldVal {
+					err := ioutil.WriteFile("data.txt", []byte(fmt.Sprintf("%d", playerCounter.Max)), SUIDRWRR)
 					if err != nil {
 						log.Printf("The error is occuring in the main file. Trying to write to a file. %s", err)
 					}
