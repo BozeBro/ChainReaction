@@ -19,8 +19,6 @@ type GameData struct {
 	Rolesws chan bool      // send roles to handler of websockets
 }
 
-var RoomStorage = make(Storage, 0)
-
 // Global variable that allows us to upgrade a connection
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -31,7 +29,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	route := filepath.Join("static", "html", "index.html")
 	http.ServeFile(w, r, route)
 }
-func JoinHandler(w http.ResponseWriter, r *http.Request) {
+func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	body, err := DecodeBody(r.Body)
 	if err != nil {
 		log.Fatal(err)
@@ -39,7 +37,7 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Do multiple loops so we know what to tell the user
 	rooms := make([]string, 0)
-	for id, data := range RoomStorage {
+	for id, data := range roomStorage {
 		sameRoom := body.Room == data.Hub.RoomData.Room
 		if sameRoom {
 			rooms = append(rooms, id)
@@ -51,7 +49,7 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, id := range rooms {
 		// Checks if room has vacancy
-		data := RoomStorage[id]
+		data := roomStorage[id]
 		samePin := body.Pin == data.Hub.RoomData.Pin
 		notFull := data.Hub.RoomData.Players+1 <= data.Hub.RoomData.Max
 		if samePin && !notFull {
@@ -72,7 +70,7 @@ func JoinHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 //Creates room. Redirects to empty handler. Redirects to JoinHandler
-func CreateHandler(w http.ResponseWriter, r *http.Request) {
+func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	body, err := DecodeBody(r.Body)
 	if err != nil {
 		log.Fatal(err)
@@ -92,22 +90,22 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Create Proper Unique Data
-	id := MakeId()
-	pin := MakePin(body.Room)
+	id := MakeId(roomStorage)
+	pin := MakePin(body.Room, roomStorage)
 	gameinfo := &webserver.RoomData{
 		Room:    body.Room,
 		Pin:     pin,
 		Max:     playerAmount,
 		Players: 0, // Correct players will be in joinHandler
 	}
-	RoomStorage[id] = &GameData{
+	roomStorage[id] = &GameData{
 		Hub:     webserver.NewHub(gameinfo),
 		Roles:   make(chan bool, playerAmount),
 		Rolesws: make(chan bool, playerAmount),
 	}
 	func() {
-		RoomStorage[id].Roles <- true
-		RoomStorage[id].Rolesws <- true
+		roomStorage[id].Roles <- true
+		roomStorage[id].Rolesws <- true
 	}()
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Write([]byte(id))

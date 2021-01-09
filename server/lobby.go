@@ -8,33 +8,33 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func LobbyHandler(w http.ResponseWriter, r *http.Request) {
+func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	// Handler that serves game.file.
 	// Initialized to show waiting screen
 	id := mux.Vars(r)["id"]
-	if !IdExists(RoomStorage, id) {
+	if !IdExists(roomStorage, id) {
 		log.Println("Room Doesn't Exist")
 		http.NotFound(w, r)
 		return
 	}
 
-	if len(RoomStorage[id].Roles) == 0 && RoomStorage[id].Hub.Alive {
-		notFull := RoomStorage[id].Hub.RoomData.Players+1 <= RoomStorage[id].Hub.RoomData.Max
+	if len(roomStorage[id].Roles) == 0 && roomStorage[id].Hub.Alive {
+		notFull := roomStorage[id].Hub.RoomData.Players+1 <= roomStorage[id].Hub.RoomData.Max
 		if notFull {
 			go func() {
-				RoomStorage[id].Roles <- false
-				RoomStorage[id].Rolesws <- false
+				roomStorage[id].Roles <- false
+				roomStorage[id].Rolesws <- false
 			}()
 			http.Redirect(w, r, "/game/"+id, http.StatusFound)
 			return
 		}
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
-	} else if len(RoomStorage[id].Roles) == 0 && !RoomStorage[id].Hub.Alive {
+	} else if len(roomStorage[id].Roles) == 0 && !roomStorage[id].Hub.Alive {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return
 	}
-	isleader := <-RoomStorage[id].Roles
+	isleader := <-roomStorage[id].Roles
 	userRole := struct {
 		Leader  bool
 		Players int
@@ -43,10 +43,10 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request) {
 		Room    string
 	}{
 		Leader:  isleader,
-		Players: RoomStorage[id].Hub.RoomData.Players,
-		Max:     RoomStorage[id].Hub.RoomData.Max,
-		Room:    RoomStorage[id].Hub.RoomData.Room,
-		Pin:     RoomStorage[id].Hub.RoomData.Pin,
+		Players: roomStorage[id].Hub.RoomData.Players,
+		Max:     roomStorage[id].Hub.RoomData.Max,
+		Room:    roomStorage[id].Hub.RoomData.Room,
+		Pin:     roomStorage[id].Hub.RoomData.Pin,
 	}
 	route := "static/html/game.html"
 	gameFile := template.Must(template.ParseFiles(route))

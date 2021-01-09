@@ -29,30 +29,30 @@ func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
 	return &body, nil
 }
 
-func MakeId() string {
+func MakeId(roomStorage Storage) string {
 	// Generates an id that unique amongst common room names
 	id := ""
 	for i := 0; i < 8; i++ {
 		// All letters are valid. NO need to check
 		id += string(CHARS[rand.Intn(len(CHARS))])
 	}
-	if IdExists(RoomStorage, id) {
+	if IdExists(roomStorage, id) {
 		// This string has already been created
-		return MakeId()
+		return MakeId(roomStorage)
 	}
 	return id
 }
 
-func MakePin(room string) string {
+func MakePin(room string, roomStorage Storage) string {
 	// Generates a password for others to connect to game
 	pin := ""
 	nums := "1234567890"
 	for i := 0; i < 5; i++ {
 		pin += string(nums[rand.Intn(len(nums))])
 	}
-	for _, val := range RoomStorage {
+	for _, val := range roomStorage {
 		if val.Hub.RoomData.Room == room && val.Hub.RoomData.Pin == pin {
-			return MakePin(room)
+			return MakePin(room, roomStorage)
 		}
 	}
 	return pin
