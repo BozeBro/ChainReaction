@@ -51,7 +51,7 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	route := "static/html/game.html"
 	gameFile := template.Must(template.ParseFiles(route))
 	if err := gameFile.Execute(w, userRole); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 }

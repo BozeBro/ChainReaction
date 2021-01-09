@@ -32,7 +32,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	body, err := DecodeBody(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 	// Do multiple loops so we know what to tell the user
@@ -73,7 +73,7 @@ func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	body, err := DecodeBody(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 	// Take in anything approach.

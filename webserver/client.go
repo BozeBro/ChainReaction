@@ -81,7 +81,7 @@ func (c *Client) ReadMsg() {
 				if err != nil {
 					// Problems in the code
 					// Try again
-					log.Fatal(err)
+					log.Println(err)
 					break
 				}
 				go func() {
@@ -108,7 +108,7 @@ func (c *Client) ReadMsg() {
 				newMsg, err := json.Marshal(playInfo)
 				if err != nil {
 					// Problems in the code
-					log.Fatal(err)
+					log.Println(err)
 					break
 				}
 				go func() {
@@ -118,7 +118,7 @@ func (c *Client) ReadMsg() {
 			if len(h.Colors) == 1 {
 				err := h.end(h.Colors[0])
 				if err != nil {
-					log.Fatal(err)
+					log.Println(err)
 					return
 				}
 			}
