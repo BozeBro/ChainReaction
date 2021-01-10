@@ -1,6 +1,7 @@
 package webserver
 
 // Chain contains data relevant for Chain Reaction Game
+// Satisfies the Game interface
 type Chain struct {
 	Len     int
 	Squares []*Squares

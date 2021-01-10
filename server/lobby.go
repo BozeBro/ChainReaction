@@ -11,14 +11,16 @@ import (
 func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	// Handler that serves game.file.
 	// Initialized to show waiting screen
+	// Create and Join Handler will route everything here
 	id := mux.Vars(r)["id"]
 	if !IdExists(roomStorage, id) {
 		log.Println("Room Doesn't Exist")
 		http.NotFound(w, r)
 		return
 	}
-
+	// A person is joining via URL directly and not GUI PIN/NAME system
 	if len(roomStorage[id].Roles) == 0 && roomStorage[id].Hub.Alive {
+		// Leader is in the game and it is not full
 		notFull := roomStorage[id].Hub.RoomData.Players+1 <= roomStorage[id].Hub.RoomData.Max
 		if notFull {
 			go func() {
@@ -28,9 +30,11 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 			http.Redirect(w, r, "/game/"+id, http.StatusFound)
 			return
 		}
+		// Can't play in a game if capacity is reached.
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	} else if len(roomStorage[id].Roles) == 0 && !roomStorage[id].Hub.Alive {
+		// There is no game / leader failed to connect to websocket
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return
 	}
