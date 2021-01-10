@@ -78,6 +78,7 @@ func (h *Hub) Run() {
 	// wait for register, unregister, or broadcast chan to be filled
 	for {
 		select {
+		// assomg player a unique color, add to Clients map, and update players for front end
 		case client := <-h.Register:
 			// Assign unique color
 			client.Color = h.GetUniqueColor(RandomColor())
@@ -98,6 +99,7 @@ func (h *Hub) Run() {
 			h.RoomData.Players++
 			// Update the amount of players in the lobby
 			go h.Update()
+			// Remove person from Player map, check if hub is empty. Assign WIN screen if two player
 		case client := <-h.Unregister:
 			delete(h.Clients, client)
 			close(client.Received)
@@ -147,6 +149,8 @@ func (h *Hub) Run() {
 					}()
 				}
 			}
+			// Spread messages across to all players
+			// Always send to Broadcast channel to send to received
 		case message := <-h.Broadcast:
 			for client := range h.Clients {
 				select {

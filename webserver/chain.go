@@ -1,6 +1,7 @@
 package webserver
 
 // Chain contains data relevant for Chain Reaction Game
+// Satisfies the Game interface
 type Chain struct {
 	Len     int
 	Squares []*Squares
@@ -126,7 +127,7 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 				sq.Color[x] = color
 				sq.Cur[x]++
 				if sq.Cur[x] == sq.Max[x] {
-					isdead = c.UpdateColor(color, sq.Color[x]) || isdead
+					isdead = c.UpdateColor("", color) || isdead
 					sq.Cur[x] = 0
 					sq.Color[x] = ""
 					expN = append(expN, []int{x, y})
@@ -163,7 +164,7 @@ func (c *Chain) UpdateColor(newColor, oldColor string) bool {
 	}
 	for client := range c.Hub.Clients {
 		if client.Color == oldColor {
-			c.Hub.Clients[client] += -1
+			c.Hub.Clients[client]--
 			if c.Hub.Clients[client] == 0 {
 				dead = true
 			}

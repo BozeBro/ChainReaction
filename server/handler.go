@@ -31,7 +31,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	if r.Method != "POST" {
-		log.Print("HERE WE ARE")
+		log.Print("http Method was illegal for Join")
 		return
 	}
 	body, err := DecodeBody(r.Body)
@@ -76,6 +76,7 @@ func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 //Creates room. Redirects to empty handler. Redirects to JoinHandler
 func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	if r.Method != "POST" {
+		log.Print("http Method was illegal for Create")
 		return
 	}
 	body, err := DecodeBody(r.Body)
