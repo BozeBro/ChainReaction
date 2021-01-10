@@ -90,8 +90,8 @@
     bar.canvas.width = chain.canvas.width;
 // height is 10% of width
 bar.canvas.height = bar.canvas.width * 0.05;
-    goHome.onclick = () => document.location.href = "https://" + document.location.host
-    ext.onclick = () => document.location.href = "https://" + document.location.host
+    goHome.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
+    ext.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
     chain.grctx.canvas.onclick = (event) => {
         if (chain.state === true && start === true) {
         let canvasObj = event.target.getBoundingClientRect();
@@ -105,6 +105,7 @@ bar.canvas.height = bar.canvas.width * 0.05;
         let data = JSON.parse(e.data);
         switch (data.type.toLowerCase()) {
             case "start":
+                chain.statCtx.clearRect(0, 0, chain.canvas.width, chain.canvas.height);
                 start = true
                 waiting.style.display = "none";
                 winner.innerHTML = "";
