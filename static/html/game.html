@@ -85,7 +85,8 @@
     let players = document.getElementById("players")
     let waiting = document.getElementById("waitingRoom");
     let winner = document.getElementById("winner");
-    let socket = new WebSocket("wss://" + document.location.host + "/ws/" + id);
+    let wss = document.location.protocol == "https:" ? "wss://" : "ws://"
+    let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red");
     bar.canvas.width = chain.canvas.width;
 // height is 10% of width
