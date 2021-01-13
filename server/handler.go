@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/BozeBro/ChainReaction/webserver"
 	"github.com/gorilla/websocket"
@@ -92,6 +93,7 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 		http.Error(w, "Empty values", http.StatusConflict)
 		return
 	}
+	body.Room = strings.ReplaceAll(body.Room, " ", "")
 	playerAmount, err := strconv.Atoi(body.Players)
 	if err != nil {
 		// Someone attempting some hacks

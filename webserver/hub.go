@@ -72,6 +72,7 @@ func (h *Hub) GetUniqueColor(c string) string {
 func (h *Hub) Run() {
 	defer func() {
 		h.Stop <- true
+		h.CloseChans()
 	}()
 	// No one can join the game
 	h.Alive = true
@@ -109,7 +110,6 @@ func (h *Hub) Run() {
 				return
 			}
 			go h.Update()
-			h.Leaver <- true
 			if h.RoomData.Players == 1 {
 				// The alone player is the winner
 				for client := range h.Clients {

@@ -37,10 +37,8 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorag
 			for {
 				select {
 				case <-g.Hub.Stop:
-					g.Hub.CloseChans()
 					delete(roomStorage, mux.Vars(r)["id"])
 					return
-				case <-g.Hub.Leaver:
 				}
 			}
 		}()
