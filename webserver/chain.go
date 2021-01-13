@@ -67,7 +67,6 @@ func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
 		c.UpdateColor(color, c.Squares[y].Color[x])
 		c.Squares[y].Color[x] = color
-
 		return make([][][]int, 0), [][][]int{{{x, y, c.Squares[y].Cur[x]}}}
 	}
 	c.Squares[y].Cur[x] = 0
@@ -118,31 +117,33 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 			{0, -1},
 		} {
 			x, y := coords[0]+d[0], coords[1]+d[1]
-			if IsBounded(c, x, y) {
-				// (coords of explosion site), direction they are going
-				animations = append(animations, []int{coords[0], coords[1], d[0], d[1]})
-				sq := c.Squares[y]
-				deletedColor := sq.Color[x]
-				isdead := c.UpdateColor(color, sq.Color[x])
-				sq.Color[x] = color
-				sq.Cur[x]++
-				if sq.Cur[x] == sq.Max[x] {
-					sq.Cur[x] = 0
-					sq.Color[x] = ""
-					isdead = c.UpdateColor("", color) || isdead
-					expN = append(expN, []int{x, y})
-				}
-				moved = append(moved, []int{x, y, sq.Cur[x]})
-				if isdead {
-					// Remove the players from the list of alive people
-					for index := 0; index < len(c.Hub.Colors); index++ {
-						if c.Hub.Colors[index] == deletedColor {
-							c.Hub.Colors = append(c.Hub.Colors[:index], c.Hub.Colors[index+1:]...)
-							break
-						}
+			if !IsBounded(c, x, y) {
+				continue
+			}
+			// (coords of explosion site), direction they are going
+			animations = append(animations, []int{coords[0], coords[1], d[0], d[1]})
+			sq := c.Squares[y]
+			deletedColor := sq.Color[x]
+			isdead := c.UpdateColor(color, deletedColor)
+			sq.Color[x] = color
+			sq.Cur[x]++
+			if sq.Cur[x] == sq.Max[x] {
+				sq.Cur[x] = 0
+				sq.Color[x] = ""
+				isdead = c.UpdateColor("", color) || isdead
+				expN = append(expN, []int{x, y})
+			}
+			moved = append(moved, []int{x, y, sq.Cur[x]})
+			if isdead {
+				// Remove the players from the list of alive people
+				for index := 0; index < len(c.Hub.Colors); index++ {
+					if c.Hub.Colors[index] == deletedColor {
+						c.Hub.Colors = append(c.Hub.Colors[:index], c.Hub.Colors[index+1:]...)
+						break
 					}
 				}
 			}
+
 		}
 	}
 	if len(c.Hub.Colors) == 1 {

@@ -10,9 +10,6 @@ import (
 	"github.com/BozeBro/ChainReaction/server"
 )
 
-// SUID | RW | RW | RW
-const SUIDRWRR = 4664
-
 func main() {
 	// Makes it so that rand functions are actually pseudo random
 	// Addr := 76.192.124.46

@@ -86,6 +86,7 @@ let btnClicked = (e) => {
                                 break
                             case 200:
                                 location.href = '/game/' + await res.text()
+                                break
                             default:
                                 errCre.innerHTML = "Something went wrong"
                         }

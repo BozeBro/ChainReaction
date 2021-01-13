@@ -117,6 +117,7 @@ func (c *Client) ReadMsg() {
 				}()
 			}
 			if len(h.Colors) == 1 {
+				// The last player is declared the winner
 				err := h.end(h.Colors[0])
 				if err != nil {
 					log.Println(err)

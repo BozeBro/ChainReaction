@@ -94,7 +94,7 @@ bar.canvas.height = bar.canvas.width * 0.05;
     goHome.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
     ext.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
     chain.grctx.canvas.onclick = (event) => {
-        if (chain.state === true && start === true) {
+        if (chain.state === true && start === true && chain.color === chain.mycolor) {
         let canvasObj = event.target.getBoundingClientRect();
         // Get the square coords clicked
         let x = Math.floor((event.clientX - canvasObj.left) / chain.squareLength);

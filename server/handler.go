@@ -1,7 +1,6 @@
 package server
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -115,31 +114,8 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 		Roles:   make(chan bool, playerAmount),
 		Rolesws: make(chan bool, playerAmount),
 	}
-	go func() {
-		roomStorage[id].Roles <- true
-	}()
-	go func() {
-		roomStorage[id].Rolesws <- true
-	}()
-	//w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	//w.Write([]byte(id))
-	userRole := struct {
-		Leader  bool
-		Players int
-		Max     int
-		Pin     string
-		Room    string
-	}{
-		Leader:  true,
-		Players: roomStorage[id].Hub.RoomData.Players,
-		Max:     roomStorage[id].Hub.RoomData.Max,
-		Room:    roomStorage[id].Hub.RoomData.Room,
-		Pin:     roomStorage[id].Hub.RoomData.Pin,
-	}
-	route := "static/html/game.html"
-	gameFile := template.Must(template.ParseFiles(route))
-	if err := gameFile.Execute(w, userRole); err != nil {
-		log.Println(err)
-		return
-	}
+	roomStorage[id].Roles <- true
+	roomStorage[id].Rolesws <- true
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(id))
 }

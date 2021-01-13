@@ -22,10 +22,8 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		// Leader is in the game and it is not full
 		notFull := roomStorage[id].Hub.RoomData.Players+1 <= roomStorage[id].Hub.RoomData.Max
 		if notFull {
-			go func() {
-				roomStorage[id].Roles <- false
-				roomStorage[id].Rolesws <- false
-			}()
+			roomStorage[id].Roles <- false
+			roomStorage[id].Rolesws <- false
 			http.Redirect(w, r, "/game/"+id, http.StatusFound)
 			return
 		}
