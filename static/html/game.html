@@ -104,6 +104,7 @@ bar.canvas.height = bar.canvas.width * 0.05;
     }
     socket.onmessage = (e) => {
         let data = JSON.parse(e.data);
+        console.log(data)
         switch (data.type.toLowerCase()) {
             case "start":
                 chain.statCtx.clearRect(0, 0, chain.canvas.width, chain.canvas.height);
