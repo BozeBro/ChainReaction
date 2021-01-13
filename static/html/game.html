@@ -85,7 +85,8 @@
     let players = document.getElementById("players")
     let waiting = document.getElementById("waitingRoom");
     let winner = document.getElementById("winner");
-    let socket = new WebSocket("wss://" + document.location.host + "/ws/" + id);
+    let wss = document.location.protocol == "https:" ? "wss://" : "ws://"
+    let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red");
     bar.canvas.width = chain.canvas.width;
 // height is 10% of width
@@ -93,7 +94,7 @@ bar.canvas.height = bar.canvas.width * 0.05;
     goHome.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
     ext.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
     chain.grctx.canvas.onclick = (event) => {
-        if (chain.state === true && start === true) {
+        if (chain.state === true && start === true && chain.color === chain.mycolor) {
         let canvasObj = event.target.getBoundingClientRect();
         // Get the square coords clicked
         let x = Math.floor((event.clientX - canvasObj.left) / chain.squareLength);

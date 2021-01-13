@@ -72,6 +72,7 @@ func (h *Hub) GetUniqueColor(c string) string {
 func (h *Hub) Run() {
 	defer func() {
 		h.Stop <- true
+		h.CloseChans()
 	}()
 	// No one can join the game
 	h.Alive = true
@@ -93,26 +94,23 @@ func (h *Hub) Run() {
 				log.Println(err)
 				return
 			}
-			h.Clients[client] = 0
-			// Tell user what color the person is
-			go func() { client.Received <- payload }()
 			h.RoomData.Players++
 			// Update the amount of players in the lobby
 			go h.Update()
+			h.Clients[client] = 0
+			// Tell user what color the person is
+			client.Received <- payload
 			// Remove person from Player map, check if hub is empty. Assign WIN screen if two player
 		case client := <-h.Unregister:
 			delete(h.Clients, client)
 			close(client.Received)
-			if len(h.Clients) == 0 {
+			h.RoomData.Players--
+			if h.RoomData.Players == 0 {
 				// NO one is in the lobby
 				return
 			}
-			h.RoomData.Players--
 			go h.Update()
-			go func() {
-				h.Leaver <- true
-			}()
-			if len(h.Clients) == 1 && len(h.Colors) > 0 {
+			if h.RoomData.Players == 1 {
 				// The alone player is the winner
 				for client := range h.Clients {
 					// must loop to get the person
@@ -144,9 +142,7 @@ func (h *Hub) Run() {
 						log.Println(err)
 						return
 					}
-					go func() {
-						h.Broadcast <- newMsg
-					}()
+					h.Broadcast <- newMsg
 				}
 			}
 			// Spread messages across to all players

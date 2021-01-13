@@ -5,11 +5,15 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/BozeBro/ChainReaction/webserver"
 	"github.com/gorilla/websocket"
 )
 
+/*
+The main Handlers that are found here are the Join and Create Handlers. To see the lobby handler, see lobby.go
+*/
 // The string will be the id
 type Storage map[string]*GameData
 
@@ -89,6 +93,7 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 		http.Error(w, "Empty values", http.StatusConflict)
 		return
 	}
+	body.Room = strings.ReplaceAll(body.Room, " ", "")
 	playerAmount, err := strconv.Atoi(body.Players)
 	if err != nil {
 		// Someone attempting some hacks
@@ -111,12 +116,8 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 		Roles:   make(chan bool, playerAmount),
 		Rolesws: make(chan bool, playerAmount),
 	}
-	go func() {
-		roomStorage[id].Roles <- true
-	}()
-	go func() {
-		roomStorage[id].Rolesws <- true
-	}()
+	roomStorage[id].Roles <- true
+	roomStorage[id].Rolesws <- true
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Write([]byte(id))
 }

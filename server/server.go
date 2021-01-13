@@ -7,9 +7,8 @@ import (
 )
 
 // Creates a route that will handle the routes for Chain Reaction
-func MakeRouter() (*mux.Router, *PlayerCounter) {
+func MakeRouter() *mux.Router {
 	// http.Dir uses directory of current working / dir where program started
-	pc := new(PlayerCounter)
 	static := http.FileServer(http.Dir("./static"))
 	roomStorage := make(Storage, 0)
 	r := mux.NewRouter()
@@ -18,7 +17,7 @@ func MakeRouter() (*mux.Router, *PlayerCounter) {
 	r.HandleFunc("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 		if _, ok := roomStorage[id]; ok {
-			WSHandshake(roomStorage[id], w, r, roomStorage, pc)
+			WSHandshake(roomStorage[id], w, r, roomStorage)
 			return
 		}
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
@@ -33,5 +32,5 @@ func MakeRouter() (*mux.Router, *PlayerCounter) {
 	api.HandleFunc("/create/", func(w http.ResponseWriter, r *http.Request) { CreateHandler(w, r, roomStorage) }).Methods("POST")
 	api.HandleFunc("/join/", func(w http.ResponseWriter, r *http.Request) { JoinHandler(w, r, roomStorage) }).Methods("POST")
 	http.Handle("/", r)
-	return r, pc
+	return r
 }

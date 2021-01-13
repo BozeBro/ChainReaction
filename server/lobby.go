@@ -14,8 +14,7 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	// Create and Join Handler will route everything here
 	id := mux.Vars(r)["id"]
 	if !IdExists(roomStorage, id) {
-		log.Println("Room Doesn't Exist")
-		http.NotFound(w, r)
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	// A person is joining via URL directly and not GUI PIN/NAME system
@@ -23,10 +22,8 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		// Leader is in the game and it is not full
 		notFull := roomStorage[id].Hub.RoomData.Players+1 <= roomStorage[id].Hub.RoomData.Max
 		if notFull {
-			go func() {
-				roomStorage[id].Roles <- false
-				roomStorage[id].Rolesws <- false
-			}()
+			roomStorage[id].Roles <- false
+			roomStorage[id].Rolesws <- false
 			http.Redirect(w, r, "/game/"+id, http.StatusFound)
 			return
 		}

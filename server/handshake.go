@@ -20,7 +20,7 @@ func max(x, y int) int {
 	}
 	return y
 }
-func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorage Storage, pc *PlayerCounter) {
+func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
@@ -37,12 +37,8 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorag
 			for {
 				select {
 				case <-g.Hub.Stop:
-					g.Hub.CloseChans()
 					delete(roomStorage, mux.Vars(r)["id"])
 					return
-				case <-g.Hub.Leaver:
-					pc.Current--
-					pc.Max = max(pc.Max, pc.Current)
 				}
 			}
 		}()
@@ -53,11 +49,7 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorag
 		Received: make(chan []byte, 256),
 		Leader:   isleader,
 	}
-	go func() {
-		client.Hub.Register <- client
-	}()
+	client.Hub.Register <- client
 	go client.ReadMsg()
 	go client.WriteMsg()
-	pc.Current++
-	pc.Max = max(pc.Max, pc.Current)
 }
