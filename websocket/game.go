@@ -1,4 +1,4 @@
-package webserver
+package websocket
 
 // Game interface that provides functions that give general flow of a board game
 type Game interface {

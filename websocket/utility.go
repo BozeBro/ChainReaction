@@ -1,4 +1,4 @@
-package webserver
+package websocket
 
 import (
 	"math/rand"

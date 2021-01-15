@@ -1,4 +1,4 @@
-package webserver
+package websocket
 
 // Chain contains data relevant for Chain Reaction Game
 // Satisfies the Game interface

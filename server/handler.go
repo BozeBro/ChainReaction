@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/BozeBro/ChainReaction/webserver"
+	sock "github.com/BozeBro/ChainReaction/websocket"
 	"github.com/gorilla/websocket"
 )
 
@@ -18,9 +18,9 @@ The main Handlers that are found here are the Join and Create Handlers. To see t
 type Storage map[string]*GameData
 
 type GameData struct {
-	Hub     *webserver.Hub // The game server
-	Roles   chan bool      // Send roles to handler
-	Rolesws chan bool      // send roles to handler of websockets
+	Hub     *sock.Hub // The game server
+	Roles   chan bool // Send roles to handler
+	Rolesws chan bool // send roles to handler of websockets
 }
 
 // Global variable that allows us to upgrade a connection
@@ -105,14 +105,14 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 	// Create Proper Unique Data
 	id := MakeId(roomStorage)
 	pin := MakePin(body.Room, roomStorage)
-	gameinfo := &webserver.RoomData{
+	gameinfo := &sock.RoomData{
 		Room:    body.Room,
 		Pin:     pin,
 		Max:     playerAmount,
 		Players: 0, // Correct players will be in joinHandler
 	}
 	roomStorage[id] = &GameData{
-		Hub:     webserver.NewHub(gameinfo),
+		Hub:     sock.NewHub(gameinfo),
 		Roles:   make(chan bool, playerAmount),
 		Rolesws: make(chan bool, playerAmount),
 	}
