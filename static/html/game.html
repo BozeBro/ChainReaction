@@ -116,18 +116,16 @@ bar.canvas.height = bar.canvas.width * 0.05;
     chain.msgHandler = {}
     chain.msgHandler["start"] = (data) => {
         chain.statCtx.clearRect(0, 0, chain.canvas.width, chain.canvas.height);
-
-
-                start = true
-                waiting.style.display = "none";
-                winner.innerHTML = "";
-                chain.color = data.turn;
-                chain.rows = data.rows;
-                chain.cols = data.cols;
-                chain.squareLength = Math.min(screen.height * .80 / chain.rows, screen.height * .80 / chain.cols);
-                chain.initBoard();
-                changeBarC(data.turn);
-                nextAni()
+        start = true
+        waiting.style.display = "none";
+        winner.innerHTML = "";
+        chain.color = data.turn;
+        chain.rows = data.rows;
+        chain.cols = data.cols;
+        chain.squareLength = Math.min(screen.height * .80 / chain.rows, screen.height * .80 / chain.cols);
+        chain.initBoard();
+        changeBarC(data.turn);
+        nextAni()
     }
     chain.msgHandler["move"] = (data) => {
         // handle when person leaves.
@@ -178,7 +176,7 @@ bar.canvas.height = bar.canvas.width * 0.05;
     socket.onmessage = (e) => {
         let data = JSON.parse(e.data);
         chain.que.push(data)
-        console.log(chain.que)
+        console.log(data)
         if (chain.que.length === 1) {
             chain.msgHandler[data.type.toLowerCase()](data)
         }

@@ -148,11 +148,12 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 				for index := 0; index < len(c.Hub.Colors); index++ {
 					if c.Hub.Colors[index] == deletedColor {
 						c.Hub.Colors = append(c.Hub.Colors[:index], c.Hub.Colors[index+1:]...)
+						if index <= c.Hub.i {
+							c.Hub.i--
+						}
 						break
+
 					}
-				}
-				if c.Hub.i >= len(c.Hub.Colors) {
-					c.Hub.i = 0
 				}
 			}
 
