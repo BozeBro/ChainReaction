@@ -25,7 +25,7 @@ func MakeRouter() *mux.Router {
 	r.HandleFunc("/", HomeHandler)
 	// Only the browser should be asking for the static files
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", static))
-	r.HandleFunc("/game/{id:[A-z1-9]{8}}", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/game/{id}", func(w http.ResponseWriter, r *http.Request) {
 		LobbyHandler(w, r, roomStorage)
 	})
 	api := r.PathPrefix("/api").Subrouter()

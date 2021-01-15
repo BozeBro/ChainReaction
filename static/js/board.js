@@ -17,9 +17,10 @@ class chainReaction {
     this.grctx = document.getElementById("grid").getContext("2d");
     this.rows = rows;
     this.cols = cols;
-    this.squareLength = Math.min(screen.height * .80 / this.rows, screen.height * .80 / this.cols); 
+    this.squareLength = Math.min(screen.height * .80 / this.rows, screen.height * .80 / this.cols);
     this.squares = []; // Tells [number amount of circles, Exploding amount, cur color]
-
+    this.msgHandler = {};
+    this.que = []
     this.state = true; // Tracks if an animation is taking place
   };
   initBoard() {
@@ -90,7 +91,7 @@ class chainReaction {
       }
     }
     if (elapsed < this.__ms) {
-      // Complete rest of animation 
+      // Complete rest of animation
       requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, start, ind, color))
     } else if (ind + 1 < animations.length) {
       // COmplete next level of explosion / animation
@@ -108,7 +109,14 @@ class chainReaction {
       this.color = color;
       changeBarC(color);
       this.state = true
-      cancelAnimationFrame(ts)
+      // Remove the first element that was just used, and then get the next (which is data)
+      // delay the shift till the very end of async so foo doesn't start a second async func
+      chain.que.shift()
+      if (this.que.length > 0) {
+        let data = this.que[0]
+        //console.log(data)
+        chain.msgHandler[data.type.toLowerCase()](data)
+      } else cancelAnimationFrame(ts)
     }
   }
   draw(x, y, v) {
