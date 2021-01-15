@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/BozeBro/ChainReaction/webserver"
+	sock "github.com/BozeBro/ChainReaction/websocket"
 	"github.com/gorilla/mux"
 )
 
@@ -43,7 +43,7 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorag
 			}
 		}()
 	}
-	client := &webserver.Client{
+	client := &sock.Client{
 		Hub:      g.Hub,
 		Conn:     conn,
 		Received: make(chan []byte, 256),
