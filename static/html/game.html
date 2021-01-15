@@ -103,6 +103,7 @@ bar.canvas.height = bar.canvas.width * 0.05;
             socket.send(JSON.stringify({ type: "move", x: x, y: y}))
         }
     }
+
     nextAni = () => {
         // Remove the first element that was just used, and then get the next (which is data)
         // delay the shift till the very end of async so foo doesn't start a second async func
@@ -115,6 +116,8 @@ bar.canvas.height = bar.canvas.width * 0.05;
     chain.msgHandler = {}
     chain.msgHandler["start"] = (data) => {
         chain.statCtx.clearRect(0, 0, chain.canvas.width, chain.canvas.height);
+
+
                 start = true
                 waiting.style.display = "none";
                 winner.innerHTML = "";
