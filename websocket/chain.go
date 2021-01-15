@@ -17,6 +17,7 @@ type Squares struct {
 }
 
 // InitBoard Creates a board with dimensions rows x cols
+// Each y level has a Squares struct which act as the whole x row
 func (c *Chain) InitBoard(rows, cols int) {
 	rows, cols = makeLegal(5, rows, 30), makeLegal(5, cols, 30)
 	c.Squares = make([]*Squares, cols)
@@ -33,8 +34,9 @@ func (c *Chain) InitBoard(rows, cols int) {
 		}
 	}
 }
+
+// Checks if a square position exists on a board horizontally and vertically
 func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
-	// Returns maximum neighbors and their coords
 	totalNeighbros := 0
 	coords := make([][]int, 0, 4)
 	for _, v := range [][]int{
@@ -78,6 +80,8 @@ func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 //explodeFunc used to clean syntax
 type explodeFunc func([][]int, string) ([][]int, [][]int, [][]int)
 
+// chained is a helper function that will continually call c.explode
+// appends animation pieces from c.explode to an array, which will be returned
 func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]int) {
 	/*
 		explode - function to execute to receive animation data
@@ -98,6 +102,11 @@ func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]i
 	}
 	return animations, moved
 }
+
+// explode simulates the actual game logic of Chain Logic
+// Add animation data for each neighbor
+// explode iterates each exploding square and check if neigboring squares will also explode
+// Else it will just add a square and add to static animation data
 func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 	/*
 		exp - Current exploding squares
@@ -141,6 +150,9 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 						c.Hub.Colors = append(c.Hub.Colors[:index], c.Hub.Colors[index+1:]...)
 						break
 					}
+				}
+				if c.Hub.i >= len(c.Hub.Colors) {
+					c.Hub.i = 0
 				}
 			}
 

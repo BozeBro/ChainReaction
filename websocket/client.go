@@ -153,7 +153,6 @@ func (c *Client) WriteMsg() {
 		ticker.Stop()
 		c.Conn.Close()
 	}()
-	txtMsg := 1
 	for {
 		select {
 		case msg, ok := <-c.Received:
@@ -163,7 +162,7 @@ func (c *Client) WriteMsg() {
 				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			err := c.Conn.WriteMessage(txtMsg, msg)
+			err := c.Conn.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
 				return
 			}
