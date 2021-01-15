@@ -87,6 +87,7 @@ func (c *Client) ReadMsg() {
 				index := 0
 				for client := range h.Clients {
 					h.Colors[index] = client.Color
+					h.Clients[client] = 0
 					index++
 				}
 				rand.Shuffle(len(h.Colors), func(i, j int) {
@@ -103,9 +104,7 @@ func (c *Client) ReadMsg() {
 					log.Println(err)
 					break
 				}
-				go func() {
-					h.Broadcast <- newMsg
-				}()
+				h.Broadcast <- newMsg
 			}
 		case "move":
 			// See if a person can click the square or not.
@@ -130,9 +129,7 @@ func (c *Client) ReadMsg() {
 					log.Println(err)
 					break
 				}
-				go func() {
-					h.Broadcast <- newMsg
-				}()
+				h.Broadcast <- newMsg
 			}
 			if len(h.Colors) == 1 {
 				// The last player is declared the winner

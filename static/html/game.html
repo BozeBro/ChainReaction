@@ -88,6 +88,7 @@
     let wss = document.location.protocol == "https:" ? "wss://" : "ws://"
     let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red");
+    // Global variable to stop asynchronous from racing
     bar.canvas.width = chain.canvas.width;
 // height is 10% of width
 bar.canvas.height = bar.canvas.width * 0.05;
@@ -102,11 +103,18 @@ bar.canvas.height = bar.canvas.width * 0.05;
             socket.send(JSON.stringify({ type: "move", x: x, y: y}))
         }
     }
-    socket.onmessage = (e) => {
-        let data = JSON.parse(e.data);
-        switch (data.type.toLowerCase()) {
-            case "start":
-                chain.statCtx.clearRect(0, 0, chain.canvas.width, chain.canvas.height);
+    nextAni = () => {
+        // Remove the first element that was just used, and then get the next (which is data)
+        // delay the shift till the very end of async so foo doesn't start a second async func
+        chain.que.shift()
+        if (chain.que.length > 0) {
+        let data = chain.que[0]
+        chain.msgHandler[data.type.toLowerCase()](data)
+        }
+    }
+    chain.msgHandler = {}
+    chain.msgHandler["start"] = (data) => {
+        chain.statCtx.clearRect(0, 0, chain.canvas.width, chain.canvas.height);
                 start = true
                 waiting.style.display = "none";
                 winner.innerHTML = "";
@@ -116,18 +124,21 @@ bar.canvas.height = bar.canvas.width * 0.05;
                 chain.squareLength = Math.min(screen.height * .80 / chain.rows, screen.height * .80 / chain.cols);
                 chain.initBoard();
                 changeBarC(data.turn);
-                break;
-            case "move":
-                // handle when person leaves.
-                if (data.animation.length === 0) {
+                nextAni()
+    }
+    chain.msgHandler["move"] = (data) => {
+        // handle when person leaves.
+        if (data.animation.length === 0) {
                     // Made a move, no explosion
                     chain.draw(...data.static[0][0]);
                     chain.color = data.turn;
                     changeBarC(data.turn);
+                    nextAni()
                 } else if (data.static.length === 0) {
                     // A person left the game
                     chain.color = data.turn;
                     changeBarC(data.turn);
+                    nextAni()
                 } else {
                     // We have an explosion
                     chain.state = false;
@@ -135,26 +146,38 @@ bar.canvas.height = bar.canvas.width * 0.05;
                     requestAnimationFrame((ts) => chain.animate(
                             data.animation, data.static, ts, ts, 0, data.turn));
                 }
-                break;
-            case "color":
-                if (data.type !== "color") {return}
-                chain.mycolor = data.color;
-                userColor.style.color = data.color;
-                userColor.innerHTML = `Your color is ${data.color}`;
-                break;
-            case "update":
-                players.innerHTML = data.players;
-                break;
-            case "changecolor":
-                chain.color = data.turn;
-                changeBarC(data.turn);
-                break;
-            case "end":
-                console.log(`The winner is ${data.winner}`);
-                start = false;
-                waiting.style.display = "";
-                winner.innerHTML = `The winner is ${data.winner}!!`;
-                winner.style.color = data.winner;
+    }
+    chain.msgHandler["color"] = (data) => {
+        if (data.type !== "color") {return}
+        chain.mycolor = data.color;
+        userColor.style.color = data.color;
+        userColor.innerHTML = `Your color is ${data.color}`;
+        nextAni()
+    }
+    chain.msgHandler["update"] = (data) => {
+        players.innerHTML = data.players;
+        nextAni()
+    }
+    chain.msgHandler["colorchange"] = (data) => {
+        chain.color = data.turn;
+        changeBarC(data.turn);
+        nextAni()
+    }
+    chain.msgHandler["end"] = (data) => {
+        console.log(`The winner is ${data.winner}`);
+
+        start = false;
+        waiting.style.display = "";
+        winner.innerHTML = `The winner is ${data.winner}!!`;
+        winner.style.color = data.winner;
+        nextAni()
+    }
+    socket.onmessage = (e) => {
+        let data = JSON.parse(e.data);
+        chain.que.push(data)
+        console.log(chain.que)
+        if (chain.que.length === 1) {
+            chain.msgHandler[data.type.toLowerCase()](data)
         }
     };
     chain.initBoard();

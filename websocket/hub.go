@@ -187,9 +187,7 @@ func (h *Hub) end(color string) error {
 	if err != nil {
 		return err
 	}
-	go func() {
-		h.Broadcast <- msg
-	}()
+	h.Broadcast <- msg
 	return nil
 }
 func (h *Hub) CloseChans() {
