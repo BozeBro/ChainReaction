@@ -46,7 +46,7 @@ func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorag
 	client := &sock.Client{
 		Hub:      g.Hub,
 		Conn:     conn,
-		Received: make(chan []byte, 256),
+		Received: make(chan []byte, 1000),
 		Leader:   isleader,
 	}
 	client.Hub.Register <- client

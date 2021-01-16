@@ -3,7 +3,6 @@ package websocket
 import (
 	"encoding/json"
 	"log"
-	"math/rand"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -40,7 +39,7 @@ type WSData struct {
 
 const (
 	// Time allowed to write a message to the peer.
-	writeWait = 10 * time.Second
+	writeWait = 6 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
 	pongWait = 60 * time.Second
@@ -62,7 +61,9 @@ func (c *Client) ReadMsg() {
 	c.Conn.SetReadLimit(maxMessageSize)
 	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.Conn.SetPongHandler(func(string) error { c.Conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
-	h := c.Hub
+	resMap := make(map[string]Responder)
+	resMap["start"] = c.start(&Chain{Hub: c.Hub})
+	resMap["move"] = c.move()
 	for {
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
@@ -74,72 +75,7 @@ func (c *Client) ReadMsg() {
 			log.Println(err)
 			return
 		}
-		switch playInfo.Type {
-		case "start":
-			// Person wants to start the game. Make sure it is the leader
-			if c.Leader {
-				/* We will only see "start" in beginning of each game
-				Make Color list / order of player moves
-				iterating through map is already random
-				*/
-				h.Match = &Chain{Hub: h}
-				h.Colors = make([]string, len(h.Clients))
-				index := 0
-				for client := range h.Clients {
-					h.Colors[index] = client.Color
-					h.Clients[client] = 0
-					index++
-				}
-				rand.Shuffle(len(h.Colors), func(i, j int) {
-					h.Colors[i], h.Colors[j] = h.Colors[j], h.Colors[i]
-				})
-				// Current person's turn
-				// used 0 here to hammer in that 0 is the first person
-				playInfo.Turn = h.Colors[0]
-				h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
-				newMsg, err := json.Marshal(playInfo)
-				if err != nil {
-					// Problems in the code
-					// Try again
-					log.Println(err)
-					break
-				}
-				h.Broadcast <- newMsg
-			}
-		case "move":
-			// See if a person can click the square or not.
-			// Within bounds and compatible color
-			isLegal := h.Match.IsLegalMove(playInfo.X, playInfo.Y, c.Color)
-			if isLegal && c.Color == h.Colors[h.i] {
-				// Move Piece, Update colorMap, record animation and new positions
-				ani, static := h.Match.MovePiece(playInfo.X, playInfo.Y, c.Color)
-				// Color Slice will be updated in the MovePiece Functions
-				h.i++
-				if h.i >= len(h.Colors) {
-					h.i = 0
-				}
-				// Game is not over yet
-				playInfo.Animation = ani
-				playInfo.Static = static
-				// Getting next person
-				playInfo.Turn = h.Colors[h.i]
-				newMsg, err := json.Marshal(playInfo)
-				if err != nil {
-					// Problems in the code
-					log.Println(err)
-					break
-				}
-				h.Broadcast <- newMsg
-			}
-			if len(h.Colors) == 1 {
-				// The last player is declared the winner
-				err := h.end(h.Colors[0])
-				if err != nil {
-					log.Println(err)
-					return
-				}
-			}
-		}
+		resMap[playInfo.Type](playInfo)
 	}
 }
 

@@ -12,7 +12,6 @@ import (
 
 func main() {
 	// Makes it so that rand functions are actually pseudo random
-	// Addr := 76.192.124.46
 	rand.Seed(time.Now().UnixNano())
 	r := server.MakeRouter()
 	port := os.Getenv("PORT")
@@ -24,8 +23,8 @@ func main() {
 		Handler: r,
 		Addr:    ":" + port,
 		// Good practice: enforce timeouts for servers you create!
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  10 * time.Second,
 	}
 	log.Println("Starting on :" + port)
 	log.Fatal(srv.ListenAndServe())

@@ -47,9 +47,9 @@ func NewHub(roomData *RoomData) *Hub {
 	return &Hub{
 		Alive:      false,
 		Stop:       make(chan bool),
-		Broadcast:  make(chan []byte),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
+		Broadcast:  make(chan []byte, 1000),
+		Register:   make(chan *Client, 100),
+		Unregister: make(chan *Client, 100),
 		Clients:    make(map[*Client]int),
 		RoomData:   roomData,
 	}
@@ -81,6 +81,7 @@ func (h *Hub) Run() {
 		select {
 		// assomg player a unique color, add to Clients map, and update players for front end
 		case client := <-h.Register:
+			h.Clients[client] = 0
 			// Assign unique color
 			client.Color = h.GetUniqueColor(RandomColor())
 			colorJSON := &struct {
@@ -96,7 +97,7 @@ func (h *Hub) Run() {
 			}
 			h.RoomData.Players++
 			// Update the amount of players in the lobby
-			go h.Update()
+			h.Update()
 			h.Clients[client] = 0
 			// Tell user what color the person is
 			client.Received <- payload
@@ -109,7 +110,7 @@ func (h *Hub) Run() {
 				// NO one is in the lobby
 				return
 			}
-			go h.Update()
+			h.Update()
 			if h.RoomData.Players == 1 {
 				// The alone player is the winner
 				for client := range h.Clients {
