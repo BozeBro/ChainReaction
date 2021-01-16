@@ -17,13 +17,15 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
+	hub := roomStorage[id]
+	roomData := hub.RoomData
 	// A person is joining via URL directly and not GUI PIN/NAME system
-	if len(roomStorage[id].Roles) == 0 && roomStorage[id].Hub.Alive {
+	if len(roomData.Roles) == 0 && hub.Alive {
 		// Leader is in the game and it is not full
-		notFull := roomStorage[id].Hub.RoomData.Players+1 <= roomStorage[id].Hub.RoomData.Max
+		notFull := roomData.Players+1 <= roomData.Max
 		if notFull {
-			roomStorage[id].Roles <- false
-			roomStorage[id].Rolesws <- false
+			roomData.Roles <- false
+			roomData.Rolesws <- false
 			http.Redirect(w, r, "/game/"+id, http.StatusFound)
 			return
 		}
@@ -31,11 +33,11 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 		// There is no game / leader failed to connect to websocket
-	} else if len(roomStorage[id].Roles) == 0 && !roomStorage[id].Hub.Alive {
+	} else if len(roomData.Roles) == 0 && !hub.Alive {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return
 	}
-	isleader := <-roomStorage[id].Roles
+	isleader := <-roomData.Roles
 	userRole := struct {
 		Leader  bool
 		Players int
@@ -44,10 +46,10 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		Room    string
 	}{
 		Leader:  isleader,
-		Players: roomStorage[id].Hub.RoomData.Players,
-		Max:     roomStorage[id].Hub.RoomData.Max,
-		Room:    roomStorage[id].Hub.RoomData.Room,
-		Pin:     roomStorage[id].Hub.RoomData.Pin,
+		Players: roomData.Players,
+		Max:     roomData.Max,
+		Room:    roomData.Room,
+		Pin:     roomData.Pin,
 	}
 	route := "static/html/game.html"
 	gameFile := template.Must(template.ParseFiles(route))

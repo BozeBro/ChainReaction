@@ -4,7 +4,7 @@ import (
 	"math/rand"
 )
 
-// Slice of colors that a player can be.
+// A Player can only be a color within this const
 var COLORS = []string{
 	"Brown",
 	"BlueViolet", "Red",

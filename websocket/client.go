@@ -25,7 +25,7 @@ type Client struct {
 }
 
 // WSData provides allowed fields to be received from the front end
-// Some other structs are used as one offs in other places in the code.
+// Some other structs are used as single uses in other places in the code.
 type WSData struct {
 	Type      string    `json:"type"`      // Type of message allows front end to know how to deal with the data
 	X         int       `json:"x"`         // X coordinate clicked - "move"
@@ -81,6 +81,7 @@ func (c *Client) ReadMsg() {
 }
 
 // WriteMsg sends msg from the hub to the client
+// Contains Ping Handler implementation. See RFC5.5.2 https://tools.ietf.org/html/rfc6455#section-5.5.2 for more info
 func (c *Client) WriteMsg() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -101,7 +102,7 @@ func (c *Client) WriteMsg() {
 				return
 			}
 		case <-ticker.C:
-			// Sending back a Pong msg to the Ping
+			// Sending Ping msg
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return

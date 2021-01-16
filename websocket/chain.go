@@ -8,16 +8,16 @@ type Chain struct {
 	Hub     *Hub
 }
 
-// Squares contains data about each square
+// Squares contains data about a row of squares
+// Each index is a square
 type Squares struct {
-	Len   int      // Length of each array
+	Len   int      // Length of a row
 	Cur   []int    // How many circles are in the square
 	Max   []int    // Carrying Capacity of the square
-	Color []string // The color that occupies. "" if none
+	Color []string // The color that occupies a square. "" if empty
 }
 
 // InitBoard Creates a board with dimensions rows x cols
-// Each y level has a Squares struct which act as the whole x row
 func (c *Chain) InitBoard(rows, cols int) {
 	rows, cols = makeLegal(5, rows, 30), makeLegal(5, cols, 30)
 	c.Squares = make([]*Squares, cols)
@@ -51,21 +51,18 @@ func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
 	return totalNeighbros, coords
 }
 
-/*
-Animation data is data sent to Front end that will show animation
-Moved / static data are the circles that remain from the explosion
-*/
-
-// MovePiece is requirement for Game Interface
-// MovePiece Moves the piece on the chain board
-// It will call the chained(explode) function to handle explosion
+// MovePiece Moves the piece on the chain board.
+// It will call the chained(explode) function to handle explosion.
+// x - x coordinate of the user clicked square
+// y - y coordinate of the user clicked square
+// color - color of the user
+// first return value is dynamic animation, second is the static position after an animation
+// MovePiece is requirement for Game Interface.
+// Animation data is data sent to Front end that will show animation.
+// Moved / static data are the circles that remain from the explosion.
 func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
-	/*
-		x : x coordinate of the user clicked square
-		y : y coordinate of the user clicked square
-		color : color of the user
-	*/
 	c.Squares[y].Cur[x]++
+	// No explosion
 	if c.Squares[y].Cur[x] < c.Squares[y].Max[x] {
 		c.UpdateColor(color, c.Squares[y].Color[x])
 		c.Squares[y].Color[x] = color
@@ -77,23 +74,21 @@ func (c *Chain) MovePiece(x, y int, color string) ([][][]int, [][][]int) {
 	return chained(c.explode, [][]int{{x, y}}, color)
 }
 
-//explodeFunc used to clean syntax
+//  explodeFunc used to clean syntax
 type explodeFunc func([][]int, string) ([][]int, [][]int, [][]int)
 
-// chained is a helper function that will continually call c.explode
-// appends animation pieces from c.explode to an array, which will be returned
+//  chained is a helper function that will continually call c.explode.
+//  explode - function to execute to receive animation data.
+//	exp -  nested array that contains coords of exploding squares.
+//	color - Color of the person that is moving.
+//  Firt return value is dynamic animation. second is position right after an animation.
+//	Loops through the explode function until no more until come out.
+//	Receives animation data and static data.
+//  Animation in the front end works by iterating through the animations array and then animating the array's instructions.
 func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]int) {
-	/*
-		explode - function to execute to receive animation data
-		exp -  nested array that contains coords of exploding squares
-		color - Color of the person that is moving
-		-----
-		Loops through the explode function until no more until come out.
-		Receives animation data and static data
-	*/
 	x, y := exp[0][0], exp[0][1]
 	animations := make([][][]int, 0)
-	moved := [][][]int{{{x, y, 0}}} // static is going to be zero
+	moved := [][][]int{{{x, y, 0}}} // 0 because square just exploded
 	for len(exp) != 0 {
 		newExp, newAni, newMoves := explode(exp, color)
 		animations = append(animations, newAni)
@@ -103,20 +98,19 @@ func chained(explode explodeFunc, exp [][]int, color string) ([][][]int, [][][]i
 	return animations, moved
 }
 
-// explode simulates the actual game logic of Chain Logic
-// Add animation data for each neighbor
-// explode iterates each exploding square and check if neigboring squares will also explode
-// Else it will just add a square and add to static animation data
+//  explode simulates the actual game logic of Chain Logic
+//  Adds animation data to an array
+//  exp - Current exploding squares
+//  color - color of the user that is making the move
+//  Function to handle exploding squares.
+//  Returns a frame of animation and static data
+//  returns next level of exploding neighbors, animation that just occuredm and new positions
+//  explode iterates each exploding square and check if neigboring squares will also explode
+//  Else it will just add a square and add to static animation data
 func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
-	/*
-		exp - Current exploding squares
-		color - color of the user that is making the move
-		Function to handle exploding squares.
-		Returns a frame of animation and static data
-	*/
-	expN := make([][]int, 0) // Neighbors that are going to explode next iteration
-	moved := make([][]int, 0)
-	animations := make([][]int, 0)
+	expN := make([][]int, 0)       // Neighbors that are going to explode next iteration
+	moved := make([][]int, 0)      // New static positions
+	animations := make([][]int, 0) // animation of circles exploding
 	for _, coords := range exp {
 		// d is all the possible neighbors of the coords
 		for _, d := range [][]int{
@@ -158,19 +152,16 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 
 		}
 	}
+	// Stop animation right when the last circle dies
 	if len(c.Hub.Colors) == 1 {
 		return make([][]int, 0), animations, moved
 	}
 	return expN, animations, moved
 }
 
-// UpdateColor updates amount of squares each player controls.
+// UpdateColor updates squares controlled per client and sends a response
 // results true if oldColor is dead / out of squares
 func (c *Chain) UpdateColor(newColor, oldColor string) bool {
-	/*
-		Update amount of squares each player controls.
-		true if oldColor is dead / out of squares
-	*/
 	dead := false
 	if newColor == oldColor {
 		return dead
@@ -201,7 +192,7 @@ func (c *Chain) GetCols() int {
 }
 
 // makeLegal makes sure that dimensions are legal
-// Must be (lower, upper]
+// Must be [lower, upper]
 func makeLegal(lower, dimension, upper int) int {
 	if dimension < lower {
 		dimension = lower

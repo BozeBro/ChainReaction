@@ -35,7 +35,7 @@ func (c *Client) start(game Game) Responder {
 		rand.Shuffle(len(h.Colors), func(i, j int) {
 			h.Colors[i], h.Colors[j] = h.Colors[j], h.Colors[i]
 		})
-		// reset h.i fior when game is restarted
+		// reset h.i for when game is restarted.
 		h.i = 0
 		playInfo.Turn = h.Colors[h.i]
 		h.Match.InitBoard(playInfo.Rows, playInfo.Cols)

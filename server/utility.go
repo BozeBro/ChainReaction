@@ -51,8 +51,8 @@ func MakePin(room string, roomStorage Storage) string {
 	for i := 0; i < 5; i++ {
 		pin += string(nums[rand.Intn(len(nums))])
 	}
-	for _, val := range roomStorage {
-		if val.Hub.RoomData.Room == room && val.Hub.RoomData.Pin == pin {
+	for _, hub := range roomStorage {
+		if hub.RoomData.Room == room && hub.RoomData.Pin == pin {
 			return MakePin(room, roomStorage)
 		}
 	}

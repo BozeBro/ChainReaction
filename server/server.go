@@ -18,7 +18,7 @@ func MakeRouter() *mux.Router {
 	r.HandleFunc("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 		if _, ok := roomStorage[id]; ok {
-			WSHandshake(roomStorage[id], w, r, roomStorage)
+			WSHandshake(w, r, roomStorage)
 			return
 		}
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)

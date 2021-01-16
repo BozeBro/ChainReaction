@@ -12,14 +12,7 @@ import (
 
 // Storage is the type that stores all Games
 // id is the key with information about it as a value
-type Storage map[string]*GameData
-
-// Contains the game server and acts like context in a REST API
-type GameData struct {
-	Hub     *sock.Hub // Acts as the server for the game
-	Roles   chan bool // Send roles to other http handler
-	Rolesws chan bool // send roles to handler of websockets
-}
+type Storage map[string]*sock.Hub
 
 // HomeHandler send the index.html page at root path
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
@@ -42,8 +35,8 @@ func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	}
 	// rooms contains ids of active rooms with the same name as POST information
 	rooms := make([]string, 0)
-	for id, data := range roomStorage {
-		sameRoom := body.Room == data.Hub.RoomData.Room
+	for id, hub := range roomStorage {
+		sameRoom := body.Room == hub.RoomData.Room
 		if sameRoom {
 			rooms = append(rooms, id)
 		}
@@ -53,16 +46,16 @@ func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		return
 	}
 	for _, id := range rooms {
-		data := roomStorage[id]
-		samePin := body.Pin == data.Hub.RoomData.Pin
-		notFull := data.Hub.RoomData.Players+1 <= data.Hub.RoomData.Max
+		hub := roomStorage[id]
+		samePin := body.Pin == hub.RoomData.Pin
+		notFull := hub.RoomData.Players+1 <= hub.RoomData.Max
 		if samePin && !notFull {
 			http.Error(w, "The room is full", http.StatusForbidden)
 			return
 		}
 		if samePin && notFull {
-			data.Roles <- false
-			data.Rolesws <- false
+			hub.RoomData.Roles <- false
+			hub.RoomData.Rolesws <- false
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.Write([]byte(id))
 			return
@@ -106,13 +99,12 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 		Max:     playerAmount,
 		Players: 0, // Correct players will be in joinHandler
 	}
-	roomStorage[id] = &GameData{
-		Hub:     sock.NewHub(gameinfo),
-		Roles:   make(chan bool, playerAmount),
-		Rolesws: make(chan bool, playerAmount),
-	}
-	roomStorage[id].Roles <- true
-	roomStorage[id].Rolesws <- true
+	hub := sock.NewHub(gameinfo)
+	hub.RoomData.Roles = make(chan bool, playerAmount)
+	hub.RoomData.Rolesws = make(chan bool, playerAmount)
+	roomStorage[id] = hub
+	roomStorage[id].RoomData.Roles <- true
+	roomStorage[id].RoomData.Rolesws <- true
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Write([]byte(id))
 }

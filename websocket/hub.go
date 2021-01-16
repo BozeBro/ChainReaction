@@ -6,39 +6,40 @@ import (
 )
 
 // Hub is the game server representative for individual games
-// Handles stopping itself, tracking the players, keeping data, broadcasting, registering, and unregistering
+// Handles killing itself, tracking the players, keeping data, broadcasting, registering, and unregistering
 type Hub struct {
 	// Tells http server if the Hub is running
 	Alive bool
-	// Channel telling server to remove id / kill the hub
+	// Channel telling server to remove id / kill the hub.
 	Stop chan bool
-	// Mapping of clients. Unordered
+	// Mapping of clients. int represents how many squares a person controls.
 	Clients map[*Client]int
-	// Channel to tell the http that a player left
+	// Channel to tell the http that a player left.
 	Leaver chan bool
-	// incoming broadcasting reqs from clients
+	// incoming broadcasting requests from clients.
 	Broadcast chan []byte
 	// Register requests from the clients.
 	Register chan *Client
 	// Unregister requests from clients.
 	Unregister chan *Client
-	// Index of who's turn it is
+	// Index of who's turn it is.
 	i int
-	// Move Order of players
+	// Move Order of players.
 	Colors []string
-	// Has the data of the room
+	// Has the data of the room.
 	RoomData *RoomData
-	// Tracker of Game State. "Match" name to not confuse namespace
+	// Tracker of Game State. Called "Match" name to not confuse namespace.
 	Match Game
 }
 
-// RoomData provides about the. Will be for players trying to enter the room
+// RoomData provides info about the room
+// Will be for players trying to enter the room.
+// Acts like a context for http server as well.
 type RoomData struct {
-	/*
-		Similar to server's GameData but without the chans
-	*/
 	Room, Pin    string
 	Players, Max int
+	Roles        chan bool // Send roles to other http handler
+	Rolesws      chan bool // send roles to handler of websockets
 }
 
 // NewHub Creates a newHub for a game to take place in
@@ -56,7 +57,6 @@ func NewHub(roomData *RoomData) *Hub {
 }
 
 // GetUniqueColor grabs a unique from COLORS in utility.go
-// It makes sure the color is unique
 func (h *Hub) GetUniqueColor(c string) string {
 	for client := range h.Clients {
 		if c == client.Color {
@@ -71,7 +71,11 @@ func (h *Hub) GetUniqueColor(c string) string {
 //	Will kill itself when all the players leave
 func (h *Hub) Run() {
 	defer func() {
+		// close all channels
 		h.Stop <- true
+		for client := range h.Clients {
+			close(client.Received)
+		}
 		h.CloseChans()
 	}()
 	// No one can join the game

@@ -9,12 +9,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// Struct to keep track of total gamers on the server
-type PlayerCounter struct {
-	Max     int
-	Current int
-}
-
 // upgrader upgrades a http connection to websocket
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -27,36 +21,49 @@ func max(x, y int) int {
 	}
 	return y
 }
-func WSHandshake(g *GameData, w http.ResponseWriter, r *http.Request, roomStorage Storage) {
+
+// Creates a websocket connection and starts the hub and client goroutines
+// Might be changed to POST if a websocket server and http server are separated.
+// Function couples the server and the websocket together so two servers are not needed
+// Is in charge of stopping hub server
+func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
+	id := mux.Vars(r)["id"]
+	hub := roomStorage[id]
+	rolesws := hub.RoomData.Rolesws
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		// Person cannot use websockets
 		log.Println(err)
 		return
 	}
-	if len(g.Rolesws) == 0 {
+	// Person didn't go through http route
+	if len(rolesws) == 0 {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return
 	}
-	isleader := <-g.Rolesws
-	if isleader && !g.Hub.Alive {
-		go g.Hub.Run()
+	isleader := <-rolesws
+	// Only start hub server once.
+	if isleader && !hub.Alive {
+		go hub.Run()
 		go func() {
 			for {
 				select {
-				case <-g.Hub.Stop:
-					delete(roomStorage, mux.Vars(r)["id"])
+				case <-hub.Stop:
+					delete(roomStorage, id)
 					return
 				}
 			}
 		}()
 	}
+	// Arbitrarily large buffer to encourage make async programming
+	// Prevent blocking when large amounts of animation data
 	client := &sock.Client{
-		Hub:      g.Hub,
+		Hub:      hub,
 		Conn:     conn,
 		Received: make(chan []byte, 1000),
 		Leader:   isleader,
 	}
-	client.Hub.Register <- client
+	hub.Register <- client
 	go client.ReadMsg()
 	go client.WriteMsg()
 }
