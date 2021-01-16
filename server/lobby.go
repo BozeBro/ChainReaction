@@ -8,10 +8,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Handler that serves game file
+// Create and Join Handler will route here
+// Redirects people who reach here by URL back to Join to be stored in context
 func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
-	// Handler that serves game.file.
-	// Initialized to show waiting screen
-	// Create and Join Handler will route everything here
 	id := mux.Vars(r)["id"]
 	if !IdExists(roomStorage, id) {
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -30,8 +30,8 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		// Can't play in a game if capacity is reached.
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
-	} else if len(roomStorage[id].Roles) == 0 && !roomStorage[id].Hub.Alive {
 		// There is no game / leader failed to connect to websocket
+	} else if len(roomStorage[id].Roles) == 0 && !roomStorage[id].Hub.Alive {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return
 	}

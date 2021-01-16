@@ -14,15 +14,14 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	// Multiplexer that chain reaction runs on
 	r := server.MakeRouter()
+	// dynamic port assigned by Heroku
 	port := os.Getenv("PORT")
-
 	if port == "" {
 		log.Fatal("$PORT must be set")
 	}
 	srv := &http.Server{
-		Handler: r,
-		Addr:    ":" + port,
-		// long
+		Handler:      r,
+		Addr:         ":" + port,
 		WriteTimeout: 2 * time.Second,
 		ReadTimeout:  2 * time.Second,
 	}

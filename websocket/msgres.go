@@ -2,13 +2,18 @@ package websocket
 
 import (
 	"encoding/json"
-	"log"
 	"math/rand"
 )
 
-// Type that will deal with msgs from websocket
+// function type that will deal with a specific msg from websocket
+// function should be called by the type they handle
 type Responder func(*WSData) error
 
+// returns a function that handles json data of type start.
+// This function should only be used in the beginning of each game.
+// Randomizes the player order.
+// Sends response of person's turn
+// game parameter defines that type of game being played
 func (c *Client) start(game Game) Responder {
 	h := c.Hub
 	return Responder(func(playInfo *WSData) error {
@@ -30,23 +35,24 @@ func (c *Client) start(game Game) Responder {
 		rand.Shuffle(len(h.Colors), func(i, j int) {
 			h.Colors[i], h.Colors[j] = h.Colors[j], h.Colors[i]
 		})
-		// Current person's turn
-		// used 0 here to hammer in that 0 is the first person
 		// reset h.i fior when game is restarted
 		h.i = 0
 		playInfo.Turn = h.Colors[h.i]
 		h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
-		newMsg, err := json.Marshal(playInfo)
+		payload, err := json.Marshal(playInfo)
 		if err != nil {
 			// Problems in the code
 			// Try again
 			return err
 		}
-		h.Broadcast <- newMsg
+		h.Broadcast <- payload
 		return nil
 	})
 }
 
+// Function handles when a person moves
+// Utilizes the Game interface to handle game logic.
+// Sends response of animation data and new turn
 func (c *Client) move() Responder {
 	h := c.Hub
 	return Responder(func(playInfo *WSData) error {
@@ -56,33 +62,30 @@ func (c *Client) move() Responder {
 		if isLegal && c.Color == h.Colors[h.i] {
 			// Move Piece, Update colorMap, record animation and new positions
 			ani, static := h.Match.MovePiece(playInfo.X, playInfo.Y, c.Color)
-			// Color Slice will be updated in the MovePiece Functions
 			h.i++
 			if h.i >= len(h.Colors) {
 				h.i = 0
 			}
-			// Game is not over yet
 			playInfo.Animation = ani
 			playInfo.Static = static
-			// Getting next person
 			playInfo.Turn = h.Colors[h.i]
-			newMsg, err := json.Marshal(playInfo)
+			payload, err := json.Marshal(playInfo)
 			if err != nil {
 				// Problems in the code
 				return err
 
 			}
-			h.Broadcast <- newMsg
+			h.Broadcast <- payload
 		}
+		// We have a winner!
 		if len(h.Colors) == 1 {
-			for _, v := range h.Clients {
-				log.Print(v)
-			}
 			// The last player is declared the winner
 			err := h.end(h.Colors[0])
 			if err != nil {
 				return err
 			}
+			// reset colors
+			// Cap of 5 because that is max players allowed in a game.
 			h.Colors = make([]string, 0, 5)
 		}
 		return nil

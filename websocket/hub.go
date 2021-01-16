@@ -5,11 +5,10 @@ import (
 	"log"
 )
 
-// Hub is the server representative that provides a link to the clients
-// Handles stopping itself, tracking the players, keeping data, broadcasting, registering,
-// unregistering
+// Hub is the game server representative for individual games
+// Handles stopping itself, tracking the players, keeping data, broadcasting, registering, and unregistering
 type Hub struct {
-	// Tells server if the Hub is running
+	// Tells http server if the Hub is running
 	Alive bool
 	// Channel telling server to remove id / kill the hub
 	Stop chan bool
@@ -147,8 +146,10 @@ func (h *Hub) Run() {
 					h.Broadcast <- newMsg
 				}
 			}
-			// Spread messages across to all players
-			// Always send to Broadcast channel to send to received
+		// ALL messages that will be broadcasted must be sent to this channel.
+		// NO other function should be sending to Received chan.
+		// Close client chan if we cannot send.
+		// Player's device might turned off
 		case message := <-h.Broadcast:
 			for client := range h.Clients {
 				select {
@@ -162,7 +163,7 @@ func (h *Hub) Run() {
 	}
 }
 
-// Update tells front end how many players are in the lobby
+// Update sends a Response to tell how many players are in teh lobby
 func (h *Hub) Update() {
 	players := &struct {
 		Type    string `json:"type"`
@@ -180,6 +181,8 @@ func (h *Hub) Update() {
 	h.Broadcast <- payload
 }
 
+// Send Response to signal that game is over.
+// Tell front end who the winner is.
 func (h *Hub) end(color string) error {
 	payload := &struct {
 		Type   string `json:"type"`
@@ -192,6 +195,8 @@ func (h *Hub) end(color string) error {
 	h.Broadcast <- msg
 	return nil
 }
+
+// Prevent any go specific memory leaks
 func (h *Hub) CloseChans() {
 	close(h.Stop)
 	close(h.Broadcast)

@@ -6,10 +6,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Creates a route that will handle the routes for Chain Reaction
+// MakeRouter creates a router that will handle the routes for Chain Reaction.
 func MakeRouter() *mux.Router {
-	// http.Dir uses directory of current working / dir where program started
+	// static handles all front end files.
 	static := http.FileServer(http.Dir("./static"))
+	// roomStorage tracks all active games
 	roomStorage := make(Storage, 0)
 	r := mux.NewRouter()
 	r.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "favicon.ico") })

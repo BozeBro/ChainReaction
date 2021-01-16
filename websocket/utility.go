@@ -4,8 +4,7 @@ import (
 	"math/rand"
 )
 
-// COLORS provides available colors to choose from
-// That is until I can find a color library.
+// Slice of colors that a player can be.
 var COLORS = []string{
 	"Brown",
 	"BlueViolet", "Red",
@@ -14,7 +13,7 @@ var COLORS = []string{
 	"DeepPink",
 }
 
-// RandomColor grabs a random color from COLORS
+// RandomColor grabs a random color from global COLORS
 func RandomColor() string {
 	clength := len(COLORS)
 	rand := rand.Intn(clength)

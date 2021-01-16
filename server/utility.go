@@ -6,17 +6,18 @@ import (
 	"math/rand"
 )
 
-//Treat These as constants. You can change COLORS though.
+// All the chars that MakePin can utilize
 const CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
-// All the valid keys that will be used to create a room.
+// Valid request information that a user can send
+// It is stored in the context
 type ReqBody struct {
 	Pin, Room, Players, Name string
 }
 
+// Decode Json message from HTTP Request.
+// Prevents strange values.
 func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
-	// Decode Json message from HTTP Request.
-	// Send decoded into struct
 	decoder := json.NewDecoder(data)
 	decoder.DisallowUnknownFields()
 	var body ReqBody
@@ -29,22 +30,22 @@ func DecodeBody(data io.ReadCloser) (*ReqBody, error) {
 	return &body, nil
 }
 
+// Generates a unique id containing only numbers
 func MakeId(roomStorage Storage) string {
-	// Generates an id that unique amongst common room names
 	id := ""
 	for i := 0; i < 8; i++ {
 		// All letters are valid. NO need to check
 		id += string(CHARS[rand.Intn(len(CHARS))])
 	}
+	// This string has already been created
 	if IdExists(roomStorage, id) {
-		// This string has already been created
 		return MakeId(roomStorage)
 	}
 	return id
 }
 
+// MakePin Generates a unique PIN with length 5.
 func MakePin(room string, roomStorage Storage) string {
-	// Generates a password for others to connect to game
 	pin := ""
 	nums := "1234567890"
 	for i := 0; i < 5; i++ {
@@ -57,8 +58,9 @@ func MakePin(room string, roomStorage Storage) string {
 	}
 	return pin
 }
+
+// IdExists checks if id exists in Storage variable
 func IdExists(rooms Storage, id string) bool {
-	// Checks if id exists in global games
 	_, ok := rooms[id]
 	return ok
 }

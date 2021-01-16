@@ -8,31 +8,28 @@ import (
 	"strings"
 
 	sock "github.com/BozeBro/ChainReaction/websocket"
-	"github.com/gorilla/websocket"
 )
 
-/*
-The main Handlers that are found here are the Join and Create Handlers. To see the lobby handler, see lobby.go
-*/
-// The string will be the id
+// Storage is the type that stores all Games
+// id is the key with information about it as a value
 type Storage map[string]*GameData
 
+// Contains the game server and acts like context in a REST API
 type GameData struct {
-	Hub     *sock.Hub // The game server
-	Roles   chan bool // Send roles to handler
+	Hub     *sock.Hub // Acts as the server for the game
+	Roles   chan bool // Send roles to other http handler
 	Rolesws chan bool // send roles to handler of websockets
 }
 
-// Global variable that allows us to upgrade a connection
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
+// HomeHandler send the index.html page at root path
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	route := filepath.Join("static", "html", "index.html")
 	http.ServeFile(w, r, route)
 }
+
+// JoinHandler handles POST requests to join a game.
+// Redirects users back to root with a message if there is an error.
+// Sends back a path with an id to go to to if there is no error.
 func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	if r.Method != "POST" {
 		log.Print("http Method was illegal for Join")
@@ -43,7 +40,7 @@ func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		log.Println(err)
 		return
 	}
-	// Do multiple loops so we know what to tell the user
+	// rooms contains ids of active rooms with the same name as POST information
 	rooms := make([]string, 0)
 	for id, data := range roomStorage {
 		sameRoom := body.Room == data.Hub.RoomData.Room
@@ -56,7 +53,6 @@ func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		return
 	}
 	for _, id := range rooms {
-		// Checks if room has vacancy
 		data := roomStorage[id]
 		samePin := body.Pin == data.Hub.RoomData.Pin
 		notFull := data.Hub.RoomData.Players+1 <= data.Hub.RoomData.Max
@@ -75,7 +71,10 @@ func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	http.Error(w, "Wrong Pin", http.StatusNotAcceptable)
 }
 
-//Creates room. Redirects to empty handler. Redirects to JoinHandler
+// CreateHandler creates a room.
+// Sends back a path with an id to go to along with leader permissions.
+// Redirects user back to root path with a message if there is an error / problems.
+// BUG: CreateHandler doesn't handle rooms with special character names
 func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	if r.Method != "POST" {
 		log.Print("http Method was illegal for Create")
@@ -86,21 +85,19 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 		log.Println(err)
 		return
 	}
-	// Take in anything approach.
 	if body.Players == "" || body.Room == "" {
 		http.Error(w, "Empty values", http.StatusConflict)
 		return
 	}
 	body.Room = strings.ReplaceAll(body.Room, " ", "")
 	playerAmount, err := strconv.Atoi(body.Players)
+	// user POST value that is not a number
 	if err != nil {
-		// Someone attempting some hacks
-		// Might be unneccessary though
-		log.Println(err, "Player count was not a number?? shouldn't be possible")
+		log.Printf("Someone sent a strange playerAmount of %v", playerAmount)
 		http.Error(w, "Nice Try nerd", http.StatusBadRequest)
 		return
 	}
-	// Create Proper Unique Data
+	// Context-like values being created
 	id := MakeId(roomStorage)
 	pin := MakePin(body.Room, roomStorage)
 	gameinfo := &sock.RoomData{

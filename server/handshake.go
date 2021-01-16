@@ -6,12 +6,19 @@ import (
 
 	sock "github.com/BozeBro/ChainReaction/websocket"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 // Struct to keep track of total gamers on the server
 type PlayerCounter struct {
 	Max     int
 	Current int
+}
+
+// upgrader upgrades a http connection to websocket
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
 
 func max(x, y int) int {
