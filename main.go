@@ -11,8 +11,8 @@ import (
 )
 
 func main() {
-	// Makes it so that rand functions are actually pseudo random
 	rand.Seed(time.Now().UnixNano())
+	// Multiplexer that chain reaction runs on
 	r := server.MakeRouter()
 	port := os.Getenv("PORT")
 
@@ -22,9 +22,9 @@ func main() {
 	srv := &http.Server{
 		Handler: r,
 		Addr:    ":" + port,
-		// Good practice: enforce timeouts for servers you create!
-		WriteTimeout: 10 * time.Second,
-		ReadTimeout:  10 * time.Second,
+		// long
+		WriteTimeout: 2 * time.Second,
+		ReadTimeout:  2 * time.Second,
 	}
 	log.Println("Starting on :" + port)
 	log.Fatal(srv.ListenAndServe())

@@ -43,6 +43,7 @@ type RoomData struct {
 }
 
 // NewHub Creates a newHub for a game to take place in
+// arbitrary large buffers to allow for async programming
 func NewHub(roomData *RoomData) *Hub {
 	return &Hub{
 		Alive:      false,

@@ -61,6 +61,7 @@ func (c *Client) ReadMsg() {
 	c.Conn.SetReadLimit(maxMessageSize)
 	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.Conn.SetPongHandler(func(string) error { c.Conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	// Mapping that will handle how to respond to a websocket msg
 	resMap := make(map[string]Responder)
 	resMap["start"] = c.start(&Chain{Hub: c.Hub})
 	resMap["move"] = c.move()
@@ -100,6 +101,7 @@ func (c *Client) WriteMsg() {
 				return
 			}
 		case <-ticker.C:
+			// Sending back a Pong msg to the Ping
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
