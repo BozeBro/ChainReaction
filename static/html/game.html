@@ -28,8 +28,8 @@
         </div>
         <div>
             <div class="noSelect"><h2 id="userColor"></h2></div>
-            <div class="noSelect">Your Pin is {{ .Pin }}</div>
-            <div class="noSelect">Your Room is {{ .Room }}</div>
+            <div>Your Pin is {{ .Pin }}</div>
+            <div>Your Room is {{ .Room }}</div>
             <div class="noSelect" id="winner"></div>
             {{ if .Leader }}
             <div id="boardMatrix">
@@ -75,6 +75,8 @@
 </body>
 <script src="/static/js/board.js"></script>
 <script>
+    // Redirect user if websockets is not available.
+    if (!window["WebSocket"]) document.location.href = document.location.host
     // start is the only new variable
     // true when game is ok to start.
     let goHome = document.querySelector(".navHome")

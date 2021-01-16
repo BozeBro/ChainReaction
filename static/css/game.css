@@ -47,7 +47,9 @@
 .players {
   margin: 1%;
 }
-
+/*
+Prevent a user from clicking.
+*/
 .noSelect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;

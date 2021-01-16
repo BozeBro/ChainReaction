@@ -5,24 +5,26 @@ let join = document.querySelector(".join");
 let spaces = document.querySelector(".spaces");
 let errCre = document.getElementById("errCre");
 let errJoin = document.getElementById("errJoin");
-let popCre = document.getElementById("pop-create");
-let popJoin = document.getElementById("pop-join");
+let popCre = document.getElementById("pop-create"); // The box that appears when Create is clicked
+let popJoin = document.getElementById("pop-join");  //  The box that appears when Join is clicked
 // popup tells what popup is active
 let popup = null;
 let creHandler = () => {
+    // once the box is clicked, the only way out is to click exit
     if (popup) { return }
-    popCre.style.display = "flex";
+    popCre.style.display = "flex"; // Make the popup appear
     popup = popCre;
 }
 let joinHandler = () => {
+    // once the box is clicked, the only way out is to click exit
     if (popup) { return }
-    popJoin.style.display = "flex";
+    popJoin.style.display = "flex"; // Make the popup appear
     popup = popJoin;
 
 }
 let btnClicked = (e) => {
     const btnClicked = e.target.nodeName === "BUTTON";
-    if (!btnClicked) { return }
+    if (!btnClicked) return
     switch (e.target.className) {
         case "ext":
             popup.style.display = "none";
@@ -34,7 +36,7 @@ let btnClicked = (e) => {
             if (popup.id === "pop-join") {
                 let room = document.getElementById("room").value;
                 let pin = document.getElementById("pin").value;
-                if (room === "" || pin === "") { return }
+                if (room === "" || pin === "") return
                 fetch("/api/join/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -55,7 +57,7 @@ let btnClicked = (e) => {
                             case 200:
                                 location.href = '/game/' + await res.text()
                             default:
-                                errJoin.innerHTML = "Something went wrong"
+                                errJoin.innerHTML = "Waiting on the server"
                         }
                     })
 
@@ -79,16 +81,16 @@ let btnClicked = (e) => {
                     .then(async (res) => {
                         switch (res.status) {
                             case 409:
-                                errCre.innerHTML = "ROOM IS TAKEN";
+                                errCre.innerHTML = "You didn't enter everything";
                                 break
                             case 400:
-                                errCre.innerHTML = "WHAT ARE YOU DOING?";
+                                errCre.innerHTML = "WHAT ARE YOU DOING?!";
                                 break
                             case 200:
                                 location.href = '/game/' + await res.text()
                                 break
                             default:
-                                errCre.innerHTML = "Something went wrong"
+                                errCre.innerHTML = "Waiting on the server"
                         }
                     })
             }

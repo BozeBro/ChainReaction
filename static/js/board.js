@@ -1,12 +1,10 @@
 "use strict";
-// See game.html for information on the event handlers
+//  See game.html for information on the event handlers
+//  canvas, ctx handle dynamic movement
+//  stat handle objects that aren't moving
+//  gr, grctx is just the grid
 class chainReaction {
   constructor(rows = 8, cols = 8, color) {
-    /*
-    canvas, ctx handle dynamic movement
-    stat handle objects that aren't moving
-    gr, grctx is just the grid
-    */
     this.__ms = 200 // length of entire animation in milliseconds. Meant to be a constant
     this.mycolor = "" // Player color is initialized at "start" JSON
     this.color = color; // This is the color of current player's turn
@@ -19,8 +17,8 @@ class chainReaction {
     this.cols = cols;
     this.squareLength = Math.min(screen.height * .80 / this.rows, screen.height * .80 / this.cols);
     this.squares = []; // Tells [number amount of circles, Exploding amount, cur color]
-    this.msgHandler = {};
-    this.que = []
+    this.msgHandler = {}; // map of functions that will handle a response based on resp type
+    this.que = [] // que system to asynchronously handle responses from websockets. Incoming response should not occur after ongoing animation.
     this.state = true; // Tracks if an animation is taking place
   };
   initBoard() {
@@ -45,19 +43,14 @@ class chainReaction {
       }
     }
   }
+  //  Animates each frame recursively.
+  //  animations - Instructs program how to animate (animation data)
+  //  unmoving - Tells what to draw on static Canvas. Position after each index of animation.
+  //  ts - timestamp given by requestAnimationFrame.
+  //  start - starting point of animation. Allows us to know how much time has passed relative to the starting point.
+  //  ind - tells index of animation and unmoving array.
+  //  color - tells color the circles should be.
   animate(animations, unmoving, ts, start, ind, color) {
-    /*
-    toAnimate - [{"moved": [], "animations": []}] ; Contains animation data
-    toAnimate.moved : Tells what to draw on static Canvas
-    toAnimate.animations : Instructs program how to animate (animation data)
-    i - int : Tells the next frame of the animation
-    d - int : How far each distance apart cicle should be drawn
-    ----
-    Animates each frame recursively.
-    this.exp is used here and ONLY here.
-    */
-
-
     const d = this.squareLength / this.__ms;
     const elapsed = ts - start;
     const i = d * elapsed;
@@ -94,7 +87,7 @@ class chainReaction {
       // Complete rest of animation
       requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, start, ind, color))
     } else if (ind + 1 < animations.length) {
-      // COmplete next level of explosion / animation
+      // Complete next level of explosion / animation
       for (let [x, y, v] of unmoving[ind+1]) {
         this.draw(x, y, v)
       }
@@ -109,22 +102,23 @@ class chainReaction {
       this.color = color;
       changeBarC(color);
       this.state = true
-      // Remove the first element that was just used, and then get the next (which is data)
-      // delay the shift till the very end of async so foo doesn't start a second async func
+      // First element should be the move response. Get the next one.
+      // delay the shift till the very end of async, so we do not start any new functions.
       chain.que.shift()
       if (this.que.length > 0) {
         let data = this.que[0]
-        //console.log(data)
+
         chain.msgHandler[data.type.toLowerCase()](data)
-      } else cancelAnimationFrame(ts)
+      }
+      cancelAnimationFrame(ts)
     }
   }
+
+  // Draws certain amount of circles on the board
+  //  x - y coordinate of the square
+  //  y - X coordinate of the square
+  //  v - Tells how many circles are in a square
   draw(x, y, v) {
-    /*
-    x - int : y coordinate of the square
-    y - int : X coordinate of the square
-    v - int : Tells how many circles are in a square
-    */
     let circlePos = this.squareLength / 7.5;
     let radius = this.squareLength / 4;
     this.statCtx.fillStyle = this.color;
@@ -177,8 +171,12 @@ class chainReaction {
     }
   }
 }
+
+// Helper function to find position on the board
 const loc = function (z, length, offset = 0) { return z * length + length / 2 + offset }
+// The bar is the element above the board
 let bar = document.getElementById("bar").getContext("2d");
+// Tells if a game has started
 let start = false
 
 let changeBarC = (color) => {
