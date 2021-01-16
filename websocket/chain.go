@@ -133,17 +133,7 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 			animations = append(animations, []int{coords[0], coords[1], d[0], d[1]})
 			sq := c.Squares[y]
 			deletedColor := sq.Color[x]
-			isdead := c.UpdateColor(color, deletedColor)
-			sq.Color[x] = color
-			sq.Cur[x]++
-			if sq.Cur[x] == sq.Max[x] {
-				sq.Cur[x] = 0
-				sq.Color[x] = ""
-				isdead = c.UpdateColor("", color) || isdead
-				expN = append(expN, []int{x, y})
-			}
-			moved = append(moved, []int{x, y, sq.Cur[x]})
-			if isdead {
+			if c.UpdateColor(color, deletedColor) {
 				// Remove the players from the list of alive people
 				for index := 0; index < len(c.Hub.Colors); index++ {
 					if c.Hub.Colors[index] == deletedColor {
@@ -156,6 +146,15 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 					}
 				}
 			}
+			sq.Color[x] = color
+			sq.Cur[x]++
+			if sq.Cur[x] == sq.Max[x] {
+				sq.Cur[x] = 0
+				sq.Color[x] = ""
+				_ = c.UpdateColor("", color)
+				expN = append(expN, []int{x, y})
+			}
+			moved = append(moved, []int{x, y, sq.Cur[x]})
 
 		}
 	}
