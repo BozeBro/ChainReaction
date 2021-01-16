@@ -11,20 +11,20 @@ let popJoin = document.getElementById("pop-join");  //  The box that appears whe
 let popup = null;
 let creHandler = () => {
     // once the box is clicked, the only way out is to click exit
-    if (popup) { return }
+    if (popup) return;
     popCre.style.display = "flex"; // Make the popup appear
     popup = popCre;
 }
 let joinHandler = () => {
     // once the box is clicked, the only way out is to click exit
-    if (popup) { return }
+    if (popup) return;
     popJoin.style.display = "flex"; // Make the popup appear
     popup = popJoin;
 
 }
 let btnClicked = (e) => {
-    const btnClicked = e.target.nodeName === "BUTTON";
-    if (!btnClicked) return
+    const isbtnClicked = e.target.nodeName === "BUTTON";
+    if (!isbtnClicked) return
     switch (e.target.className) {
         case "ext":
             popup.style.display = "none";
@@ -56,6 +56,7 @@ let btnClicked = (e) => {
                                 break
                             case 200:
                                 location.href = '/game/' + await res.text()
+                                break;
                             default:
                                 errJoin.innerHTML = "Waiting on the server"
                         }
