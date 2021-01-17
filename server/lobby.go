@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	names "github.com/Pallinder/go-randomdata"
 	"github.com/gorilla/mux"
 )
 
@@ -26,6 +27,7 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		if notFull {
 			roomData.Roles <- false
 			roomData.Rolesws <- false
+			roomData.Username <- names.SillyName()
 			http.Redirect(w, r, "/game/"+id, http.StatusFound)
 			return
 		}

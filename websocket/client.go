@@ -10,6 +10,8 @@ import (
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
+	// Username of the player
+	Username string
 	// The color that represents the player and on the board
 	Color string
 	// Can the player start the game or not?
@@ -35,6 +37,7 @@ type WSData struct {
 	Static    [][][]int `json:"static"`    // What the new board will look like - "move"
 	Rows      int       `json:"rows"`      // Amount of rows - Sent at "start"
 	Cols      int       `json:"cols"`      // Amount of columns - Sent at "start"
+	Message   string    `json:"message"`   // chat messsage sent by a user - "chat"
 }
 
 const (
@@ -65,6 +68,7 @@ func (c *Client) ReadMsg() {
 	resMap := make(map[string]Responder)
 	resMap["start"] = c.start(&Chain{Hub: c.Hub})
 	resMap["move"] = c.move()
+	resMap["chat"] = c.chat()
 	for {
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
@@ -76,7 +80,10 @@ func (c *Client) ReadMsg() {
 			log.Println(err)
 			return
 		}
-		resMap[playInfo.Type](playInfo)
+		if err := resMap[playInfo.Type](playInfo); err != nil {
+			log.Println(err)
+			return
+		}
 	}
 }
 

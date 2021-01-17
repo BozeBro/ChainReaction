@@ -42,6 +42,7 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		return
 	}
 	isleader := <-rolesws
+	username := <-hub.RoomData.Username
 	// Only start hub server once.
 	if isleader && !hub.Alive {
 		go hub.Run()
@@ -62,6 +63,7 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		Conn:     conn,
 		Received: make(chan []byte, 1000),
 		Leader:   isleader,
+		Username: username,
 	}
 	hub.Register <- client
 	go client.ReadMsg()

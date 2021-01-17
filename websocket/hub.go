@@ -38,8 +38,9 @@ type Hub struct {
 type RoomData struct {
 	Room, Pin    string
 	Players, Max int
-	Roles        chan bool // Send roles to other http handler
-	Rolesws      chan bool // send roles to handler of websockets
+	Roles        chan bool   // Send roles to other http handler
+	Rolesws      chan bool   // send roles to handler of websockets
+	Username     chan string // contains the names of people
 }
 
 // NewHub Creates a newHub for a game to take place in

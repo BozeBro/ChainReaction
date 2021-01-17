@@ -12,7 +12,7 @@ const CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 // Valid request information that a user can send
 // It is stored in the context
 type ReqBody struct {
-	Pin, Room, Players, Name string
+	Pin, Room, Players, Username string
 }
 
 // Decode Json message from HTTP Request.

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	sock "github.com/BozeBro/ChainReaction/websocket"
+	names "github.com/Pallinder/go-randomdata"
 )
 
 // Storage is the type that stores all Games
@@ -78,11 +79,10 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 		log.Println(err)
 		return
 	}
-	if body.Players == "" || body.Room == "" {
+	if (body.Players == "") || (body.Room == "") {
 		http.Error(w, "Empty values", http.StatusConflict)
 		return
 	}
-	body.Room = strings.ReplaceAll(body.Room, " ", "")
 	playerAmount, err := strconv.Atoi(body.Players)
 	// user POST value that is not a number
 	if err != nil {
@@ -94,17 +94,23 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 	id := MakeId(roomStorage)
 	pin := MakePin(body.Room, roomStorage)
 	gameinfo := &sock.RoomData{
-		Room:    body.Room,
+		Room:    strings.ReplaceAll(body.Room, " ", ""),
 		Pin:     pin,
 		Max:     playerAmount,
 		Players: 0, // Correct players will be in joinHandler
 	}
+	body.Username = strings.ReplaceAll(body.Username, " ", "")
+	if body.Username == "" {
+		body.Username = names.SillyName()
+	}
 	hub := sock.NewHub(gameinfo)
 	hub.RoomData.Roles = make(chan bool, playerAmount)
 	hub.RoomData.Rolesws = make(chan bool, playerAmount)
+	hub.RoomData.Username = make(chan string, playerAmount)
 	roomStorage[id] = hub
 	roomStorage[id].RoomData.Roles <- true
 	roomStorage[id].RoomData.Rolesws <- true
+	roomStorage[id].RoomData.Username <- body.Username
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Write([]byte(id))
 }

@@ -84,6 +84,7 @@
 </body>
 <script src="/static/js/chat.js"></script>
 <script src="/static/js/board.js"></script>
+<script src="/static/js/chat.js"></script>
 <script>
     // Redirect user if websockets is not available.
     if (!window["WebSocket"]) document.location.href = document.location.host
@@ -100,10 +101,27 @@
     let wss = document.location.protocol == "https:" ? "wss://" : "ws://"
     let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red");
+    let typing = document.getElementById("chat-form")
+    typing.addEventListener("keypress", (event) => {
+    event.preventDefault();
+    if (event.key !== "Enter") {typing.value += event.key;return;}
+	var message_element = document.getElementsByTagName("input")[0];
+	var message = message_element.value;
+
+	if (message.toString().length) {
+        socket.send(JSON.stringify({
+            type: "chat",
+            message: message,
+        }))
+        //MessageAdd('<div class="message">' + message + '</div>')
+        message_element.value = "";
+	}
+}, false);
+
     // Global variable to stop asynchronous from racing
     bar.canvas.width = chain.canvas.width;
-// height is 10% of width
-bar.canvas.height = bar.canvas.width * 0.05;
+    // height is 10% of width
+    bar.canvas.height = bar.canvas.width * 0.05;
     goHome.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
     ext.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
     chain.grctx.canvas.onclick = (event) => {
@@ -126,6 +144,10 @@ bar.canvas.height = bar.canvas.width * 0.05;
         }
     }
     chain.msgHandler = {}
+    chain.msgHandler["chat"] = (data) => {
+        MessageAdd(data.message, data.username, data.color)
+        nextAni()
+    }
     chain.msgHandler["start"] = (data) => {
         chain.statCtx.clearRect(0, 0, chain.canvas.width, chain.canvas.height);
         start = true

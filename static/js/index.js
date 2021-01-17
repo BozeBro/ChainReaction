@@ -36,11 +36,12 @@ let btnClicked = (e) => {
             if (popup.id === "pop-join") {
                 let room = document.getElementById("room").value;
                 let pin = document.getElementById("pin").value;
+                let username = document.getElementById("username").value;
                 if (room === "" || pin === "") return
                 fetch("/api/join/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ room: room, pin: pin, }),
+                    body: JSON.stringify({ username: username, room: room, pin: pin, }),
                 })
                     .then(async (res) => {
                         switch (res.status) {
@@ -67,6 +68,7 @@ let btnClicked = (e) => {
                 let DOMName = document.getElementById("name");
                 let room = DOMName.value;
                 let players = document.getElementById("players").value;
+                let user = document.getElementById("user").value;
                 if (!room) {
                     errCre.innerHTML = "ENTER A ROOM NAME";
                     return
@@ -75,7 +77,7 @@ let btnClicked = (e) => {
                 fetch("/api/create/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ Players: players, Room: room }),
+                    body: JSON.stringify({ username: user, players: players, room: room }),
                     redirect: 'follow',
                     credentials: 'same-origin',
                 })

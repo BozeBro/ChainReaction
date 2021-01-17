@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"bytes"
 	"encoding/json"
 	"math/rand"
 )
@@ -8,6 +9,11 @@ import (
 // function type that will deal with a specific msg from websocket
 // function should be called by the type they handle
 type Responder func(*WSData) error
+
+var (
+	newline = []byte{'\n'}
+	space   = []byte{' '}
+)
 
 // returns a function that handles json data of type start.
 // This function should only be used in the beginning of each game.
@@ -91,4 +97,27 @@ func (c *Client) move() Responder {
 		return nil
 	})
 
+}
+
+func (c *Client) chat() Responder {
+	h := c.Hub
+	return Responder(func(playInfo *WSData) error {
+		msg := string(bytes.TrimSpace(bytes.Replace([]byte(playInfo.Message), newline, space, -1)))
+		payload, err := json.Marshal(&struct {
+			Type     string `json:"type"`
+			Message  string `json:"message"`
+			Color    string `json:"color"`
+			Username string `json:"username"`
+		}{
+			Type:     "chat",
+			Message:  msg,
+			Color:    c.Color,
+			Username: c.Username,
+		})
+		if err != nil {
+			return err
+		}
+		h.Broadcast <- payload
+		return nil
+	})
 }
