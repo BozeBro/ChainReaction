@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/css/index.css">
     <link rel="stylesheet" href="/static/css/waiting.css">
     <link rel="stylesheet" href="/static/css/game.css">
+    <link rel="stylesheet" href="/static/css/chat.css">
     <!-- We need index.css for the btn style -->
     <title>Chain Reaction Game</title>
 </head>
@@ -14,7 +15,15 @@
 <body>
     <div class="overview">
         <div>
+            <aside>
             <span class="navHome">CHAIN REACTION</span>
+            <div id="user-chat">
+                <div id="chat">
+                    <div id="chat-messages"></div>
+                </div>
+            </div>
+            <input id="chat-form" type="text" name="message" placeholder="Please be nice in chat" maxlength="140" autocomplete="off">
+        </aside>
         </div>
         <div class="general">
             <div class="bar-wrap">
@@ -73,6 +82,7 @@
         </div>
     </div>
 </body>
+<script src="/static/js/chat.js"></script>
 <script src="/static/js/board.js"></script>
 <script>
     // Redirect user if websockets is not available.

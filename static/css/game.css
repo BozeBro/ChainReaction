@@ -26,6 +26,7 @@
 }
 
 .overview {
+  height: 450px;
   display: grid;
   grid-template-columns: 20% 60% 20%;
 }
