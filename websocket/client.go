@@ -12,10 +12,13 @@ import (
 type Client struct {
 	// Username of the player
 	Username string
+
 	// The color that represents the player and on the board
 	Color string
+
 	// Can the player start the game or not?
 	Leader bool
+
 	// The hub in which clients will play
 	Hub *Hub
 

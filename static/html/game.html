@@ -223,7 +223,7 @@
     let cols = document.getElementById("columns");
     let boardBtn = document.getElementById("boardBtn");
     boardBtn.onclick = () => {
-        // Size bouds for cols and rows is [5, 30]
+        // Size bounds for cols and rows is [5, 30]
         if (start === true) { return }
         chain.rows = rows.value !== "" ? Math.max(5, parseInt(rows.value)) : 5;
         chain.cols = cols.value !== "" ? Math.max(5, parseInt(cols.value)) : 5;
