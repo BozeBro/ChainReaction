@@ -7,3 +7,5 @@ The last player standing wins the game.
 
 Simple Rules:
 You cannot physically add circles on other people's squares.
+
+<h1>How to Install</h1>
