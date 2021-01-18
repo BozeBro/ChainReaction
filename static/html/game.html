@@ -193,7 +193,7 @@
         players.innerHTML = data.players;
         nextAni()
     }
-    chain.msgHandler["colorchange"] = (data) => {
+    chain.msgHandler["changecolor"] = (data) => {
         chain.color = data.turn;
         changeBarC(data.turn);
         nextAni()
