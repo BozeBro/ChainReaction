@@ -1,0 +1,24 @@
+version: '3'
+
+tasks:
+
+  clean:
+      cmds:
+        - go mod tidy
+        - go clean
+      silent: true
+
+  build:
+    deps: [clean]
+    cmds:
+      - go build -o bin/ChainReaction -v
+
+  hrun:
+    deps: [build]
+    cmds:
+      - heroku local
+
+  run:
+    deps: [build]
+    cmds:
+      - go run main.go
