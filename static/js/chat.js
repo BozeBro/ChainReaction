@@ -17,3 +17,10 @@ function escapeHtml(text) {
 
 	return text.replace(/[&<>"']/g, (m) => map[m]);
   }
+
+var beginning;
+var curTime;
+function timing(timestamp) {
+	curTime = timestamp
+    requestAnimationFrame((timestamp) => timing(timestamp))
+}

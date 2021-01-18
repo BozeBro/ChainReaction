@@ -102,19 +102,25 @@
     let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red");
     let typing = document.getElementById("chat-form")
+    // Infinite loop here. See chat.js
+    requestAnimationFrame((ts) => timing(ts))
     typing.addEventListener("keypress", (event) => {
-    event.preventDefault();
-    if (event.key !== "Enter") {typing.value += event.key;return;}
-	var message_element = document.getElementsByTagName("input")[0];
-	var message = message_element.value;
-
-	if (message.toString().length) {
-        socket.send(JSON.stringify({
-            type: "chat",
-            message: message,
-        }))
-        //MessageAdd('<div class="message">' + message + '</div>')
-        message_element.value = "";
+        event.preventDefault();
+        if (event.key !== "Enter") {typing.value += event.key;return;}
+        var message_element = document.getElementsByTagName("input")[0];
+        var message = message_element.value;
+        if (curTime - beginning < 750) {
+            console.log("IN HERE")
+            message_element.value = "";
+            return
+        } else if (message.toString().length) {
+            beginning = curTime
+            socket.send(JSON.stringify({
+                type: "chat",
+                message: message,
+            }))
+            //MessageAdd('<div class="message">' + message + '</div>')
+            message_element.value = "";
 	}
 }, false);
 
