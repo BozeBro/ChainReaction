@@ -9,3 +9,7 @@ Simple Rules:
 You cannot physically add circles on other people's squares.
 
 <h1>How to Install</h1>
+
+```golang
+fmt.Println(x)
+```
