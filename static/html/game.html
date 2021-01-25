@@ -103,7 +103,6 @@
     let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red");
     let typing = document.getElementById("chat-form");
-    let display = document.getElementById("turn-display");
     // Infinite loop here. See chat.js
     requestAnimationFrame((ts) => timing(ts))
     typing.addEventListener("keypress", (event) => {
@@ -141,9 +140,7 @@
             socket.send(JSON.stringify({ type: "move", x: x, y: y}))
         }
     }
-	function changeTurn(color) {
-	display.innerHTML = `It is ${color}'s turn`	
-	}
+ 
     nextAni = () => {
         // Remove the first element that was just used, and then get the next (which is data)
         // delay the shift till the very end of async so foo doesn't start a second async func
