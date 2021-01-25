@@ -11,15 +11,15 @@ var COLORS = []string{
 	"Aquamarine", "Green",
 	"Brown", "DarkOrange",
 	"DeepPink", "Gray", 
-	"Black", "Granola",
+	"Black", "darkkhaki",
 	"Tan", "SlateBlue",
 	"Tomato", "Cyan",
-	"Olive", "Jellyfish",
-	"PineGreen", "Cantaloupe",
-	"DeepPeach", "Maroon",
+	"Olive", "cornsilk",
+	"mediumspringgreen", "darkslategray",
+	"peachpuff", "Maroon",
 	"RosyBrown", "CadillacPink",
-	"Magenta", "WisteriaPurple",
-	"Pearl", "Moccasin",
+	"Magenta", "indigo",
+	"mediumvioletred", "Moccasin",
 }
 
 // RandomColor grabs a random color from global COLORS
