@@ -17,8 +17,8 @@ var COLORS = []string{
 	"Olive", "cornsilk",
 	"mediumspringgreen", "darkslategray",
 	"peachpuff", "Maroon",
-	"RosyBrown", "CadillacPink",
-	"Magenta", "indigo",
+	"RosyBrown", "Yellow",
+	"Magenta", "Indigo",
 	"mediumvioletred", "Moccasin",
 }
 
