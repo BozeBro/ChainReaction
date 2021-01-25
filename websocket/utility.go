@@ -17,7 +17,7 @@ var COLORS = []string{
 	"Olive", "Jellyfish",
 	"PineGreen", "Cantaloupe",
 	"DeepPeach", "Maroon",
-	"RosyBrown" "CadillacPink",
+	"RosyBrown", "CadillacPink",
 	"Magenta", "WisteriaPurple",
 	"Pearl", "Moccasin",
 }
