@@ -110,7 +110,6 @@
         var message_element = document.getElementsByTagName("input")[0];
         var message = message_element.value;
         if (curTime - beginning < 750) {
-            console.log("IN HERE")
             message_element.value = "";
             return
         } else if (message.toString().length) {
