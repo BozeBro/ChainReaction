@@ -57,6 +57,7 @@ func JoinHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		if samePin && notFull {
 			hub.RoomData.Roles <- false
 			hub.RoomData.Rolesws <- false
+			hub.RoomData.Username <- body.Username
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.Write([]byte(id))
 			return

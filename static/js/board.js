@@ -100,6 +100,7 @@ class chainReaction {
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
       this.color = color;
+      changeTurn(color);
       changeBarC(color);
       this.state = true
       // First element should be the move response. Get the next one.
@@ -178,7 +179,10 @@ const loc = function (z, length, offset = 0) { return z * length + length / 2 + 
 let bar = document.getElementById("bar").getContext("2d");
 // Tells if a game has started
 let start = false
-
+let display = document.getElementById("turn-display");
+	function changeTurn(color) {
+	display.innerHTML = `It is ${color}'s turn`	
+	}
 let changeBarC = (color) => {
     bar.fillStyle = color;
     bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);

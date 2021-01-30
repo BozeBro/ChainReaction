@@ -29,6 +29,7 @@
             <div class="bar-wrap">
                 <canvas id="bar"></canvas>
             </div>
+	    <div id="turn-display"></div>
             <div id="interface">
                 <canvas id="dynamic" width="450px" height="450px"></canvas>
                 <canvas id="static" width="450px" height="450px"></canvas>
@@ -101,7 +102,7 @@
     let wss = document.location.protocol == "https:" ? "wss://" : "ws://"
     let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red");
-    let typing = document.getElementById("chat-form")
+    let typing = document.getElementById("chat-form");
     // Infinite loop here. See chat.js
     requestAnimationFrame((ts) => timing(ts))
     typing.addEventListener("keypress", (event) => {
@@ -138,7 +139,7 @@
             socket.send(JSON.stringify({ type: "move", x: x, y: y}))
         }
     }
-
+ 
     nextAni = () => {
         // Remove the first element that was just used, and then get the next (which is data)
         // delay the shift till the very end of async so foo doesn't start a second async func
@@ -163,6 +164,7 @@
         chain.cols = data.cols;
         chain.squareLength = Math.min(screen.height * .80 / chain.rows, screen.height * .80 / chain.cols);
         chain.initBoard();
+	changeTurn(data.turn);
         changeBarC(data.turn);
         nextAni()
     }
@@ -172,11 +174,13 @@
                     // Made a move, no explosion
                     chain.draw(...data.static[0][0]);
                     chain.color = data.turn;
+		    changeTurn(data.turn);
                     changeBarC(data.turn);
                     nextAni()
                 } else if (data.static.length === 0) {
                     // A person left the game
                     chain.color = data.turn;
+		    changeTurn(data.turn);
                     changeBarC(data.turn);
                     nextAni()
                 } else {
