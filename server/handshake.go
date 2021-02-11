@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"log"
+	"math"
 	"net/http"
 
 	sock "github.com/BozeBro/ChainReaction/websocket"
@@ -79,6 +80,7 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		}
 		hub.Register <- botclient
 		go func() {
+			move := botclient.Move()
 			for {
 				select {
 				// dump out received msg to not fill chan
@@ -91,9 +93,37 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 					switch playInfo.Type {
 					case "start", "move":
 						if playInfo.Turn == botclient.Color {
-							x, y := hub.Match.RandMove(botclient.Color)
+							x, y := func(f string) (int, int) {
+								if f == "rand" {
+									return hub.Match.RandMove(botclient.Color)
+								} else if f == "mm" {
+									nextColor := ""
+									for _, val := range hub.Colors {
+										if val != botclient.Color {
+											nextColor = val
+										}
+									}
+									if nextColor == "" {
+										log.Println("nextColor is nil: handshake line 109")
+										return -1, -1
+									}
+									_, sq := hub.Match.Max(
+										botclient.Color,
+										nextColor,
+										1,
+										int(math.Inf(-1)),
+										int(math.Inf(1)),
+										3,
+										3,
+									)
+									return sq[0], sq[1]
+								}
+
+								return 1, 1
+							}("mm")
 							playInfo.X, playInfo.Y = x, y
-							if err := botclient.Move()(playInfo); err != nil {
+							playInfo.Type = "move"
+							if err := move(playInfo); err != nil {
 								log.Println(err)
 								return
 							}

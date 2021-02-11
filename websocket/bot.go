@@ -73,8 +73,7 @@ func findChains(oldBoard []*Squares, color string) []int {
 		for x := 0; x < board[0].Len; x++ {
 			if board[y].Cur[x] == board[y].Max[x]-1 && board[y].Color[x] == color {
 				amount := 0
-				visiting := make([][]int, 0)
-				visiting = append(visiting, []int{x, y})
+				visiting := [][]int{{x, y}}
 				for len(visiting) > 0 {
 					last := len(visiting) - 1
 					x, y := visiting[last][0], visiting[last][1]
@@ -95,77 +94,145 @@ func findChains(oldBoard []*Squares, color string) []int {
 	}
 	return lengths
 }
-func (c *Chain) Minimax(color string, maximizing bool, players []string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
-	square := [2]int{movedx, movedy}
-	nextColor := players[0]
-	curNums := c.Hub.Clients
-	if color == players[0] {
-		nextColor = players[1]
-	}
-	if depth == 0 {
-		return BrillHeuristic(c.Squares, color), [2]int{movedx, movedy}
-	} else if maximizing {
-		val := int(math.Inf(-1))
-		for y := 0; y < c.Len; y++ {
-			for x := 0; x < c.Squares[0].Len; x++ {
-				if c.Squares[y].Color[x] == color || c.Squares[y].Color[x] == "" {
-					c.MovePiece(x, y, color)
-					for client, squares := range c.Hub.Clients {
-						if client.Color == color {
-							if squares == 0 {
-								c.Hub.Clients = curNums
-								return 10000, [2]int{x, y}
-							}
-							break
-						}
-					}
-					maxVal, _ := c.Minimax(nextColor, !maximizing, players, depth-1, alpha, beta, x, y)
 
-					if maxVal > val {
-						square = [2]int{x, y}
-						val = maxVal
-					}
-					if val > alpha {
-						alpha = val
-					}
-					c.Hub.Clients = curNums
-					if alpha >= beta {
-						return val, square
-					}
-				}
-			}
-		}
-		return val, square
+// Maximizing player
+// Return greatest number possible
+func (c *Chain) Max(color string, nextColor string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
+	sq := [2]int{movedx, movedy}
+	val := int(math.Inf(-1))
+	if depth == 0 {
+		// use nextColor because we are evaluating previous player's move
+		boardValue := BrillHeuristic(c.Squares, nextColor)
+		return boardValue, sq
 	}
-	val := int(math.Inf(1))
+	newBoard := copyBoard(c.Squares)
+	newClients := copyClients(c.Hub.Clients)
+	players := make([]string, len(c.Hub.Colors), len(c.Hub.Colors))
+	for ind, player := range c.Hub.Colors {
+		players[ind] = player
+	}
 	for y := 0; y < c.Len; y++ {
 		for x := 0; x < c.Squares[0].Len; x++ {
-			if c.Squares[y].Color[x] == color || c.Squares[y].Color[x] == "" {
+			if c.Squares[y].Color[x] == "" || c.Squares[y].Color[x] == color {
 				c.MovePiece(x, y, color)
-				for client, squares := range c.Hub.Clients {
-					if client.Color == color {
-						if squares == 0 {
-							c.Hub.Clients = curNums
-							return 10000, [2]int{x, y}
-						}
-						break
-					}
+				if iswinner(c.Squares, color) {
+					c.Hub.Clients = newClients
+					c.Hub.Colors = players
+					return 10000, [2]int{movedx, movedy}
 				}
-				minVal, _ := c.Minimax(nextColor, !maximizing, players, depth-1, alpha, beta, x, y)
-
-				if minVal < val {
-					square = [2]int{x, y}
-					val = minVal
+				maxVal, _ := c.Min(nextColor, color, depth-1, alpha, beta, x, y)
+				if maxVal > val {
+					sq = [2]int{x, y}
+					val = maxVal
 				}
-				if val > beta {
-					beta = val
+				if val > alpha {
+					alpha = val
 				}
-				c.Hub.Clients = curNums
+				c.Hub.Clients = newClients
+				replaceBoard(c.Squares, newBoard)
+				c.Hub.Colors = players
 				if alpha >= beta {
-					return val, square
+					return val, sq
 				}
 			}
 		}
 	}
-	return val, square
+	return val, sq
+}
+
+// Minimizing player
+// Return smallest number possible
+// Look at Max() for more documentation
+func (c *Chain) Min(color string, nextColor string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
+	sq := [2]int{movedx, movedy}
+	val := int(math.Inf(1))
+	if depth == 0 {
+		boardValue := BrillHeuristic(c.Squares, nextColor)
+		return boardValue, sq
+	}
+	players := make([]string, len(c.Hub.Colors), len(c.Hub.Colors))
+	for ind, player := range c.Hub.Colors {
+		players[ind] = player
+	}
+	newBoard := copyBoard(c.Squares)
+	newClients := copyClients(c.Hub.Clients)
+	for y := 0; y < c.Len; y++ {
+		for x := 0; x < c.Squares[0].Len; x++ {
+			if c.Squares[y].Color[x] == "" || c.Squares[y].Color[x] == color {
+				c.MovePiece(x, y, color)
+				if iswinner(c.Squares, color) {
+					// revert side effects
+					c.Hub.Clients = newClients
+					c.Hub.Colors = players
+					replaceBoard(c.Squares, newBoard)
+					return -10000, [2]int{movedx, movedy}
+				}
+				minVal, _ := c.Max(nextColor, color, depth-1, alpha, beta, x, y)
+				if minVal < val {
+					sq = [2]int{x, y}
+					val = minVal
+				}
+				if val < beta {
+					beta = val
+				}
+				c.Hub.Clients = newClients
+				c.Hub.Colors = players
+				replaceBoard(c.Squares, newBoard)
+				if alpha >= beta {
+					return val, sq
+				}
+			}
+		}
+	}
+	return val, sq
+}
+
+func copyBoard(oldBoard []*Squares) []*Squares {
+	newBoard := make([]*Squares, len(oldBoard))
+	for y, valy := range oldBoard {
+		newBoard[y] = &Squares{
+			Len:   valy.Len,
+			Color: make([]string, valy.Len),
+			Cur:   make([]int, valy.Len),
+			Max:   make([]int, valy.Len),
+		}
+		for x := 0; x < valy.Len; x++ {
+			newBoard[y].Color[x] = valy.Color[x]
+			newBoard[y].Cur[x] = valy.Cur[x]
+			newBoard[y].Max[x] = valy.Max[x]
+		}
+	}
+	return newBoard
+}
+
+func copyClients(oldClients map[*Client]int) map[*Client]int {
+	newClients := make(map[*Client]int)
+	for client, val := range oldClients {
+		newClients[client] = val
+	}
+	return newClients
+}
+
+func iswinner(board []*Squares, color string) bool {
+	isdead := true
+	for _, squares := range board {
+		for _, c := range squares.Color {
+			if c != color || c != "" {
+				isdead = false
+				break
+			}
+		}
+	}
+	return isdead
+}
+
+// Put contents of newboard into oldboard in-place
+func replaceBoard(oldboard []*Squares, newboard []*Squares) {
+	for y, squares := range newboard {
+		for x := 0; x < squares.Len; x++ {
+			oldboard[y].Color[x] = newboard[y].Color[x]
+			oldboard[y].Cur[x] = newboard[y].Cur[x]
+			oldboard[y].Max[x] = newboard[y].Max[x]
+		}
+	}
 }
