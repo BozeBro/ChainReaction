@@ -112,7 +112,7 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 									_, sq := hub.Match.Max(
 										botclient.Color,
 										nextColor,
-										5,
+										3,
 										a,
 										b,
 										-6,
@@ -122,14 +122,13 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 								}
 
 								return 1, 1
-							}("rand")
+							}("mm")
 							playInfo.X, playInfo.Y = x, y
 							playInfo.Type = "move"
 							if err := move(playInfo); err != nil {
 								log.Println(err)
 								return
 							}
-							log.Print(hub.Clients, x, y)
 						}
 					case "color":
 						botclient.Color = playInfo.Color

@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"math"
 	"math/rand"
 )
 
@@ -99,7 +98,7 @@ func findChains(oldBoard []*Squares, color string) []int {
 // Return greatest number possible
 func (c *Chain) Max(color, nextColor string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
 	sq := [2]int{movedx, movedy}
-	val := int(math.Inf(-1))
+	val := -100000
 	if depth == 0 {
 		// use because we are evaluating previous player's move
 		boardValue := BrillHeuristic(c.Squares, color)
@@ -117,10 +116,6 @@ func (c *Chain) Max(color, nextColor string, depth, alpha, beta, movedx, movedy 
 				c.MovePiece(x, y, color)
 				// revert side effects from MovePiece
 				maxVal, _ := c.Min(nextColor, color, depth-1, alpha, beta, x, y)
-				if maxVal > val {
-					sq = [2]int{x, y}
-					val = maxVal
-				}
 				for client, squares := range newClients {
 					c.Hub.Clients[client] = squares
 				}
@@ -130,14 +125,17 @@ func (c *Chain) Max(color, nextColor string, depth, alpha, beta, movedx, movedy 
 					c.Hub.Colors[index] = color
 				}
 				replaceBoard(c.Squares, newBoard)
-				if val > alpha {
-					alpha = val
-				}
-				/*
-					if alpha >= beta {
-						return val, sq
+				if maxVal > val {
+					sq = [2]int{x, y}
+					val = maxVal
+					if val > alpha {
+						alpha = val
+						if alpha >= beta {
+							return alpha, sq
+
+						}
 					}
-				*/
+				}
 			}
 		}
 	}
@@ -149,7 +147,7 @@ func (c *Chain) Max(color, nextColor string, depth, alpha, beta, movedx, movedy 
 // Look at Max() for more documentation
 func (c *Chain) Min(color, nextColor string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
 	sq := [2]int{movedx, movedy}
-	val := int(math.Inf(1))
+	val := 100000
 	if depth == 0 {
 		// nextColor is actually our original color
 		boardValue := BrillHeuristic(c.Squares, nextColor)
@@ -166,10 +164,6 @@ func (c *Chain) Min(color, nextColor string, depth, alpha, beta, movedx, movedy 
 			if c.Squares[y].Color[x] == "" || c.Squares[y].Color[x] == color {
 				c.MovePiece(x, y, color)
 				minVal, _ := c.Max(nextColor, color, depth-1, alpha, beta, x, y)
-				if minVal < val {
-					sq = [2]int{x, y}
-					val = minVal
-				}
 				for client, squares := range newClients {
 					c.Hub.Clients[client] = squares
 				}
@@ -179,14 +173,16 @@ func (c *Chain) Min(color, nextColor string, depth, alpha, beta, movedx, movedy 
 					c.Hub.Colors[index] = color
 				}
 				replaceBoard(c.Squares, newBoard)
-				if val < beta {
-					beta = val
-				}
-				/*
-					if alpha >= beta {
-						return val, sq
+				if minVal < val {
+					sq = [2]int{x, y}
+					val = minVal
+					if val < beta {
+						beta = val
+						if alpha >= beta {
+							return beta, sq
+						}
 					}
-				*/
+				}
 			}
 		}
 	}

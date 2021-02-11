@@ -109,11 +109,6 @@ func (c *Client) WriteMsg() {
 	for {
 		select {
 		case msg, ok := <-c.Received:
-			/*
-				test := new(WSData)
-				json.Unmarshal(msg, test)
-				log.Print(test)
-			*/
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.

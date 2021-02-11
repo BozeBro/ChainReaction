@@ -133,7 +133,7 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 					if c.Hub.Colors[index] == oldColor {
 						c.Hub.Colors = append(c.Hub.Colors[:index], c.Hub.Colors[index+1:]...)
 						// reposition turn tracker index
-						if index <= c.Hub.i {
+						if index <= c.Hub.i && c.Hub.i != 0 {
 							c.Hub.i--
 						}
 						break
