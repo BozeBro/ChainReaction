@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/BozeBro/ChainReaction/server"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -17,7 +18,13 @@ func main() {
 	// dynamic port assigned by Heroku
 	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("$PORT must be set")
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatal("$PORT must be set")
+		} else {
+			// running locally
+			port = os.Getenv("PORT")
+		}
 	}
 	srv := &http.Server{
 		Handler:      r,

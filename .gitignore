@@ -4,3 +4,4 @@ TODO.txt
 *.swo
 *.swp
 data.txt
+.env
