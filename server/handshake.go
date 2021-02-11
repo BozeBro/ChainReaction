@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"log"
-	"math"
 	"net/http"
 
 	sock "github.com/BozeBro/ChainReaction/websocket"
@@ -108,20 +107,22 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 										log.Fatal("nextColor is nil: handshake line 109")
 										return -1, -1
 									}
+									a := -100000
+									b := 100000
 									_, sq := hub.Match.Max(
 										botclient.Color,
 										nextColor,
-										1,
-										int(math.Inf(-1)),
-										int(math.Inf(1)),
-										3,
-										3,
+										5,
+										a,
+										b,
+										-6,
+										-6,
 									)
 									return sq[0], sq[1]
 								}
 
 								return 1, 1
-							}("mm")
+							}("rand")
 							playInfo.X, playInfo.Y = x, y
 							playInfo.Type = "move"
 							if err := move(playInfo); err != nil {

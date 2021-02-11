@@ -25,7 +25,7 @@ func BrillHeuristic(board []*Squares, color string) int {
 	for y := 0; y < len(board); y++ {
 		for x := 0; x < board[0].Len; x++ {
 			if board[y].Color[x] == color {
-				myCircles++
+				myCircles += board[y].Cur[x]
 				safe := true
 				total, coords := findneighbors(x, y, board[0].Len, len(board))
 				for _, coord := range coords {
@@ -47,7 +47,7 @@ func BrillHeuristic(board []*Squares, color string) int {
 					}
 				}
 			} else {
-				enemyCircles++
+				enemyCircles += board[y].Cur[x]
 			}
 		}
 	}
@@ -67,7 +67,7 @@ func BrillHeuristic(board []*Squares, color string) int {
 }
 
 func findChains(oldBoard []*Squares, color string) []int {
-	board := oldBoard
+	board := copyBoard(oldBoard)
 	lengths := make([]int, 0)
 	for y := 0; y < len(board); y++ {
 		for x := 0; x < board[0].Len; x++ {
@@ -76,14 +76,14 @@ func findChains(oldBoard []*Squares, color string) []int {
 				visiting := [][]int{{x, y}}
 				for len(visiting) > 0 {
 					last := len(visiting) - 1
-					x, y := visiting[last][0], visiting[last][1]
+					nx, ny := visiting[last][0], visiting[last][1]
 					visiting = visiting[:last]
-					board[y].Cur[x] = 0
-					total, coords := findneighbors(x, y, board[0].Len, len(board))
+					board[ny].Cur[nx] = 0
 					amount++
+					total, coords := findneighbors(nx, ny, board[0].Len, len(board))
 					for _, coord := range coords {
-						x, y := coord[0], coord[1]
-						if board[y].Cur[x] == total-1 && board[y].Color[x] == color {
+						newX, newY := coord[0], coord[1]
+						if board[newY].Cur[newX] == total-1 && board[newY].Color[newX] == color {
 							visiting = append(visiting, coord)
 						}
 					}
