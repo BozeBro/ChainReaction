@@ -55,7 +55,7 @@ func BrillHeuristic(board []*Squares, color string) int {
 	// A player can only win when they have more than one circle
 	if enemyCircles == 0 && myCircles > 1 {
 		return 10000
-	} else if myCircles == 1 && enemyCircles > 0 {
+	} else if myCircles == 0 && enemyCircles > 1 {
 		return -10000
 	}
 	for _, length := range findChains(board, color) {
@@ -97,12 +97,12 @@ func findChains(oldBoard []*Squares, color string) []int {
 
 // Maximizing player
 // Return greatest number possible
-func (c *Chain) Max(color string, nextColor string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
+func (c *Chain) Max(color, nextColor string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
 	sq := [2]int{movedx, movedy}
 	val := int(math.Inf(-1))
 	if depth == 0 {
-		// use nextColor because we are evaluating previous player's move
-		boardValue := BrillHeuristic(c.Squares, nextColor)
+		// use because we are evaluating previous player's move
+		boardValue := BrillHeuristic(c.Squares, color)
 		return boardValue, sq
 	}
 	newBoard := copyBoard(c.Squares)
@@ -115,25 +115,29 @@ func (c *Chain) Max(color string, nextColor string, depth, alpha, beta, movedx, 
 		for x := 0; x < c.Squares[0].Len; x++ {
 			if c.Squares[y].Color[x] == "" || c.Squares[y].Color[x] == color {
 				c.MovePiece(x, y, color)
-				if iswinner(c.Squares, color) {
-					c.Hub.Clients = newClients
-					c.Hub.Colors = players
-					return 10000, [2]int{movedx, movedy}
-				}
+				// revert side effects from MovePiece
 				maxVal, _ := c.Min(nextColor, color, depth-1, alpha, beta, x, y)
 				if maxVal > val {
 					sq = [2]int{x, y}
 					val = maxVal
 				}
+				for client, squares := range newClients {
+					c.Hub.Clients[client] = squares
+				}
+				length := len(players)
+				c.Hub.Colors = make([]string, length, length)
+				for index, color := range players {
+					c.Hub.Colors[index] = color
+				}
+				replaceBoard(c.Squares, newBoard)
 				if val > alpha {
 					alpha = val
 				}
-				c.Hub.Clients = newClients
-				replaceBoard(c.Squares, newBoard)
-				c.Hub.Colors = players
-				if alpha >= beta {
-					return val, sq
-				}
+				/*
+					if alpha >= beta {
+						return val, sq
+					}
+				*/
 			}
 		}
 	}
@@ -143,10 +147,11 @@ func (c *Chain) Max(color string, nextColor string, depth, alpha, beta, movedx, 
 // Minimizing player
 // Return smallest number possible
 // Look at Max() for more documentation
-func (c *Chain) Min(color string, nextColor string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
+func (c *Chain) Min(color, nextColor string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
 	sq := [2]int{movedx, movedy}
 	val := int(math.Inf(1))
 	if depth == 0 {
+		// nextColor is actually our original color
 		boardValue := BrillHeuristic(c.Squares, nextColor)
 		return boardValue, sq
 	}
@@ -160,27 +165,28 @@ func (c *Chain) Min(color string, nextColor string, depth, alpha, beta, movedx, 
 		for x := 0; x < c.Squares[0].Len; x++ {
 			if c.Squares[y].Color[x] == "" || c.Squares[y].Color[x] == color {
 				c.MovePiece(x, y, color)
-				if iswinner(c.Squares, color) {
-					// revert side effects
-					c.Hub.Clients = newClients
-					c.Hub.Colors = players
-					replaceBoard(c.Squares, newBoard)
-					return -10000, [2]int{movedx, movedy}
-				}
 				minVal, _ := c.Max(nextColor, color, depth-1, alpha, beta, x, y)
 				if minVal < val {
 					sq = [2]int{x, y}
 					val = minVal
 				}
+				for client, squares := range newClients {
+					c.Hub.Clients[client] = squares
+				}
+				length := len(players)
+				c.Hub.Colors = make([]string, length, length)
+				for index, color := range players {
+					c.Hub.Colors[index] = color
+				}
+				replaceBoard(c.Squares, newBoard)
 				if val < beta {
 					beta = val
 				}
-				c.Hub.Clients = newClients
-				c.Hub.Colors = players
-				replaceBoard(c.Squares, newBoard)
-				if alpha >= beta {
-					return val, sq
-				}
+				/*
+					if alpha >= beta {
+						return val, sq
+					}
+				*/
 			}
 		}
 	}
@@ -211,19 +217,6 @@ func copyClients(oldClients map[*Client]int) map[*Client]int {
 		newClients[client] = val
 	}
 	return newClients
-}
-
-func iswinner(board []*Squares, color string) bool {
-	isdead := true
-	for _, squares := range board {
-		for _, c := range squares.Color {
-			if c != color || c != "" {
-				isdead = false
-				break
-			}
-		}
-	}
-	return isdead
 }
 
 // Put contents of newboard into oldboard in-place

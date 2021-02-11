@@ -92,7 +92,8 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 					}
 					switch playInfo.Type {
 					case "start", "move":
-						if playInfo.Turn == botclient.Color {
+						canMove := playInfo.Turn == botclient.Color && len(hub.Colors) > 1
+						if canMove {
 							x, y := func(f string) (int, int) {
 								if f == "rand" {
 									return hub.Match.RandMove(botclient.Color)
@@ -104,7 +105,7 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 										}
 									}
 									if nextColor == "" {
-										log.Println("nextColor is nil: handshake line 109")
+										log.Fatal("nextColor is nil: handshake line 109")
 										return -1, -1
 									}
 									_, sq := hub.Match.Max(
@@ -127,6 +128,7 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 								log.Println(err)
 								return
 							}
+							log.Print(hub.Clients, x, y)
 						}
 					case "color":
 						botclient.Color = playInfo.Color

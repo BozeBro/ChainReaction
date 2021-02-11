@@ -119,6 +119,12 @@ func (h *Hub) Run() {
 			}
 			h.Update()
 			if h.RoomData.Players == 1 {
+				if h.RoomData.IsBot {
+					for client := range h.Clients {
+						client.Stop <- true
+					}
+					return
+				}
 				// The alone player is the winner
 				for client := range h.Clients {
 					// must loop to get the person

@@ -81,6 +81,7 @@
     let winner = document.getElementById("winner");
     let wss = document.location.protocol == "https:" ? "wss://" : "ws://"
     let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
+    // 6, 9 is the standard size
     let chain = new chainReaction(6, 9, "red");
     let typing = document.getElementById("chat-form");
     let start = false
