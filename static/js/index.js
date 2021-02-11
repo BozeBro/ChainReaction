@@ -1,8 +1,4 @@
 "use strict"
-let lay = document.querySelector(".layout");
-let cre = document.querySelector(".create");
-let join = document.querySelector(".join");
-let spaces = document.querySelector(".spaces");
 let errCre = document.getElementById("errCre");
 let errJoin = document.getElementById("errJoin");
 let popCre = document.getElementById("pop-create"); // The box that appears when Create is clicked
@@ -21,6 +17,15 @@ let joinHandler = () => {
     popJoin.style.display = "flex"; // Make the popup appear
     popup = popJoin;
 
+}
+let botHandler = () => {
+    fetch("/api/bot/", {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        redirect: 'follow',
+        credentials: 'same-origin',
+    })
+    .then(async (res) => location.href = '/game/' + await res.text())
 }
 let btnClicked = (e) => {
     const isbtnClicked = e.target.nodeName === "BUTTON";
@@ -100,8 +105,9 @@ let btnClicked = (e) => {
     }
 }
 window.onload = () => {
-    spaces.addEventListener("click", btnClicked)
-    cre.addEventListener("click", creHandler)
-    join.addEventListener("click", joinHandler)
+    document.querySelector(".spaces").addEventListener("click", btnClicked)
+    document.querySelector(".create").addEventListener("click", creHandler)
+    document.querySelector(".join").addEventListener("click", joinHandler)
+    document.querySelector(".bot").addEventListener("click", botHandler)
 }
 

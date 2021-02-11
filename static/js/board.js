@@ -178,11 +178,10 @@ const loc = function (z, length, offset = 0) { return z * length + length / 2 + 
 // The bar is the element above the board
 let bar = document.getElementById("bar").getContext("2d");
 // Tells if a game has started
-let start = false
 let display = document.getElementById("turn-display");
 	function changeTurn(color) {
-	display.innerHTML = `It is ${color}'s turn`	
-	}
+	display.innerHTML = `It is ${color}'s turn`
+  }
 let changeBarC = (color) => {
     bar.fillStyle = color;
     bar.fillRect(0, 0, bar.canvas.width, bar.canvas.height);

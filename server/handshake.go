@@ -1,10 +1,12 @@
 package server
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
 	sock "github.com/BozeBro/ChainReaction/websocket"
+	names "github.com/Pallinder/go-randomdata"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -68,4 +70,41 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	hub.Register <- client
 	go client.ReadMsg()
 	go client.WriteMsg()
+	if hub.RoomData.IsBot {
+		botclient := &sock.Client{
+			Hub:      hub,
+			Received: make(chan []byte, 1000),
+			Conn:     nil,
+			Username: names.SillyName(),
+		}
+		hub.Register <- botclient
+		go func() {
+			for {
+				select {
+				// dump out received msg to not fill chan
+				case msg := <-botclient.Received:
+					playInfo := new(sock.WSData)
+					if err := json.Unmarshal(msg, playInfo); err != nil {
+						log.Println(err)
+						return
+					}
+					switch playInfo.Type {
+					case "start", "move":
+						if playInfo.Turn == botclient.Color {
+							x, y := hub.Match.RandMove(botclient.Color)
+							playInfo.X, playInfo.Y = x, y
+							if err := botclient.Move()(playInfo); err != nil {
+								log.Println(err)
+								return
+							}
+						}
+					case "color":
+						botclient.Color = playInfo.Color
+					}
+				case <-botclient.Stop:
+					return
+				}
+			}
+		}()
+	}
 }

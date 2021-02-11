@@ -29,7 +29,7 @@ type Hub struct {
 	// Has the data of the room.
 	RoomData *RoomData
 	// Tracker of Game State. Called "Match" name to not confuse namespace.
-	Match Game
+	Match *Chain
 }
 
 // RoomData provides info about the room
@@ -41,6 +41,7 @@ type RoomData struct {
 	Roles        chan bool   // Send roles to other http handler
 	Rolesws      chan bool   // send roles to handler of websockets
 	Username     chan string // contains the names of people
+	IsBot        bool        // Tells server if player is a bot
 }
 
 // NewHub Creates a newHub for a game to take place in
@@ -75,6 +76,7 @@ func (h *Hub) Run() {
 		// close all channels
 		h.Stop <- true
 		for client := range h.Clients {
+			client.Stop <- true
 			close(client.Received)
 		}
 		h.CloseChans()
@@ -102,11 +104,11 @@ func (h *Hub) Run() {
 			}
 			h.RoomData.Players++
 			// Update the amount of players in the lobby
-			h.Update()
 			h.Clients[client] = 0
 			// Tell user what color the person is
 			client.Received <- payload
-			// Remove person from Player map, check if hub is empty. Assign WIN screen if two player
+			h.Update()
+		// Remove person from Player map, check if hub is empty. Assign WIN screen if two player
 		case client := <-h.Unregister:
 			delete(h.Clients, client)
 			close(client.Received)
@@ -120,7 +122,7 @@ func (h *Hub) Run() {
 				// The alone player is the winner
 				for client := range h.Clients {
 					// must loop to get the person
-					err := h.end(client.Color)
+					err := h.End(client.Color)
 					if err != nil {
 						log.Println(err)
 						return
@@ -152,7 +154,7 @@ func (h *Hub) Run() {
 				}
 			}
 		// ALL messages that will be broadcasted must be sent to this channel.
-		// NO other function should be sending to Received chan.
+		// No other function should be sending to Received chan.
 		// Close client chan if we cannot send.
 		// Player's device might turned off
 		case message := <-h.Broadcast:
@@ -188,7 +190,7 @@ func (h *Hub) Update() {
 
 // Send Response to signal that game is over.
 // Tell front end who the winner is.
-func (h *Hub) end(color string) error {
+func (h *Hub) End(color string) error {
 	payload := &struct {
 		Type   string `json:"type"`
 		Winner string `json:"winner"`

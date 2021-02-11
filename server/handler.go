@@ -93,10 +93,9 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 	}
 	// Context-like values being created
 	id := MakeId(roomStorage)
-	pin := MakePin(body.Room, roomStorage)
 	gameinfo := &sock.RoomData{
 		Room:    strings.ReplaceAll(body.Room, " ", ""),
-		Pin:     pin,
+		Pin:     MakePin(body.Room, roomStorage),
 		Max:     playerAmount,
 		Players: 0, // Correct players will be in joinHandler
 	}
@@ -112,6 +111,29 @@ func CreateHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) 
 	roomStorage[id].RoomData.Roles <- true
 	roomStorage[id].RoomData.Rolesws <- true
 	roomStorage[id].RoomData.Username <- body.Username
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(id))
+}
+
+func BotHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
+	room := names.SillyName()
+	duo := 2
+	id := MakeId(roomStorage)
+	gameinfo := &sock.RoomData{
+		Room:    strings.ReplaceAll(room, " ", ""),
+		Pin:     MakePin(room, roomStorage),
+		Max:     duo,
+		Players: 0,
+	}
+	hub := sock.NewHub(gameinfo)
+	hub.RoomData.Roles = make(chan bool, duo)
+	hub.RoomData.Rolesws = make(chan bool, duo)
+	hub.RoomData.Username = make(chan string, duo)
+	roomStorage[id] = hub
+	roomStorage[id].RoomData.Roles <- true
+	roomStorage[id].RoomData.Rolesws <- true
+	roomStorage[id].RoomData.Username <- names.SillyName()
+	roomStorage[id].RoomData.IsBot = true
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Write([]byte(id))
 }

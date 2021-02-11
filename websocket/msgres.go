@@ -20,7 +20,7 @@ var (
 // Randomizes the player order.
 // Sends response of person's turn
 // game parameter defines that type of game being played
-func (c *Client) start(game Game) Responder {
+func (c *Client) start(game *Chain) Responder {
 	h := c.Hub
 	return Responder(func(playInfo *WSData) error {
 		/* We will only see "start" in beginning of each game
@@ -59,7 +59,7 @@ func (c *Client) start(game Game) Responder {
 // Function handles when a person moves
 // Utilizes the Game interface to handle game logic.
 // Sends response of animation data and new turn
-func (c *Client) move() Responder {
+func (c *Client) Move() Responder {
 	h := c.Hub
 	return Responder(func(playInfo *WSData) error {
 		// See if a person can click the square or not.
@@ -86,13 +86,13 @@ func (c *Client) move() Responder {
 		// We have a winner!
 		if len(h.Colors) == 1 {
 			// The last player is declared the winner
-			err := h.end(h.Colors[0])
+			err := h.End(h.Colors[0])
 			if err != nil {
 				return err
 			}
 			// reset colors
-			// Cap of 5 because that is max players allowed in a game.
-			h.Colors = make([]string, 0, 5)
+			// Cap of 25 because that is max players allowed in a game.
+			h.Colors = make([]string, 0, 25)
 		}
 		return nil
 	})

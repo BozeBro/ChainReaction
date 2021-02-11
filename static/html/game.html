@@ -85,7 +85,6 @@
 </body>
 <script src="/static/js/chat.js"></script>
 <script src="/static/js/board.js"></script>
-<script src="/static/js/chat.js"></script>
 <script>
     // Redirect user if websockets is not available.
     if (!window["WebSocket"]) document.location.href = document.location.host
@@ -103,6 +102,7 @@
     let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
     let chain = new chainReaction(8, 8, "red");
     let typing = document.getElementById("chat-form");
+    let start = false
     // Infinite loop here. See chat.js
     requestAnimationFrame((ts) => timing(ts))
     typing.addEventListener("keypress", (event) => {
@@ -139,7 +139,7 @@
             socket.send(JSON.stringify({ type: "move", x: x, y: y}))
         }
     }
- 
+
     nextAni = () => {
         // Remove the first element that was just used, and then get the next (which is data)
         // delay the shift till the very end of async so foo doesn't start a second async func
@@ -210,7 +210,6 @@
     chain.msgHandler["end"] = (data) => {
         console.log(`The winner is ${data.winner}`);
 
-        start = false;
         waiting.style.display = "";
         winner.innerHTML = `The winner is ${data.winner}!!`;
         winner.style.color = data.winner;

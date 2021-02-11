@@ -27,6 +27,8 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	Received chan []byte
+	// channel to stop
+	Stop chan bool
 }
 
 // WSData provides allowed fields to be received from the front end
@@ -41,6 +43,7 @@ type WSData struct {
 	Rows      int       `json:"rows"`      // Amount of rows - Sent at "start"
 	Cols      int       `json:"cols"`      // Amount of columns - Sent at "start"
 	Message   string    `json:"message"`   // chat messsage sent by a user - "chat"
+	Color     string    `json:"color"`     // color of the person, used once - "color"
 }
 
 const (
@@ -70,9 +73,13 @@ func (c *Client) ReadMsg() {
 	// Mapping that will handle how to respond to a websocket msg
 	resMap := make(map[string]Responder)
 	resMap["start"] = c.start(&Chain{Hub: c.Hub})
-	resMap["move"] = c.move()
+	resMap["move"] = c.Move()
 	resMap["chat"] = c.chat()
 	for {
+		// Close the go routine when hub is closed
+		if len(c.Stop) > 0 {
+			return
+		}
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
@@ -90,8 +97,9 @@ func (c *Client) ReadMsg() {
 	}
 }
 
-// WriteMsg sends msg from the hub to the client
-// Contains Ping Handler implementation. See RFC5.5.2 https://tools.ietf.org/html/rfc6455#section-5.5.2 for more info
+//  WriteMsg sends msg from the hub to the client
+//  Contains Ping Handler implementation.
+//  See RFC5.5.2 https://tools.ietf.org/html/rfc6455#section-5.5.2 for more info
 func (c *Client) WriteMsg() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -101,6 +109,11 @@ func (c *Client) WriteMsg() {
 	for {
 		select {
 		case msg, ok := <-c.Received:
+			/*
+				test := new(WSData)
+				json.Unmarshal(msg, test)
+				log.Print(test)
+			*/
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.

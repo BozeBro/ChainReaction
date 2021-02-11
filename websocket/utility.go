@@ -28,3 +28,4 @@ func RandomColor() string {
 	rand := rand.Intn(clength)
 	return COLORS[rand]
 }
+

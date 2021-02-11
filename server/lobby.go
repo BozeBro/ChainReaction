@@ -53,10 +53,15 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 		Room:    roomData.Room,
 		Pin:     roomData.Pin,
 	}
-	route := "static/html/game.html"
-	gameFile := template.Must(template.ParseFiles(route))
-	if err := gameFile.Execute(w, userRole); err != nil {
-		log.Println(err)
-		return
+	if !hub.RoomData.IsBot {
+		route := "static/html/game.html"
+		gameFile := template.Must(template.ParseFiles(route))
+		if err := gameFile.Execute(w, userRole); err != nil {
+			log.Println(err)
+			return
+		}
+	} else {
+		http.ServeFile(w, r, "static/html/bot.html")
 	}
+
 }

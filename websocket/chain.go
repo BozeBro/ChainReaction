@@ -30,20 +30,20 @@ func (c *Chain) InitBoard(rows, cols int) {
 			Color: make([]string, rows),
 		}
 		for x := 0; x < rows; x++ {
-			c.Squares[y].Max[x], _ = c.findneighbors(x, y, rows, cols)
+			c.Squares[y].Max[x], _ = findneighbors(x, y, rows, cols)
 		}
 	}
 }
 
 // Checks if a square position exists on a board horizontally and vertically
-func (c *Chain) findneighbors(x, y, rows, cols int) (int, [][]int) {
+func findneighbors(x, y, rows, cols int) (int, [][]int) {
 	totalNeighbros := 0
 	coords := make([][]int, 0, 4)
 	for _, v := range [][]int{
 		{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
 		nx := x + v[0]
 		ny := y + v[1]
-		if IsBounded(c, nx, ny) {
+		if isBounded(nx, ny, rows, cols) {
 			totalNeighbros++
 			coords = append(coords, []int{nx, ny})
 		}
@@ -120,18 +120,19 @@ func (c *Chain) explode(exp [][]int, color string) ([][]int, [][]int, [][]int) {
 			{0, -1},
 		} {
 			x, y := coords[0]+d[0], coords[1]+d[1]
-			if !IsBounded(c, x, y) {
+			if !isBounded(x, y, c.GetRows(), c.GetCols()) {
 				continue
 			}
 			// (coords of explosion site), direction they are going
 			animations = append(animations, []int{coords[0], coords[1], d[0], d[1]})
 			sq := c.Squares[y]
-			deletedColor := sq.Color[x]
-			if c.UpdateColor(color, deletedColor) {
-				// Remove the players from the list of alive people
+			oldColor := sq.Color[x]
+			if c.UpdateColor(color, oldColor) {
+				// OldColor player lost his / her circles.
 				for index := 0; index < len(c.Hub.Colors); index++ {
-					if c.Hub.Colors[index] == deletedColor {
+					if c.Hub.Colors[index] == oldColor {
 						c.Hub.Colors = append(c.Hub.Colors[:index], c.Hub.Colors[index+1:]...)
+						// reposition turn tracker index
 						if index <= c.Hub.i {
 							c.Hub.i--
 						}
@@ -190,6 +191,9 @@ func (c *Chain) GetRows() int {
 func (c *Chain) GetCols() int {
 	return c.Len
 }
+func (c *Chain) GetBoard() []*Squares {
+	return c.Squares
+}
 
 // makeLegal makes sure that dimensions are legal
 // Must be [lower, upper]
@@ -200,4 +204,8 @@ func makeLegal(lower, dimension, upper int) int {
 		dimension = upper
 	}
 	return dimension
+}
+
+func isBounded(x, y, rows, cols int) bool {
+	return 0 <= x && x < rows && 0 <= y && y < cols
 }

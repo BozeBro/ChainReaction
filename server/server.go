@@ -32,6 +32,7 @@ func MakeRouter() *mux.Router {
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/create/", func(w http.ResponseWriter, r *http.Request) { CreateHandler(w, r, roomStorage) }).Methods("POST")
 	api.HandleFunc("/join/", func(w http.ResponseWriter, r *http.Request) { JoinHandler(w, r, roomStorage) }).Methods("POST")
+	api.HandleFunc("/bot/", func(w http.ResponseWriter, r *http.Request) { BotHandler(w, r, roomStorage) }).Methods("GET")
 	http.Handle("/", r)
 	return r
 }
