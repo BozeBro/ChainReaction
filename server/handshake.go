@@ -112,7 +112,7 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 									_, sq := hub.Match.Max(
 										botclient.Color,
 										nextColor,
-										1,
+										3,
 										a,
 										b,
 										-6,
