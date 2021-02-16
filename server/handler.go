@@ -17,7 +17,7 @@ type Storage map[string]*sock.Hub
 
 // HomeHandler send the index.html page at root path
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	route := filepath.Join("static", "html", "index.min.html")
+	route := filepath.Join("static", "html", "index.html")
 	http.ServeFile(w, r, route)
 }
 
