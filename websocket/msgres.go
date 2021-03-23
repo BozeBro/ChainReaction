@@ -75,6 +75,7 @@ func (c *Client) Move() Responder {
 			playInfo.Animation = ani
 			playInfo.Static = static
 			playInfo.Turn = h.Colors[h.i]
+			playInfo.Username = c.Username
 			payload, err := json.Marshal(playInfo)
 			if err != nil {
 				// Problems in the code
