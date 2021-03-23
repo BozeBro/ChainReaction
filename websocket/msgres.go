@@ -46,7 +46,7 @@ func (c *Client) start(game *Chain) Responder {
 		playInfo.Turn = h.Colors[h.i]
 		h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
 		for client := range h.Clients {
-			if client.color == h.Colors[0] {
+			if client.Color == h.Colors[0] {
 				playInfo.Username = client.Username
 			}
 		}
