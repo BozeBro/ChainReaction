@@ -171,7 +171,7 @@
         chain.cols = data.cols;
         chain.squareLength = Math.min(screen.height * .80 / chain.rows, screen.height * .80 / chain.cols);
         chain.initBoard();
-	changeTurn(data.turn);
+	changeTurn(data.username, data.turn);
         changeBarC(data.turn);
         nextAni()
     }
@@ -181,13 +181,13 @@
                     // Made a move, no explosion
                     chain.draw(...data.static[0][0]);
                     chain.color = data.turn;
-		    changeTurn(data.turn);
+		    changeTurn(data.username, data.turn);
                     changeBarC(data.turn);
                     nextAni()
                 } else if (data.static.length === 0) {
                     // A person left the game
                     chain.color = data.turn;
-		    changeTurn(data.turn);
+		    changeTurn(data.username, data.turn);
                     changeBarC(data.turn);
                     nextAni()
                 } else {
