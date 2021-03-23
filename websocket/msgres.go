@@ -45,6 +45,7 @@ func (c *Client) start(game *Chain) Responder {
 		h.i = 0
 		playInfo.Turn = h.Colors[h.i]
 		h.Match.InitBoard(playInfo.Rows, playInfo.Cols)
+		playInfo.Username = c.Username
 		payload, err := json.Marshal(playInfo)
 		if err != nil {
 			// Problems in the code
