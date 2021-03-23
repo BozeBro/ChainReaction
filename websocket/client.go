@@ -44,6 +44,7 @@ type WSData struct {
 	Cols      int       `json:"cols"`      // Amount of columns - Sent at "start"
 	Message   string    `json:"message"`   // chat messsage sent by a user - "chat"
 	Color     string    `json:"color"`     // color of the person, used once - "color"
+	Username  string    `json:"username"`  // username of each player
 }
 
 const (
