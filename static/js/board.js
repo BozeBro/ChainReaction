@@ -179,8 +179,8 @@ const loc = function (z, length, offset = 0) { return z * length + length / 2 + 
 let bar = document.getElementById("bar").getContext("2d");
 // Tells if a game has started
 let display = document.getElementById("turn-display");
-	function changeTurn(color) {
-	display.innerHTML = `It is ${color}'s turn`
+	function changeTurn(username, color) {
+	display.innerHTML = `It is ${username}'s turn. (${color})`
   }
 let changeBarC = (color) => {
     bar.fillStyle = color;
