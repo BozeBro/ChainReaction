@@ -50,7 +50,7 @@ class chainReaction {
   //  start - starting point of animation. Allows us to know how much time has passed relative to the starting point.
   //  ind - tells index of animation and unmoving array.
   //  color - tells color the circles should be.
-  animate(animations, unmoving, ts, start, ind, color) {
+  animate(animations, unmoving, ts, start, ind, data) {
     const d = this.squareLength / this.__ms;
     const elapsed = ts - start;
     const i = d * elapsed;
@@ -85,31 +85,30 @@ class chainReaction {
     }
     if (elapsed < this.__ms) {
       // Complete rest of animation
-      requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, start, ind, color))
+      requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, start, ind, data))
     } else if (ind + 1 < animations.length) {
       // Complete next level of explosion / animation
       for (let [x, y, v] of unmoving[ind+1]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-      requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, ts, ind+1, color))
+      requestAnimationFrame((ts) => this.animate(animations, unmoving, ts, ts, ind+1, data))
     } else {
       // Draw the last unmoving square. Clear screen.
       for (let [x, y, v] of unmoving[ind+1]) {
         this.draw(x, y, v)
       }
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-      this.color = color;
-      changeTurn(color);
-      changeBarC(color);
+      this.color = data.turn;
+      changeTurn(data.username, data.turn);
+      changeBarC(data.turn);
       this.state = true
       // First element should be the move response. Get the next one.
       // delay the shift till the very end of async, so we do not start any new functions.
       chain.que.shift()
       if (this.que.length > 0) {
-        let data = this.que[0]
-
-        chain.msgHandler[data.type.toLowerCase()](data)
+        let info = this.que[0]
+        chain.msgHandler[info.type.toLowerCase()](info)
       }
       cancelAnimationFrame(ts)
     }

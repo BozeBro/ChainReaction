@@ -171,7 +171,7 @@
         chain.cols = data.cols;
         chain.squareLength = Math.min(screen.height * .80 / chain.rows, screen.height * .80 / chain.cols);
         chain.initBoard();
-	changeTurn(data.username, data.turn);
+	    changeTurn(data.username, data.turn);
         changeBarC(data.turn);
         nextAni()
     }
@@ -187,7 +187,7 @@
                 } else if (data.static.length === 0) {
                     // A person left the game
                     chain.color = data.turn;
-		    changeTurn(data.username, data.turn);
+		            changeTurn(data.username, data.turn);
                     changeBarC(data.turn);
                     nextAni()
                 } else {
@@ -195,7 +195,7 @@
                     chain.state = false;
                     chain.draw(...data.static[0][0]);
                     requestAnimationFrame((ts) => chain.animate(
-                            data.animation, data.static, ts, ts, 0, data.turn));
+                            data.animation, data.static, ts, ts, 0, data));
                 }
     }
     chain.msgHandler["color"] = (data) => {
