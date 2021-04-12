@@ -163,7 +163,7 @@
                     // Made a move, no explosion
                     chain.draw(...data.static[0][0]);
                     chain.color = data.turn;
-		    changeTurn(data.turn);
+		            changeTurn(data.username, data.turn);
                     changeBarC(data.turn);
                     nextAni()
                 } else if (data.static.length === 0) {
