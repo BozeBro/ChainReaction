@@ -10,25 +10,46 @@
   z-index: 1;
   position: absolute;
   background-color: transparent;
-  opacity: 1.0;
+  opacity: 1;
 }
 #static {
   position: absolute;
   background-color: transparent;
   z-index: 2;
-  opacity: 1.0;
+  opacity: 1;
 }
 #grid {
   position: absolute;
   background-color: transparent;
   z-index: 2;
-  opacity: 1.0;
+  opacity: 1;
 }
 
-.overview {
-  height: 450px;
-  display: grid;
-  grid-template-columns: 20% 60% 20%;
+@media only screen and (min-width: 1000px) {
+  .overview {
+    height: 450px;
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+  }
+  .row {
+    width: 60px;
+    height: 60px;
+    text-align: center;
+    border: solid green 1px;
+  }
+}
+@media only screen and (max-width: 999px) {
+  .overview {
+    height: 50px;
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+  }
+  .row {
+    width: 10px;
+    height: 10px;
+    text-align: center;
+    border: solid green 1px;
+  }
 }
 .general {
   display: flex;
@@ -38,12 +59,6 @@
 .bar-wrap {
   display: flex;
   justify-content: center;
-}
-.row {
-  width: 60px;
-  height: 60px;
-  text-align: center;
-  border: solid green 1px;
 }
 .players {
   margin: 1%;
@@ -60,4 +75,3 @@ Prevent a user from clicking.
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
-

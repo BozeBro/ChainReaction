@@ -38,9 +38,9 @@
             </div>
 	    <div id="turn-display"></div>
             <div id="interface">
-                <canvas id="dynamic" width="450px" height="450px"></canvas>
-                <canvas id="static" width="450px" height="450px"></canvas>
-                <canvas id="grid" width="450px" height="450px"></canvas>
+                <canvas id="dynamic" width="resize()" height="resize()"></canvas>
+                <canvas id="static" width="resize()" height="resize()"></canvas>
+                <canvas id="grid" width="resize()" height="resize()"></canvas>
             </div>
         </div>
         <div>
@@ -107,9 +107,14 @@
     let winner = document.getElementById("winner");
     let wss = document.location.protocol == "https:" ? "wss://" : "ws://"
     let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
-    let chain = new chainReaction(8, 8, "red");
+    let chain = new chainReaction(6, 9, "red");
     let typing = document.getElementById("chat-form");
     let start = false
+    function resize() {
+        let width = window.screen.availWidth
+        // let hieght = window.screen.availHeight
+        return width / 4
+    }
     // Infinite loop here. See chat.js
     requestAnimationFrame((ts) => timing(ts))
     typing.addEventListener("keypress", (event) => {
