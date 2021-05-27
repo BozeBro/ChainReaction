@@ -10,7 +10,7 @@ var COLORS = []string{
 	"BlueViolet", "Red",
 	"Aquamarine", "Green",
 	"Brown", "DarkOrange",
-	"DeepPink", "Gray", 
+	"DeepPink", "Gray",
 	"Black", "darkkhaki",
 	"Tan", "SlateBlue",
 	"Tomato", "Cyan",
@@ -25,7 +25,6 @@ var COLORS = []string{
 // RandomColor grabs a random color from global COLORS
 func RandomColor() string {
 	clength := len(COLORS)
-	rand := rand.Intn(clength)
-	return COLORS[rand]
+	ran := rand.Intn(clength)
+	return COLORS[ran]
 }
-

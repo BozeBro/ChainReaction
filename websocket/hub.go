@@ -5,6 +5,12 @@ import (
 	"log"
 )
 
+// Player is the representation for any people in a game.
+type Player interface {
+	Color() string
+	Close()
+}
+
 // Hub is the game server representative for individual games
 // Handles killing itself, tracking the players, keeping data, broadcasting, registering, and unregistering
 type Hub struct {
