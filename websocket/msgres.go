@@ -38,9 +38,11 @@ func (c *Client) start(game *Chain) Responder {
 			h.Clients[client] = 0
 			index++
 		}
+
 		rand.Shuffle(len(h.Colors), func(i, j int) {
 			h.Colors[i], h.Colors[j] = h.Colors[j], h.Colors[i]
 		})
+
 		// reset h.i for when game is restarted.
 		h.i = 0
 		playInfo.Turn = h.Colors[h.i]
@@ -73,10 +75,7 @@ func (c *Client) Move() Responder {
 		if isLegal && c.Color == h.Colors[h.i] {
 			// Move Piece, Update colorMap, record animation and new positions
 			ani, static := h.Match.MovePiece(playInfo.X, playInfo.Y, c.Color)
-			h.i++
-			if h.i >= len(h.Colors) {
-				h.i = 0
-			}
+			h.i = (h.i + 1) % len(h.Colors)
 			playInfo.Animation = ani
 			playInfo.Static = static
 			playInfo.Turn = h.Colors[h.i]

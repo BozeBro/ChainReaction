@@ -5,12 +5,6 @@ import (
 	"log"
 )
 
-// Player is the representation for any people in a game.
-type Player interface {
-	Color() string
-	Close()
-}
-
 // Hub is the game server representative for individual games
 // Handles killing itself, tracking the players, keeping data, broadcasting, registering, and unregistering
 type Hub struct {
@@ -49,6 +43,7 @@ type RoomData struct {
 	Username     chan string // contains the names of people
 	IsBot        bool        // Tells server if player is a bot
 }
+type Storage map[string]*Hub
 
 // NewHub Creates a newHub for a game to take place in
 // arbitrary large buffers to allow for async programming
@@ -77,7 +72,7 @@ func (h *Hub) GetUniqueColor(c string) string {
 //  Run is equivalent to turning on the computer
 //	Handles the registering, unregistering, and broadcasting
 //	Will kill itself when all the players leave
-func (h *Hub) Run() {
+func (h *Hub) Run(roomStorage Storage, id string) {
 	defer func() {
 		// close all channels
 		h.Stop <- true
@@ -178,7 +173,10 @@ func (h *Hub) Run() {
 					close(client.Received)
 				}
 			}
+		case <-h.Stop:
+			delete(roomStorage, id)
 		}
+
 	}
 }
 

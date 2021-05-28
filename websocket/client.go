@@ -27,7 +27,8 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	Received chan []byte
-	// channel to stop
+
+	// channel to kill client. Only Used by botClients
 	Stop chan bool
 }
 
@@ -91,6 +92,7 @@ func (c *Client) ReadMsg() {
 			log.Println(err)
 			return
 		}
+
 		if err := resMap[playInfo.Type](playInfo); err != nil {
 			log.Println(err)
 			return

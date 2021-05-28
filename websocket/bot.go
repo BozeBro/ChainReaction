@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"log"
 	"math/rand"
 )
 
@@ -65,10 +64,10 @@ func BrillHeuristic(board []*Squares, color string) int {
 	}
 	return score
 }
+
+// getChains tries to find optimizations to ignore reprocessing redundant squares
 func getChains(oldBoard []*Squares, color string, x, y int) [][]int {
-	log.Println("In getChains")
 	board := copyBoard(oldBoard)
-	log.Println("Got board")
 	visiting := [][]int{{x, y}}
 	if board[y].Cur[x] == board[y].Max[x]-1 && board[y].Color[x] == color {
 		for len(visiting) > 0 {
@@ -84,7 +83,6 @@ func getChains(oldBoard []*Squares, color string, x, y int) [][]int {
 			}
 		}
 	}
-	log.Println("out of getChains")
 	return visiting
 }
 func findChains(oldBoard []*Squares, color string) []int {
@@ -137,6 +135,8 @@ func (c *Chain) signiMoves(color string) [][]int {
 	}
 	return validMoves
 }
+
+// defaultMoves grabs all legal moves that are possible
 func (c *Chain) defaultMoves(color string, rows, cols int) [][]int {
 	moves := make([][]int, 0, rows*cols)
 	for y := 0; y < cols; y++ {
@@ -152,7 +152,9 @@ func (c *Chain) defaultMoves(color string, rows, cols int) [][]int {
 // Maximizing player
 // Return greatest number possible
 func (c *Chain) Max(color, nextColor string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
+	//counter++
 	sq := [2]int{movedx, movedy}
+	//println(depth, " In depth and Max ", counter)
 	if depth == 0 {
 		// use because we are evaluating previous player's move
 		boardValue := BrillHeuristic(c.Squares, color)
@@ -160,7 +162,7 @@ func (c *Chain) Max(color, nextColor string, depth, alpha, beta, movedx, movedy 
 	}
 	newBoard := copyBoard(c.Squares)
 	newClients := copyClients(c.Hub.Clients)
-	players := make([]string, len(c.Hub.Colors), len(c.Hub.Colors))
+	players := make([]string, len(c.Hub.Colors))
 	for ind, player := range c.Hub.Colors {
 		players[ind] = player
 	}
@@ -195,13 +197,15 @@ func (c *Chain) Max(color, nextColor string, depth, alpha, beta, movedx, movedy 
 // Return smallest number possible
 // Look at Max() for more documentation
 func (c *Chain) Min(color, nextColor string, depth, alpha, beta, movedx, movedy int) (int, [2]int) {
+	//counter++
+	//println(depth, " In depth and Min ", counter)
 	sq := [2]int{movedx, movedy}
 	if depth == 0 {
 		// nextColor is actually our original color
 		boardValue := BrillHeuristic(c.Squares, nextColor)
 		return boardValue, sq
 	}
-	players := make([]string, len(c.Hub.Colors), len(c.Hub.Colors))
+	players := make([]string, len(c.Hub.Colors))
 	for ind, player := range c.Hub.Colors {
 		players[ind] = player
 	}
@@ -212,7 +216,6 @@ func (c *Chain) Min(color, nextColor string, depth, alpha, beta, movedx, movedy 
 		x, y := pos[0], pos[1]
 		c.MovePiece(x, y, color)
 		minVal, _ := c.Max(nextColor, color, depth-1, alpha, beta, x, y)
-		//
 		for client, squares := range newClients {
 			c.Hub.Clients[client] = squares
 		}
