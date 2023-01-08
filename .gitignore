@@ -5,6 +5,6 @@ TODO.txt
 *.swp
 data.txt
 .env
-bot.html
-game.html
-index.html
+# bot.html
+# game.html
+# index.html
