@@ -8,5 +8,5 @@ The last player standing wins the game.
 Simple Rules:
 You cannot physically add circles on other people's squares.
 
-Sight located at (this site)[https://chainreaction-9x6j.onrender.com/]
+Sight located at [this site](https://chainreaction-9x6j.onrender.com/)
 It takes a bit of time load however
