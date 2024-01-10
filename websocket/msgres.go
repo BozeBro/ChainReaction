@@ -74,6 +74,7 @@ func (c *Client) Move() Responder {
 		isLegal := h.Match.IsLegalMove(playInfo.X, playInfo.Y, c.Color)
 		if isLegal && c.Color == h.Colors[h.i] {
 			// Move Piece, Update colorMap, record animation and new positions
+			playInfo.Color = c.Color
 			ani, static := h.Match.MovePiece(playInfo.X, playInfo.Y, c.Color)
 			h.i = (h.i + 1) % len(h.Colors)
 			playInfo.Animation = ani
