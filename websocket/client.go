@@ -92,6 +92,11 @@ func (c *Client) ReadMsg() {
 			log.Println(err)
 			return
 		}
+    if _, ok := resMap[playInfo.Type]; !ok {
+      // Ignore unknown json
+      log.Printf("JSON type %s does not exist, ignore", playInfo.Type)
+      continue
+    }
 
 		if err := resMap[playInfo.Type](playInfo); err != nil {
 			log.Println(err)

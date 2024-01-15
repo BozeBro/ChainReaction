@@ -39,6 +39,7 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	}
 	// Person didn't go through http route
 	if len(rolesws) == 0 {
+    log.Println("Redirecting User to home page")
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return
 	}
