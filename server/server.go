@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -21,6 +22,7 @@ func MakeRouter() *mux.Router {
 			WSHandshake(w, r, roomStorage)
 			return
 		}
+    log.Println("Id doesn't exist")
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	})
 	r.HandleFunc("/", HomeHandler)

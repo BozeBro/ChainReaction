@@ -28,6 +28,7 @@ func max(x, y int) int {
 // Function couples the server and the websocket together so two servers are not needed
 // Is in charge of stopping hub server
 func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
+  log.Println("Entering handshake")
 	id := mux.Vars(r)["id"]
 	hub := roomStorage[id]
 	rolesws := hub.RoomData.Rolesws
