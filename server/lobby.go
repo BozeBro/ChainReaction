@@ -9,13 +9,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var g_base = "/chain"
+
 // Handler that serves game file
 // Create and Join Handler will route here
 // Redirects people who reach here by URL back to Join to be stored in context
 func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	id := mux.Vars(r)["id"]
 	if !IdExists(roomStorage, id) {
-		http.Redirect(w, r, "/", http.StatusFound)
+		http.Redirect(w, r, g_base, http.StatusFound)
 		return
 	}
 	hub := roomStorage[id]
@@ -28,15 +30,15 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 			roomData.Roles <- false
 			roomData.Rolesws <- false
 			roomData.Username <- names.SillyName()
-			http.Redirect(w, r, "/game/"+id, http.StatusFound)
+			http.Redirect(w, r, g_base + "/game/"+id, http.StatusFound)
 			return
 		}
 		// Can't play in a game if capacity is reached.
-		http.Redirect(w, r, "/", http.StatusFound)
+		http.Redirect(w, r, g_base, http.StatusFound)
 		return
 		// There is no game / leader failed to connect to websocket
 	} else if len(roomData.Roles) == 0 && !hub.Alive {
-		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+		http.Redirect(w, r, g_base, http.StatusMovedPermanently)
 		return
 	}
 	isleader := <-roomData.Roles

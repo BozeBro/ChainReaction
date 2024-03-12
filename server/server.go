@@ -17,7 +17,13 @@ func MakeRouter() *mux.Router {
 	r.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "favicon.ico") })
 	r.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "robots.txt") })
 	r.HandleFunc("/ws/{id}", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Test")
 		id := mux.Vars(r)["id"]
+    println(id)
+    if len(id) != 8 {
+      http.NotFound(w, r);
+      return
+    }
 		if _, ok := roomStorage[id]; ok {
 			WSHandshake(w, r, roomStorage)
 			return

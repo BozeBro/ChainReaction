@@ -1,23 +1,22 @@
 <!DOCTYPE html>
-<!--Very similar to game.html but there are changes in templating-->
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/chain/static/css/index.css">
-    <link rel="stylesheet" href="/chain/static/css/waiting.css">
-    <link rel="stylesheet" href="/chain/static/css/game.css">
-    <link rel="stylesheet" href="/chain/static/css/chat.css">
-    <!-- We need index.css for the btn style -->
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/css/waiting.css">
+    <link rel="stylesheet" href="/static/css/game.css">
+    <link rel="stylesheet" href="/static/css/chat.css">
+    <!---->
     <meta http-equiv="X-UA-Compatible" content="IE=7">
 
     <meta name="keywords" content="Chain Reaction, Chat, Chat server, Chain Reaction Game, Chain Reaction AI, AI, Free game, online">
     <!-- META DESCRIPTION -->
     <meta name="description" content="Chain Reaction Game. Heroku App server. Chat server. Play or join a game with friends or with a computer. 2-25 players.">
     <meta name="author" content="Benedict Ozua">
-    <title>Chain Reaction Game</title>
+    <title>Chain Reaction Game - Heroku Server</title>
 </head>
 
 <body>
@@ -39,20 +38,38 @@
             </div>
 	    <div id="turn-display"></div>
             <div id="interface">
-                <canvas id="dynamic" width="450px" height="450px"></canvas>
-                <canvas id="static" width="450px" height="450px"></canvas>
-                <canvas id="grid" width="450px" height="450px"></canvas>
+                <canvas id="dynamic" width="resize()" height="resize()"></canvas>
+                <canvas id="static" width="resize()" height="resize()"></canvas>
+                <canvas id="grid" width="resize()" height="resize()"></canvas>
             </div>
         </div>
         <div>
             <div class="noSelect"><h2 id="userColor"></h2></div>
+            <div>Your Pin is {{ .Pin }}</div>
+            <div>Your Room is {{ .Room }}</div>
             <div class="noSelect" id="winner"></div>
+            {{ if .Leader }}
+            <div id="boardMatrix">
+                <label for="rows" class="noSelect">Rows</label><br>
+                <input type="text" id="rows" name="rows" value="8"><br>
+                <label for="columns" class="noSelect">Columns</label><br>
+                <input type="text" id="columns" name="columns" value="8"><br>
+                <br>
+                <button id="boardBtn" class="ent">Enter</button>
+            </div>
+            {{ end }}
         </div>
     </div>
     <div id="waitingRoom" class="noSelect">
         <div class="wait-title">
             <h2>Chain Reaction</h2>
         </div>
+        <div class="wait-current">
+            <div id="players">{{ .Players }}</div>
+            <div>/</div>
+            <div id="max">{{ .Max }}</div>
+        </div>
+
         <div>
             <div class="lds-roller">
                 <div></div>
@@ -66,35 +83,40 @@
             </div>
         </div>
         <div class="ent-ext">
+            {{if .Leader}}
             <button id="entBtn" class="ent">Start</button>
+            {{ end }}
             <button class="ext">Exit</button>
         </div>
     </div>
 </body>
-<script src="/chain/static/js/chat.js"></script>
-<script src="/chain/static/js/board.js"></script>
+<script src="/static/js/chat.js"></script>
+<script src="/static/js/board.js"></script>
 <script>
+    window.startt = false;
     // Redirect user if websockets is not available.
-    if (!window["WebSocket"]) document.location.href = document.location.host + "/chain"
+    if (!window["WebSocket"]) document.location.href = document.location.host
     // start is the only new variable
     // true when game is ok to start.
-    let goHome = document.querySelector(".navHome");
-    let ext = document.querySelector(".ext");
-    let userColor = document.getElementById("userColor");
-    let path = document.location.pathname;
-    let id = path.slice(path.length - 8);
-    let players = document.getElementById("players");
+    let goHome = document.querySelector(".navHome")
+    let ext = document.querySelector(".ext")
+    let userColor = document.getElementById("userColor")
+    let path = document.location.pathname
+    let id = path.slice(path.length - 8)
+    let players = document.getElementById("players")
     let waiting = document.getElementById("waitingRoom");
     let winner = document.getElementById("winner");
-    let wss = document.location.protocol == "https:" ? "wss://" : "ws://";
-    console.log(wss + document.location.host + "/chain/ws/" + id);
-    let socket = new WebSocket(wss + document.location.host + "/chain/ws/" + id);
-    // 6, 9 is the standard size
+    let wss = document.location.protocol == "https:" ? "wss://" : "ws://"
+    let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
     let chain = new chainReaction(6, 9, "red");
     let typing = document.getElementById("chat-form");
-    let start = false;
+    function resize() {
+        let width = window.screen.availWidth
+        // let hieght = window.screen.availHeight
+        return width / 4
+    }
     // Infinite loop here. See chat.js
-    requestAnimationFrame((ts) => timing(ts));
+    requestAnimationFrame((ts) => timing(ts))
     typing.addEventListener("keypress", (event) => {
         event.preventDefault();
         if (event.key !== "Enter") {typing.value += event.key;return;}
@@ -104,7 +126,7 @@
             message_element.value = "";
             return
         } else if (message.toString().length) {
-            beginning = curTime;
+            beginning = curTime
             socket.send(JSON.stringify({
                 type: "chat",
                 message: message,
@@ -114,39 +136,40 @@
 	}
 }, false);
 
+    let path = "1111"
     // Global variable to stop asynchronous from racing
     bar.canvas.width = chain.canvas.width;
     // height is 10% of width
     bar.canvas.height = bar.canvas.width * 0.05;
-    goHome.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host + "/chain";
-    ext.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host + "/chain";
+    goHome.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
+    ext.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
     chain.grctx.canvas.onclick = (event) => {
-        if (chain.state === true && start === true && chain.color === chain.mycolor) {
+        if (chain.state === true && window.startt === true && chain.color === chain.mycolor) {
         let canvasObj = event.target.getBoundingClientRect();
         // Get the square coords clicked
         let x = Math.floor((event.clientX - canvasObj.left) / chain.squareLength);
         let y = Math.floor((event.clientY - canvasObj.top) / chain.squareLength);
-            socket.send(JSON.stringify({ type: "move", x: x, y: y}));
+            socket.send(JSON.stringify({ type: "move", x: x, y: y}))
         }
     }
 
     nextAni = () => {
         // Remove the first element that was just used, and then get the next (which is data)
         // delay the shift till the very end of async so foo doesn't start a second async func
-        chain.que.shift();
+        chain.que.shift()
         if (chain.que.length > 0) {
-        let data = chain.que[0];
-        chain.msgHandler[data.type.toLowerCase()](data);
+        let data = chain.que[0]
+        chain.msgHandler[data.type.toLowerCase()](data)
         }
     }
     chain.msgHandler = {}
     chain.msgHandler["chat"] = (data) => {
-        MessageAdd(data.message, data.username, data.color);
-        nextAni();
+        MessageAdd(data.message, data.username, data.color)
+        nextAni()
     }
     chain.msgHandler["start"] = (data) => {
         chain.statCtx.clearRect(0, 0, chain.canvas.width, chain.canvas.height);
-        start = true;
+        window.startt = true
         waiting.style.display = "none";
         winner.innerHTML = "";
         chain.color = data.turn;
@@ -156,15 +179,17 @@
         chain.initBoard();
 	    changeTurn(data.username, data.turn);
         changeBarC(data.turn);
-        nextAni();
+        nextAni()
     }
     chain.msgHandler["move"] = (data) => {
         // handle when person leaves.
+        chain.move(data.x, data.y, data.color);
+        console.log("hello world");
         if (data.animation.length === 0) {
                     // Made a move, no explosion
                     chain.draw(...data.static[0][0]);
                     chain.color = data.turn;
-		            changeTurn(data.username, data.turn);
+		    changeTurn(data.username, data.turn);
                     changeBarC(data.turn);
                     nextAni()
                 } else if (data.static.length === 0) {
@@ -172,7 +197,7 @@
                     chain.color = data.turn;
 		            changeTurn(data.username, data.turn);
                     changeBarC(data.turn);
-                    nextAni();
+                    nextAni()
                 } else {
                     // We have an explosion
                     chain.state = false;
@@ -182,14 +207,15 @@
                 }
     }
     chain.msgHandler["color"] = (data) => {
-        if (data.type !== "color") {return;};
+        if (data.type !== "color") {return}
         chain.mycolor = data.color;
         userColor.style.color = data.color;
         userColor.innerHTML = `Your color is ${data.color}`;
-        nextAni();
+        nextAni()
     }
     chain.msgHandler["update"] = (data) => {
-        nextAni();
+        players.innerHTML = data.players;
+        nextAni()
     }
     chain.msgHandler["changecolor"] = (data) => {
         chain.color = data.turn;
@@ -206,26 +232,49 @@
     }
     socket.onmessage = (e) => {
         let data = JSON.parse(e.data);
-        chain.que.push(data);
-        console.log(data);
+        chain.que.push(data)
+        console.log(data)
         if (chain.que.length === 1) {
-            chain.msgHandler[data.type.toLowerCase()](data);
+            chain.msgHandler[data.type.toLowerCase()](data)
         }
     };
     chain.initBoard();
 </script>
+{{if .Leader}}
 <script>
+    let rows = document.getElementById("rows");
+    let cols = document.getElementById("columns");
+    let boardBtn = document.getElementById("boardBtn");
+    boardBtn.onclick = () => {
+        // Size bounds for cols and rows is [5, 30]
+        if (window.startt === true) { return }
+        chain.rows = rows.value !== "" ? Math.max(5, parseInt(rows.value)) : 5;
+        chain.cols = cols.value !== "" ? Math.max(5, parseInt(cols.value)) : 5;
+        if (chain.rows > 30) {
+            chain.rows = 30;
+            rows.value = "30";
+        }
+        if (chain.cols > 30) {
+            chain.cols = 30;
+            cols.value = "30";
+        }
+        chain.squareLength = Math.min(screen.height * .80 / chain.rows, screen.height * .80 / chain.cols);
+        chain.initBoard();
+    }
     let enter = document.querySelector("#entBtn");
     // Start the game.
-    if (enter !== null && start !== true) {
+    if (enter !== null && window.startt !== true) {
         enter.onclick = () => {
+            if (parseInt(players.innerText) >= 2) {
                 socket.send(JSON.stringify({
                 type: "start",
                 cols: chain.cols,
                 rows: chain.rows,
             }));
+            }
         }
     }
 </script>
+{{end}}
 
 </html>

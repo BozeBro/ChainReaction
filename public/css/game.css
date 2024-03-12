@@ -1,0 +1,77 @@
+#winner {
+  font-size: medium;
+}
+#interface {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+#dynamic {
+  z-index: 1;
+  position: absolute;
+  background-color: transparent;
+  opacity: 1;
+}
+#static {
+  position: absolute;
+  background-color: transparent;
+  z-index: 2;
+  opacity: 1;
+}
+#grid {
+  position: absolute;
+  background-color: transparent;
+  z-index: 2;
+  opacity: 1;
+}
+
+@media only screen and (min-width: 1000px) {
+  .overview {
+    height: 450px;
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+  }
+  .row {
+    width: 60px;
+    height: 60px;
+    text-align: center;
+    border: solid green 1px;
+  }
+}
+@media only screen and (max-width: 999px) {
+  .overview {
+    height: 50px;
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+  }
+  .row {
+    width: 10px;
+    height: 10px;
+    text-align: center;
+    border: solid green 1px;
+  }
+}
+.general {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+.bar-wrap {
+  display: flex;
+  justify-content: center;
+}
+.players {
+  margin: 1%;
+}
+/*
+Prevent a user from clicking.
+*/
+.noSelect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}

@@ -8,6 +8,7 @@ import (
 	names "github.com/Pallinder/go-randomdata"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"strings"
 )
 
 // upgrader upgrades a http connection to websocket
@@ -28,10 +29,28 @@ func max(x, y int) int {
 // Function couples the server and the websocket together so two servers are not needed
 // Is in charge of stopping hub server
 func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
-  log.Println("Entering handshake")
+	log.Println("Entering handshake")
 	id := mux.Vars(r)["id"]
 	hub := roomStorage[id]
 	rolesws := hub.RoomData.Rolesws
+	upgrader.CheckOrigin = func(r *http.Request) bool {
+		domain := r.Header.Get("Origin")
+
+		// Remove "http://" or "https://" if present
+		domain = strings.TrimPrefix(domain, "http://")
+		domain = strings.TrimPrefix(domain, "https://")
+		domain = domain[:len("localhost")]
+		println(domain)
+		legal := []string{"127.0.0.1:8080", "localhost", "localhost:80", "bennyontheblock.com", "localhost:3000", "localhost:8085"}
+		for _, name := range legal {
+			if name == domain {
+				return true
+			}
+		}
+		println("FAIL")
+		return false
+		// return true
+	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		// Person cannot use websockets
@@ -40,7 +59,7 @@ func WSHandshake(w http.ResponseWriter, r *http.Request, roomStorage Storage) {
 	}
 	// Person didn't go through http route
 	if len(rolesws) == 0 {
-    log.Println("Redirecting User to home page")
+		log.Println("Redirecting User to home page")
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return
 	}

@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/static/css/index.css">
-    <link rel="stylesheet" href="/static/css/waiting.css">
-    <link rel="stylesheet" href="/static/css/game.css">
-    <link rel="stylesheet" href="/static/css/chat.css">
+    <link rel="stylesheet" href="/chain/static/css/index.css">
+    <link rel="stylesheet" href="/chain/static/css/waiting.css">
+    <link rel="stylesheet" href="/chain/static/css/game.css">
+    <link rel="stylesheet" href="/chain/static/css/chat.css">
     <!---->
     <meta http-equiv="X-UA-Compatible" content="IE=7">
 
@@ -90,11 +90,12 @@
         </div>
     </div>
 </body>
-<script src="/static/js/chat.js"></script>
-<script src="/static/js/board.js"></script>
+<script src="/chain/static/js/chat.js"></script>
+<script src="/chain/static/js/board.js"></script>
 <script>
+    window.startt = false;
     // Redirect user if websockets is not available.
-    if (!window["WebSocket"]) document.location.href = document.location.host
+    if (!window["WebSocket"]) document.location.href = document.location.host + "/chain"
     // start is the only new variable
     // true when game is ok to start.
     let goHome = document.querySelector(".navHome")
@@ -106,10 +107,9 @@
     let waiting = document.getElementById("waitingRoom");
     let winner = document.getElementById("winner");
     let wss = document.location.protocol == "https:" ? "wss://" : "ws://"
-    let socket = new WebSocket(wss + document.location.host + "/ws/" + id);
+    let socket = new WebSocket(wss + document.location.host + "/chain/ws/" + id);
     let chain = new chainReaction(6, 9, "red");
     let typing = document.getElementById("chat-form");
-    let start = false
     function resize() {
         let width = window.screen.availWidth
         // let hieght = window.screen.availHeight
@@ -140,10 +140,10 @@
     bar.canvas.width = chain.canvas.width;
     // height is 10% of width
     bar.canvas.height = bar.canvas.width * 0.05;
-    goHome.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
-    ext.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host
+    goHome.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host + "/chain"
+    ext.onclick = () => document.location.href = document.location.protocol + "//" + document.location.host + "/chain"
     chain.grctx.canvas.onclick = (event) => {
-        if (chain.state === true && start === true && chain.color === chain.mycolor) {
+        if (chain.state === true && window.startt === true && chain.color === chain.mycolor) {
         let canvasObj = event.target.getBoundingClientRect();
         // Get the square coords clicked
         let x = Math.floor((event.clientX - canvasObj.left) / chain.squareLength);
@@ -168,7 +168,7 @@
     }
     chain.msgHandler["start"] = (data) => {
         chain.statCtx.clearRect(0, 0, chain.canvas.width, chain.canvas.height);
-        start = true
+        window.startt = true
         waiting.style.display = "none";
         winner.innerHTML = "";
         chain.color = data.turn;
@@ -182,6 +182,7 @@
     }
     chain.msgHandler["move"] = (data) => {
         // handle when person leaves.
+        chain.move(data.x, data.y, data.color);
         if (data.animation.length === 0) {
                     // Made a move, no explosion
                     chain.draw(...data.static[0][0]);
@@ -244,7 +245,7 @@
     let boardBtn = document.getElementById("boardBtn");
     boardBtn.onclick = () => {
         // Size bounds for cols and rows is [5, 30]
-        if (start === true) { return }
+        if (window.startt === true) { return }
         chain.rows = rows.value !== "" ? Math.max(5, parseInt(rows.value)) : 5;
         chain.cols = cols.value !== "" ? Math.max(5, parseInt(cols.value)) : 5;
         if (chain.rows > 30) {
@@ -260,7 +261,7 @@
     }
     let enter = document.querySelector("#entBtn");
     // Start the game.
-    if (enter !== null && start !== true) {
+    if (enter !== null && window.startt !== true) {
         enter.onclick = () => {
             if (parseInt(players.innerText) >= 2) {
                 socket.send(JSON.stringify({

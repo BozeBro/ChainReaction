@@ -24,9 +24,18 @@ func main() {
 		} else {
 			// running locally
 			port = os.Getenv("PORT")
+   //    config := tls.Config{InsecureSkipVerify: true}
+			// srv := &http.Server{
+			// 	Handler:      r,
+			// 	Addr:         ":" + port,
+			// 	WriteTimeout: 2 * time.Second,
+			// 	ReadTimeout:  2 * time.Second,
+   //      TLSConfig: &config,
+			// }
 		}
 	}
 	srv := &http.Server{
+
 		Handler:      r,
 		Addr:         ":" + port,
 		WriteTimeout: 2 * time.Second,

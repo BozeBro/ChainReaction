@@ -19,13 +19,13 @@ let joinHandler = () => {
 
 }
 let botHandler = () => {
-    fetch("/chain/api/bot/", {
+    fetch("/api/bot/", {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         redirect: 'follow',
         credentials: 'same-origin',
     })
-    .then(async (res) => location.href = '/chain/game/' + await res.text())
+    .then(async (res) => location.href = '/game/' + await res.text())
 }
 let btnClicked = (e) => {
     const isbtnClicked = e.target.nodeName === "BUTTON";
@@ -43,7 +43,7 @@ let btnClicked = (e) => {
                 let pin = document.getElementById("pin").value;
                 let username = document.getElementById("username").value;
                 if (room === "" || pin === "") return
-                fetch("/chain/api/join/", {
+                fetch("/api/join/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: username, room: room, pin: pin, }),
@@ -61,7 +61,7 @@ let btnClicked = (e) => {
                                 errJoin.innerHTML = "The room doesn't exist"
                                 break
                             case 200:
-                                location.href = '/chain/game/' + await res.text()
+                                location.href = '/game/' + await res.text()
                                 break;
                             default:
                                 errJoin.innerHTML = "Waiting on the server"
@@ -79,7 +79,7 @@ let btnClicked = (e) => {
                     return
                 }
                 DOMName.value = ""
-                fetch("/chain/api/create/", {
+                fetch("/api/create/", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: user, players: players, room: room }),
@@ -95,7 +95,7 @@ let btnClicked = (e) => {
                                 errCre.innerHTML = "WHAT ARE YOU DOING?!";
                                 break
                             case 200:
-                                location.href = '/chain/game/' + await res.text()
+                                location.href = '/game/' + await res.text()
                                 break
                             default:
                                 errCre.innerHTML = "Waiting on the server"
