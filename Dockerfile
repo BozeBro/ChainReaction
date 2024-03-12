@@ -5,5 +5,7 @@ WORKDIR /chain
 COPY . .
 
 RUN go build -o ./bin/ChainReaction
-EXPOSE 3000
+EXPOSE 80
+ENV PORT="80"
+
 ENTRYPOINT ./bin/ChainReaction
